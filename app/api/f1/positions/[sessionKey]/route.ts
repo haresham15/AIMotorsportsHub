@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
 export const maxDuration = 60; // Allow more time for large fetches
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ sessionKey: string }> }
 ) {
   const { sessionKey } = await params;
@@ -26,7 +26,7 @@ export async function GET(
 
     // Downsample if requested (to avoid huge payloads)
     if (downsample > 1 && Array.isArray(data)) {
-      data = data.filter((_: any, index: number) => index % downsample === 0)
+      data = data.filter((_: unknown, index: number) => index % downsample === 0)
     }
 
     return NextResponse.json(data)

@@ -12,7 +12,8 @@ export default function LoginPage() {
   const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
-    setMounted(true)
+    // Avoid synchronous state updates in effect
+    setTimeout(() => setMounted(true), 0)
 
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {

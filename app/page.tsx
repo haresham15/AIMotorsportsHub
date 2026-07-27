@@ -61,7 +61,11 @@ export default function Home() {
   }, [supabase.auth, router, fetchSummaries])
 
   useEffect(() => {
-    checkUser()
+    // Avoid synchronous state updates in effect
+    const timer = setTimeout(() => {
+      checkUser()
+    }, 0)
+    return () => clearTimeout(timer)
   }, [checkUser])
 
   const handleLogout = async () => {

@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const year = searchParams.get('year') || new Date().getFullYear().toString()
 
@@ -19,6 +19,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       season: year,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       driverStandings: driverStandings.map((ds: any) => ({
         position: parseInt(ds.position),
         points: parseFloat(ds.points),
@@ -31,6 +32,7 @@ export async function GET(request: Request) {
         constructorId: ds.Constructors[0]?.constructorId,
         constructorName: ds.Constructors[0]?.name
       })),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       constructorStandings: constructorStandings.map((cs: any) => ({
         position: parseInt(cs.position),
         points: parseFloat(cs.points),

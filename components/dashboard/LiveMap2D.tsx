@@ -57,6 +57,7 @@ export default function LiveMap2D({ series, round = 1, sessionKey = null }: Live
             // OpenF1 location frequency is ~30Hz, so 30 * 90 = 2700 points, downsampled by 10 = 270 points
             // For simplicity, we just take the first 1000 points to form a closed loop approximation
             const pointsToTake = Math.min(posData.length, 1200)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const referenceLine: Point2D[] = posData.slice(0, pointsToTake).map((p: any) => ({
               // OpenF1 uses a 3D coordinate system where X and Y are in metres.
               // Depending on the circuit, we might need to flip or scale, but we'll try raw first.

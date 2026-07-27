@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
 interface OpenF1Session {
   session_key: number
@@ -16,7 +16,7 @@ interface OpenF1Session {
   year: number
 }
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const year = searchParams.get('year') || new Date().getFullYear().toString()
 
@@ -34,6 +34,7 @@ export async function GET(request: Request) {
     const now = new Date()
     let currentRound = 1
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rounds = races.map((race: any) => {
       const raceDate = new Date(`${race.date}T${race.time || '00:00:00Z'}`)
       

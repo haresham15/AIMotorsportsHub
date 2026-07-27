@@ -61,7 +61,11 @@ export default function SeriesDashboard() {
 
 
   useEffect(() => {
-    checkUser()
+    // Avoid synchronous state updates in effect
+    const timer = setTimeout(() => {
+      checkUser()
+    }, 0)
+    return () => clearTimeout(timer)
   }, [checkUser])
 
   useEffect(() => {
@@ -82,6 +86,7 @@ export default function SeriesDashboard() {
         setSelectedRound(schedule.currentRound)
         
         const currentRoundData = schedule.rounds.find((r: Round) => r.round === schedule.currentRound)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const raceSession = currentRoundData?.sessions.find((s: any) => s.name === 'Race') || currentRoundData?.sessions[0]
         if (raceSession) setSelectedSessionKey(raceSession.key)
       } catch (err) {

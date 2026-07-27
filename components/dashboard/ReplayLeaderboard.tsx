@@ -12,12 +12,13 @@ interface Props {
 }
 
 export default function ReplayLeaderboard({ data, frame, selectedDrivers, onSelect }: Props) {
-  if (!frame) return null
-
   const sorted = useMemo(() => {
+    if (!frame) return []
     return Object.entries(frame.drivers)
       .sort(([, a], [, b]) => a.position - b.position)
   }, [frame])
+
+  if (!frame) return null
 
   const leaderDist = sorted[0]?.[1]?.dist ?? 0
 
