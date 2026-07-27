@@ -2,9 +2,9 @@
 
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import type { ReplayData, PlaybackState, RaceFrame, Point2D } from '@/lib/replayTypes'
-import { getTrackForSeries } from '@/lib/trackData'
+import { getTrackForCircuit } from '@/lib/trackData'
 import { generateReplayData } from '@/lib/raceSimulator'
-import { SERIES_DRIVERS } from '@/lib/data'
+import { getDriverColor, SERIES_DRIVERS } from '@/lib/data'
 import RaceReplayCanvas from './RaceReplayCanvas'
 import ReplayControls from './ReplayControls'
 import ReplayLeaderboard from './ReplayLeaderboard'
@@ -15,9 +15,18 @@ interface LiveMap2DProps {
   series: string
   round?: number
   sessionKey?: number | null
+  circuitName?: string
+  country?: string
+  driverStandings?: Array<{
+    code: string;
+    firstName: string;
+    lastName: string;
+    driverNumber: string;
+    constructorName: string;
+  }>
 }
 
-export default function LiveMap2D({ series, round = 1, sessionKey = null }: LiveMap2DProps) {
+export default function LiveMap2D({ series, round = 1, sessionKey = null, circuitName, country, driverStandings }: LiveMap2DProps) {
   const [replayData, setReplayData] = useState<ReplayData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -42,25 +51,27 @@ export default function LiveMap2D({ series, round = 1, sessionKey = null }: Live
 
     const loadData = async () => {
       try {
+        const driversList = driverStandings ? driverStandings.map(d => ({
+          code: d.code || d.lastName.substring(0,3).toUpperCase(),
+          name: d.firstName + ' ' + d.lastName,
+          number: parseInt(d.driverNumber) || 0,
+          team: d.constructorName,
+          color: getDriverColor(series, d.code) || '#ffffff'
+        })) : (SERIES_DRIVERS[series] || SERIES_DRIVERS['f1'])
+
         if (series === 'f1' && sessionKey) {
-          // Attempt to fetch real track geometry from OpenF1
-          // We fetch 1 driver's data downsampled to create a clean reference line
-          const posRes = await fetch(`/api/f1/positions/${sessionKey}?driver_number=1&downsample=10`)
-          const posData = await posRes.json()
+          // Fetch exact circuit layout from a single fast lap trace
+          const leaderNumber = driversList[0]?.number || 1
+          const pathRes = await fetch(`/api/f1/circuit_path/${sessionKey}?driver_number=${leaderNumber}`)
+          const pathData = await pathRes.json()
 
           if (cancelled) return
 
-          if (posData && Array.isArray(posData) && posData.length > 100) {
-            console.log(`[LiveMap2D] Fetched real OpenF1 circuit geometry: ${posData.length} points`)
+          if (pathData && Array.isArray(pathData) && pathData.length > 50) {
+            console.log(`[LiveMap2D] Fetched real OpenF1 circuit geometry: ${pathData.length} points`)
             
-            // Extract a single lap roughly (assuming ~90 seconds lap time at 10 downsample)
-            // OpenF1 location frequency is ~30Hz, so 30 * 90 = 2700 points, downsampled by 10 = 270 points
-            // For simplicity, we just take the first 1000 points to form a closed loop approximation
-            const pointsToTake = Math.min(posData.length, 1200)
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const referenceLine: Point2D[] = posData.slice(0, pointsToTake).map((p: any) => ({
-              // OpenF1 uses a 3D coordinate system where X and Y are in metres.
-              // Depending on the circuit, we might need to flip or scale, but we'll try raw first.
+            const referenceLine: Point2D[] = pathData.map((p: any) => ({
               x: p.x,
               y: p.y
             }))
@@ -85,7 +96,7 @@ export default function LiveMap2D({ series, round = 1, sessionKey = null }: Live
               y: (p.y - minY - height/2) * scale
             }))
 
-            const baseTrack = getTrackForSeries(series)
+            const baseTrack = getTrackForCircuit(circuitName, series)
             const track = {
               ...baseTrack,
               referenceLine: normalizedLine,
@@ -94,8 +105,7 @@ export default function LiveMap2D({ series, round = 1, sessionKey = null }: Live
               outerEdge: []
             }
 
-            const drivers = SERIES_DRIVERS[series] || SERIES_DRIVERS['f1']
-            const simData = generateReplayData(series, track, drivers)
+            const simData = generateReplayData(series, track, driversList)
             
             setReplayData(simData)
             setDataSource('openf1')
@@ -112,23 +122,29 @@ export default function LiveMap2D({ series, round = 1, sessionKey = null }: Live
 
         if (json.source === 'simulation' || !json.frames) {
           console.log(`[LiveMap2D] No API data for ${series}, using fallback simulation`)
-          const track = getTrackForSeries(series)
-          const drivers = SERIES_DRIVERS[series] || SERIES_DRIVERS['f1']
-          const simData = generateReplayData(series, track, drivers)
+          const track = getTrackForCircuit(circuitName, series)
+          const simData = generateReplayData(series, track, driversList)
           setReplayData(simData)
           setDataSource('simulation')
         } else {
           console.log(`[LiveMap2D] Loaded API data for ${series}: ${json.frames.length} frames`)
-          const track = json.trackGeometry ? { ...getTrackForSeries(series), ...json.trackGeometry } : getTrackForSeries(series)
+          const track = json.trackGeometry ? { ...getTrackForCircuit(circuitName, series), ...json.trackGeometry } : getTrackForCircuit(circuitName, series)
           setReplayData({ ...json, trackGeometry: track })
           setDataSource('api')
         }
       } catch (err) {
         console.warn(`[LiveMap2D] Fetch failed for ${series}, using simulation:`, err)
         if (cancelled) return
-        const track = getTrackForSeries(series)
-        const drivers = SERIES_DRIVERS[series] || SERIES_DRIVERS['f1']
-        const simData = generateReplayData(series, track, drivers)
+        const track = getTrackForCircuit(circuitName, series)
+        const fallbackDrivers = driverStandings ? driverStandings.map(d => ({
+          code: d.code || d.lastName.substring(0,3).toUpperCase(),
+          name: d.firstName + ' ' + d.lastName,
+          number: parseInt(d.driverNumber) || 0,
+          team: d.constructorName,
+          color: getDriverColor(series, d.code) || '#ffffff'
+        })) : (SERIES_DRIVERS[series] || SERIES_DRIVERS['f1'])
+
+        const simData = generateReplayData(series, track, fallbackDrivers)
         setReplayData(simData)
         setDataSource('simulation')
       } finally {
@@ -138,7 +154,7 @@ export default function LiveMap2D({ series, round = 1, sessionKey = null }: Live
 
     loadData()
     return () => { cancelled = true }
-  }, [series, round, sessionKey])
+  }, [series, round, sessionKey, circuitName, country, driverStandings])
 
   // ── Playback state handler ─────────────────────────────────────
   const handlePlaybackChange = useCallback((partial: Partial<PlaybackState>) => {

@@ -40,7 +40,8 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
 
   /* ── compute viewport transform (world → screen) ─────────────── */
   const getTransform = useCallback((w: number, h: number) => {
-    const all = [...data.trackGeometry.innerEdge, ...data.trackGeometry.outerEdge]
+    let all = [...data.trackGeometry.innerEdge, ...data.trackGeometry.outerEdge]
+    if (all.length === 0) all = data.trackGeometry.referenceLine
     if (all.length === 0) return { scale: 1, tx: 0, ty: 0 }
     const b = bounds(all)
     const pad = 0.08
@@ -92,56 +93,85 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
 
     const isDrag = data.trackGeometry.type === 'drag'
 
-    /* draw track edges */
-    const drawLine = (pts: Point2D[], color: string, width: number) => {
+    /* draw track line */
+    const drawLine = (pts: Point2D[], color: string, width: number, isClosed = false) => {
       if (pts.length < 2) return
       ctx.beginPath()
+      ctx.lineCap = 'round'
+      ctx.lineJoin = 'round'
       const s0 = toScreen(pts[0])
       ctx.moveTo(s0.x, s0.y)
       for (let i = 1; i < pts.length; i++) {
         const s = toScreen(pts[i])
         ctx.lineTo(s.x, s.y)
       }
-      if (!isDrag) ctx.closePath()
+      if (isClosed && !isDrag) ctx.closePath()
       ctx.strokeStyle = color
       ctx.lineWidth = width
       ctx.stroke()
     }
 
-    /* track glow */
-    drawLine(data.trackGeometry.outerEdge, trackColor, isDrag ? 30 : 6)
-    drawLine(data.trackGeometry.innerEdge, trackColor, isDrag ? 30 : 6)
+    if (isDrag) {
+      drawLine(data.trackGeometry.outerEdge, trackColor, 30)
+      drawLine(data.trackGeometry.innerEdge, trackColor, 30)
+      const edgeColor = frame.trackStatus === '4' ? 'rgba(249,115,22,0.5)'
+        : frame.trackStatus === '2' ? 'rgba(234,179,8,0.5)' : 'rgba(100,160,255,0.3)'
+      drawLine(data.trackGeometry.outerEdge, edgeColor, 2)
+      drawLine(data.trackGeometry.innerEdge, edgeColor, 2)
+      ctx.setLineDash([8, 5])
+      drawLine(data.trackGeometry.referenceLine, 'rgba(96,165,250,0.12)', 1)
+      ctx.setLineDash([])
+    } else {
+      /* F1 style thick segmented track line based on f1dash */
+      const ref = data.trackGeometry.referenceLine
+      if (ref.length > 0) {
+        drawLine(ref, trackColor, 12, true) // Base glow
 
-    /* track edges (solid) */
-    const edgeColor = frame.trackStatus === '4' ? 'rgba(249,115,22,0.5)'
-      : frame.trackStatus === '2' ? 'rgba(234,179,8,0.5)'
-        : 'rgba(100,160,255,0.3)'
-    drawLine(data.trackGeometry.outerEdge, edgeColor, isDrag ? 2 : 2.5)
-    drawLine(data.trackGeometry.innerEdge, edgeColor, isDrag ? 2 : 2.5)
+        // Split into 3 sectors
+        const n = ref.length
+        const s1End = Math.floor(n / 3)
+        const s2End = Math.floor(2 * n / 3)
 
-    /* racing line (dashed) */
-    ctx.setLineDash([8, 5])
-    drawLine(data.trackGeometry.referenceLine, 'rgba(96,165,250,0.12)', 1)
-    ctx.setLineDash([])
+        const sec1 = ref.slice(0, s1End + 1)
+        const sec2 = ref.slice(s1End, s2End + 1)
+        const sec3 = ref.slice(s2End)
+        if (sec3.length > 0 && n > 0) sec3.push(ref[0])
+
+        drawLine(sec1, '#ef4444', 6) // Sector 1 Red
+        drawLine(sec2, '#06b6d4', 6) // Sector 2 Teal
+        drawLine(sec3, '#eab308', 6) // Sector 3 Yellow
+      }
+    }
 
     /* DRS zones */
     if (playback.showDrsZones && data.trackGeometry.drsZones) {
       for (const zone of data.trackGeometry.drsZones) {
-        const pts = data.trackGeometry.outerEdge.slice(zone.startIdx, zone.endIdx + 1)
-        if (pts.length > 1) drawLine(pts, 'rgba(34,197,94,0.6)', 4)
+        const source = data.trackGeometry.outerEdge.length > 0 ? data.trackGeometry.outerEdge : data.trackGeometry.referenceLine
+        const pts = source.slice(zone.startIdx, zone.endIdx + 1)
+        if (pts.length > 1) drawLine(pts, 'rgba(34,197,94,0.8)', 10)
       }
     }
 
     /* start/finish line */
     if (!isDrag) {
-      const sfIdx = data.trackGeometry.startFinishIdx
-      const inner = data.trackGeometry.innerEdge
-      const outer = data.trackGeometry.outerEdge
-      if (sfIdx < inner.length && sfIdx < outer.length) {
-        const a = toScreen(inner[sfIdx])
-        const b = toScreen(outer[sfIdx])
+      const sfIdx = data.trackGeometry.startFinishIdx || 0
+      const ref = data.trackGeometry.referenceLine
+      if (ref.length > Math.max(1, sfIdx)) {
+        const p = ref[sfIdx]
+        const next = ref[(sfIdx + 1) % ref.length]
+        const dx = next.x - p.x
+        const dy = next.y - p.y
+        const len = Math.sqrt(dx * dx + dy * dy) || 1
+        const nx = -dy / len
+        const ny = dx / len
+        
+        // 5 pixels width on screen
+        const sfLength = 5 / scale 
+        const a = toScreen({ x: p.x + nx * sfLength, y: p.y + ny * sfLength })
+        const b = toScreen({ x: p.x - nx * sfLength, y: p.y - ny * sfLength })
+        
         ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y)
-        ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 2; ctx.stroke()
+        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 4; ctx.stroke()
       }
     } else {
       /* drag strip: start + finish lines */

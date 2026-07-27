@@ -1,7 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabaseClient'
+import { useState } from 'react'
 import { Star, UserPlus } from 'lucide-react'
 
 interface MySupportedProps {
@@ -19,35 +18,29 @@ interface FollowedDriver {
   }
 }
 
-export default function MySupported({ series }: MySupportedProps) {
-  const [followed, setFollowed] = useState<FollowedDriver[]>([])
-  const [loading, setLoading] = useState(true)
-  const supabase = createClient()
-
-  useEffect(() => {
-    fetchFollowed()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [series])
-
-  const fetchFollowed = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const { data, error } = await supabase
-        .from('user_followed_drivers')
-        .select('driver_id, drivers!inner(name, team_id, series_id, teams(name))')
-        .eq('user_id', user.id)
-        .eq('drivers.series_id', series)
-
-      if (error) throw error
-      setFollowed(data as unknown as FollowedDriver[] || [])
-    } catch (error) {
-      console.error('Error fetching followed drivers:', error)
-    } finally {
-      setLoading(false)
+const MOCK_FOLLOWED = [
+  {
+    driver_id: 'd1',
+    drivers: {
+      name: 'Max Verstappen',
+      team_id: 't1',
+      teams: { name: 'Red Bull Racing' }
+    }
+  },
+  {
+    driver_id: 'd2',
+    drivers: {
+      name: 'Lando Norris',
+      team_id: 't2',
+      teams: { name: 'McLaren' }
     }
   }
+]
+
+export default function MySupported({ series }: MySupportedProps) {
+  // Using mock data for portfolio showcase
+  const [followed] = useState<FollowedDriver[]>(series === 'f1' ? MOCK_FOLLOWED : [])
+  const loading = false
 
   if (loading) {
     return (

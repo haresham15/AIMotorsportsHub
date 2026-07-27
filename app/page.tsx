@@ -1,20 +1,13 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabaseClient'
 import Link from 'next/link'
 import { SERIES, MOCK_NOTIFICATIONS, type NotificationItem } from '@/lib/data'
-import { Bell, LogOut, ChevronRight, Zap, Trophy, Clock, AlertTriangle } from 'lucide-react'
+import { Bell, ChevronRight, Zap, Trophy, Clock, AlertTriangle } from 'lucide-react'
 
 export default function Home() {
-  const [user, setUser] = useState<Record<string, unknown> | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [summaries, setSummaries] = useState<Record<string, string>>({})
   const [showNotifications, setShowNotifications] = useState(false)
-  const router = useRouter()
-  const supabase = createClient()
 
   const fetchSummaries = useCallback(async () => {
     const summaryPromises = SERIES.map(async (sport) => {
@@ -35,43 +28,9 @@ export default function Home() {
     setSummaries(summaryMap)
   }, [])
 
-  const checkUser = useCallback(async () => {
-    try {
-      const controller = new AbortController()
-      const timeout = setTimeout(() => controller.abort(), 10000)
-
-      const { data: { user } } = await supabase.auth.getUser()
-      clearTimeout(timeout)
-
-      if (!user) {
-        router.push('/login')
-        return
-      }
-      setUser(user as unknown as Record<string, unknown>)
-      setLoading(false)
-      fetchSummaries()
-    } catch (err) {
-      if (err instanceof DOMException && err.name === 'AbortError') {
-        setError('Connection timed out. Please check your internet connection.')
-        setLoading(false)
-      } else {
-        router.push('/login')
-      }
-    }
-  }, [supabase.auth, router, fetchSummaries])
-
   useEffect(() => {
-    // Avoid synchronous state updates in effect
-    const timer = setTimeout(() => {
-      checkUser()
-    }, 0)
-    return () => clearTimeout(timer)
-  }, [checkUser])
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
-  }
+    fetchSummaries()
+  }, [fetchSummaries])
 
   const getNotificationIcon = (type: NotificationItem['type']) => {
     switch (type) {
@@ -82,54 +41,6 @@ export default function Home() {
     }
   }
 
-  if (error) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'column',
-        gap: '16px',
-        padding: '24px',
-        textAlign: 'center',
-      }}>
-        <div style={{ fontSize: '48px' }}>⚠️</div>
-        <div style={{
-          color: 'var(--text-primary)',
-          fontSize: '18px',
-          fontWeight: 600,
-        }}>{error}</div>
-        <button
-          onClick={() => { setError(null); setLoading(true); checkUser() }}
-          className="btn-primary"
-        >
-          Try Again
-        </button>
-      </div>
-    )
-  }
-
-  if (loading) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'column',
-        gap: '16px',
-      }}>
-        <div style={{ fontSize: '48px' }} className="animate-float">🏎️</div>
-        <div style={{
-          color: 'var(--text-secondary)',
-          fontSize: '16px',
-          fontWeight: 300,
-          letterSpacing: '0.1em',
-        }}>Initializing Hub...</div>
-      </div>
-    )
-  }
 
   return (
     <div style={{ minHeight: '100vh', position: 'relative' }}>
@@ -281,22 +192,6 @@ export default function Home() {
               )}
             </div>
 
-            <span className="hide-mobile" style={{
-              color: 'var(--text-muted)',
-              fontSize: '13px',
-              fontWeight: 400,
-            }}>
-              {(user as Record<string, unknown>)?.email as string}
-            </span>
-
-            <button onClick={handleLogout} className="btn-danger" style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}>
-              <LogOut size={14} />
-              <span className="hide-mobile">Sign Out</span>
-            </button>
           </div>
         </div>
       </nav>

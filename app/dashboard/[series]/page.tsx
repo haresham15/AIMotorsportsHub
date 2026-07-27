@@ -1,8 +1,7 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
-import { useRouter, useParams } from 'next/navigation'
-import { createClient } from '@/lib/supabaseClient'
+import { useEffect, useState } from 'react'
+import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { SERIES_MAP } from '@/lib/data'
 import AiSummary from '@/components/dashboard/AiSummary'
@@ -10,19 +9,15 @@ import MySupported from '@/components/dashboard/MySupported'
 import LiveStandings from '@/components/dashboard/LiveStandings'
 import LiveMap2D from '@/components/dashboard/LiveMap2D'
 import Chatbot from '@/components/dashboard/Chatbot'
+import StrategyPredictor from '@/components/dashboard/StrategyPredictor'
 import WhereToWatch from '@/components/dashboard/WhereToWatch'
 import TeamHistory from '@/components/dashboard/TeamHistory'
 import RoundNavigator, { Round } from '@/components/dashboard/RoundNavigator'
 import ChampionshipStandings, { DriverStanding, ConstructorStanding } from '@/components/dashboard/ChampionshipStandings'
-import { ArrowLeft, LogOut } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 
 export default function SeriesDashboard() {
   const params = useParams()
-  const router = useRouter()
-  const [, setUser] = useState<Record<string, unknown> | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const supabase = createClient()
   const series = params.series as string
   const seriesInfo = SERIES_MAP[series]
 
@@ -31,42 +26,6 @@ export default function SeriesDashboard() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString())
   const [selectedRound, setSelectedRound] = useState<number>(1)
   const [selectedSessionKey, setSelectedSessionKey] = useState<number | null>(null)
-
-  const checkUser = useCallback(async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        // In development, allow access without auth for testing
-        if (process.env.NODE_ENV === 'development') {
-          setUser(null)
-          setLoading(false)
-          return
-        }
-        router.push('/login')
-        return
-      }
-      setUser(user as unknown as Record<string, unknown>)
-      setLoading(false)
-    } catch {
-      // In development, allow access even if Supabase is unreachable
-      if (process.env.NODE_ENV === 'development') {
-        setUser(null)
-        setLoading(false)
-        return
-      }
-      setError('Unable to connect. Please try again.')
-      setLoading(false)
-    }
-  }, [supabase.auth, router])
-
-
-  useEffect(() => {
-    // Avoid synchronous state updates in effect
-    const timer = setTimeout(() => {
-      checkUser()
-    }, 0)
-    return () => clearTimeout(timer)
-  }, [checkUser])
 
   useEffect(() => {
     if (series !== 'f1') return
@@ -97,61 +56,6 @@ export default function SeriesDashboard() {
     fetchData()
   }, [series, selectedYear])
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
-  }
-
-  if (error) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'column',
-        gap: '16px',
-        padding: '24px',
-        textAlign: 'center',
-      }}>
-        <div style={{ fontSize: '48px' }}>⚠️</div>
-        <div style={{
-          color: 'var(--text-primary)',
-          fontSize: '18px',
-          fontWeight: 600,
-        }}>{error}</div>
-        <button
-          onClick={() => { setError(null); setLoading(true); checkUser() }}
-          className="btn-primary"
-        >
-          Try Again
-        </button>
-      </div>
-    )
-  }
-
-  if (loading) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'column',
-        gap: '16px',
-      }}>
-        <div style={{ fontSize: '48px' }} className="animate-float">
-          {seriesInfo?.icon || '🏎️'}
-        </div>
-        <div style={{
-          color: 'var(--text-secondary)',
-          fontSize: '16px',
-          fontWeight: 300,
-          letterSpacing: '0.1em',
-        }}>Loading {seriesInfo?.name || 'Dashboard'}...</div>
-      </div>
-    )
-  }
 
   if (!seriesInfo) {
     return (
@@ -237,14 +141,6 @@ export default function SeriesDashboard() {
               <ArrowLeft size={14} />
               <span className="hide-mobile">Back</span>
             </Link>
-            <button onClick={handleLogout} className="btn-danger" style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}>
-              <LogOut size={14} />
-              <span className="hide-mobile">Sign Out</span>
-            </button>
           </div>
         </div>
       </nav>
@@ -285,11 +181,20 @@ export default function SeriesDashboard() {
           {/* Main Column */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', minWidth: 0 }}>
             <div className="animate-fade-in-up delay-100">
-              <LiveMap2D 
-                series={series} 
-                round={selectedRound} 
-                sessionKey={selectedSessionKey} 
-              />
+              {(() => {
+                const currentRoundData = scheduleData?.rounds.find((r) => r.round === selectedRound)
+                
+                return (
+                  <LiveMap2D 
+                    series={series} 
+                    round={selectedRound} 
+                    sessionKey={selectedSessionKey} 
+                    circuitName={currentRoundData?.circuitName}
+                    country={currentRoundData?.country}
+                    driverStandings={standingsData?.driverStandings}
+                  />
+                )
+              })()}
             </div>
             <div className="animate-fade-in-up delay-200">
               {series === 'f1' && standingsData ? (
@@ -310,6 +215,9 @@ export default function SeriesDashboard() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', minWidth: 0 }}>
             <div className="animate-fade-in-up delay-200">
               <MySupported series={series} />
+            </div>
+            <div className="animate-fade-in-up delay-250">
+              <StrategyPredictor />
             </div>
             <div className="animate-fade-in-up delay-300">
               <Chatbot series={series} />

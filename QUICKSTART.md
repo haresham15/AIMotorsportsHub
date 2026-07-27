@@ -1,6 +1,6 @@
 # Quick Start Guide
 
-Get The Motorsport Hub running in 5 minutes!
+Get The Motorsport Hub running locally in just a few minutes!
 
 ## Step 1: Install Dependencies
 
@@ -8,67 +8,40 @@ Get The Motorsport Hub running in 5 minutes!
 npm install
 ```
 
-## Step 2: Set Up Supabase
+## Step 2: Get a Gemini API Key
 
-1. Go to [supabase.com](https://supabase.com) and create a free account
-2. Create a new project
-3. Go to **SQL Editor** and paste the contents of `supabase-setup.sql`
-4. Run the SQL script
-5. Go to **Database** → **Replication** and enable real-time for `mock_live_race_data`
-6. Go to **Authentication** → **Providers** and enable Email/Password (and Google if desired)
+1. Go to [Google AI Studio](https://aistudio.google.com/app/apikey).
+2. Create a new API key.
+3. Copy the key.
 
-## Step 3: Get API Keys
+## Step 3: Configure Environment
 
-1. **Supabase**: Go to Project Settings → API
-   - Copy `Project URL` → `NEXT_PUBLIC_SUPABASE_URL`
-   - Copy `anon public` key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - Copy `service_role` key → `SUPABASE_SERVICE_KEY`
-
-2. **Google Gemini**: Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
-   - Create a new API key
-   - Copy it → `GEMINI_API_KEY`
-
-## Step 4: Configure Environment
-
-Create `.env.local` file in the root directory:
+Create a `.env.local` file in the root directory and add your Gemini API key:
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-SUPABASE_SERVICE_KEY=your_service_key
-GEMINI_API_KEY=your_gemini_key
+GEMINI_API_KEY=your_gemini_key_here
 ```
 
-## Step 5: Run the App
+## Step 4: Run the App
+
+Start the Next.js development server:
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000)
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Step 6: Test Live Data (Optional)
+## Step 5: Explore the Features
 
-In a separate terminal, run the mock data generator:
-
-```bash
-python scripts/generate_mock_data.py
-```
-
-This will update the race data, and you should see real-time updates in the dashboard!
-
-## Troubleshooting
-
-- **"No race data available"**: Make sure you ran `supabase-setup.sql` which includes sample data
-- **AI summaries not working**: Check that `GEMINI_API_KEY` is set correctly
-- **Real-time not updating**: Verify real-time is enabled in Supabase for `mock_live_race_data` table
-- **Login not working**: Check Supabase Auth providers are enabled
+- **No Login Required**: Jump straight into the dashboard!
+- **AI Race Engineer**: Open the chatbot on a series dashboard and ask it for strategy advice. It will automatically read the simulated live telemetry.
+- **ML Strategy Predictor**: Watch the TensorFlow.js model train on the fly and update its predictions for tire degradation on the right side of the dashboard.
 
 ## Next Steps
 
-- Customize the dashboard components
-- Add more drivers/teams to the database
-- Deploy to Vercel for production
+- Deploy the application to Vercel (see [DEPLOYMENT.md](./DEPLOYMENT.md)).
+- Customize the ML models in `lib/ml/tireModel.ts`.
+- Enhance the AI Chatbot prompts in `app/api/ai/chat/route.ts`.
 
 Happy racing! 🏁
-

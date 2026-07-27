@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { createClient } from "@supabase/supabase-js";
 
 const MAX_PROMPT_LENGTH = 500;
 
@@ -37,41 +36,13 @@ export async function POST(request: NextRequest) {
 
     const seriesName = seriesFullNames[series] || series.toUpperCase();
 
-    // Try to get live race context from Supabase
-    let raceContext = "";
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-    const supabaseKey = process.env.SUPABASE_SERVICE_KEY?.trim();
-
-    if (supabaseUrl && supabaseKey) {
-      try {
-        const supabase = createClient(supabaseUrl, supabaseKey);
-        const { data: raceData } = await supabase
-          .from("mock_live_race_data")
-          .select("*, drivers(name, series_id)")
-          .order("position", { ascending: true })
-          .limit(20);
-
-        if (raceData && raceData.length > 0) {
-          const seriesData = raceData.filter(
-            (d: Record<string, unknown>) => {
-              const drivers = d.drivers as Record<string, unknown> | null;
-              return drivers?.series_id === series;
-            }
-          );
-          if (seriesData.length > 0) {
-            const standings = seriesData.map(
-              (d: Record<string, unknown>) => {
-                const drivers = d.drivers as Record<string, string> | null;
-                return `P${d.position}: ${drivers?.name || "Unknown"} (Gap: ${d.gap_to_leader}, Last Lap: ${d.last_lap}, Tires: ${d.tire_compound})`;
-              }
-            );
-            raceContext = `\n\nCurrent live race standings for ${seriesName}:\n${standings.join("\n")}`;
-          }
-        }
-      } catch {
-        raceContext = "\n\nNote: Live race data is currently unavailable.";
-      }
-    }
+    // Use mock race context for the portfolio project
+    let raceContext = `
+Current simulated live race standings for ${seriesName}:
+P1: Max Verstappen (Gap: Interval, Last Lap: 1:30.231, Tires: Medium)
+P2: Lando Norris (Gap: +2.145, Last Lap: 1:30.412, Tires: Hard)
+P3: Charles Leclerc (Gap: +5.321, Last Lap: 1:30.655, Tires: Medium)
+`;
 
     const apiKey = process.env.GEMINI_API_KEY?.trim();
     if (!apiKey) {

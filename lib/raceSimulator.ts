@@ -185,7 +185,11 @@ export function generateReplayData(
   // Initialize driver states
   const activeDrivers = drivers.slice(0, config.driverCount);
   const driverStates: DriverSimState[] = activeDrivers.map((driver, idx) => {
-    const speedMult = 1 + rng.range(-config.speedVariation, config.speedVariation);
+    // Bias speed by input order (standings position): P1 fastest, last slowest
+    const driverCount = Math.max(1, activeDrivers.length - 1);
+    const positionFactor = 1 - (idx / driverCount); // 1.0 for first, 0.0 for last
+    const speedBias = config.speedVariation * 2 * positionFactor - config.speedVariation;
+    const speedMult = 1 + speedBias + rng.range(-config.speedVariation * 0.15, config.speedVariation * 0.15);
     const startOffset = idx * config.gridSpreadFactor * lapDistWorld;
     const tyre = config.tyreCompounds[rng.int(0, config.tyreCompounds.length - 1)];
 

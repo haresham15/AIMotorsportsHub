@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabaseClient'
 import { BarChart3 } from 'lucide-react'
 
 interface LiveStandingsProps {
@@ -20,55 +19,47 @@ interface RaceData {
   }
 }
 
+const INITIAL_DATA: RaceData[] = [
+  { driver_id: '1', position: 1, gap_to_leader: 'Interval', last_lap: '1:30.231', tire_compound: 'Medium', drivers: { name: 'Max Verstappen', series_id: 'f1' } },
+  { driver_id: '2', position: 2, gap_to_leader: '+2.145', last_lap: '1:30.412', tire_compound: 'Hard', drivers: { name: 'Lando Norris', series_id: 'f1' } },
+  { driver_id: '3', position: 3, gap_to_leader: '+5.321', last_lap: '1:30.655', tire_compound: 'Medium', drivers: { name: 'Charles Leclerc', series_id: 'f1' } },
+  { driver_id: '4', position: 4, gap_to_leader: '+12.433', last_lap: '1:31.002', tire_compound: 'Hard', drivers: { name: 'Lewis Hamilton', series_id: 'f1' } },
+  { driver_id: '5', position: 5, gap_to_leader: '+18.991', last_lap: '1:31.123', tire_compound: 'Soft', drivers: { name: 'Oscar Piastri', series_id: 'f1' } },
+]
+
 export default function LiveStandings({ series }: LiveStandingsProps) {
   const [raceData, setRaceData] = useState<RaceData[]>([])
   const [loading, setLoading] = useState(true)
-  const supabase = createClient()
 
   useEffect(() => {
-    fetchRaceData()
+    // Initial load
+    const filtered = INITIAL_DATA.filter(d => d.drivers?.series_id === series || series === 'f1')
+    setRaceData(filtered)
+    setLoading(false)
 
-    const channel = supabase
-      .channel(`live-race-data-${series}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'mock_live_race_data',
-        },
-        () => {
-          fetchRaceData()
-        }
-      )
-      .subscribe()
+    // Simulate live updates
+    const interval = setInterval(() => {
+      setRaceData(currentData => {
+        return currentData.map(d => {
+          if (d.position === 1) return d;
+          const currentGap = parseFloat(d.gap_to_leader.replace('+', ''))
+          // Randomly fluctuate gap between -0.2 and +0.2
+          const change = (Math.random() * 0.4 - 0.2)
+          const newGap = Math.max(0, currentGap + change).toFixed(3)
+          
+          // Random last lap fluctuation around 1:30.500
+          const lapMs = 90000 + (Math.random() * 2000 - 1000)
+          const mins = Math.floor(lapMs / 60000)
+          const secs = ((lapMs % 60000) / 1000).toFixed(3)
+          const newLap = `${mins}:${secs.padStart(6, '0')}`
 
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+          return { ...d, gap_to_leader: `+${newGap}`, last_lap: newLap }
+        })
+      })
+    }, 3000)
+
+    return () => clearInterval(interval)
   }, [series])
-
-  const fetchRaceData = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('mock_live_race_data')
-        .select('*, drivers(name, series_id)')
-        .order('position', { ascending: true })
-
-      if (error) throw error
-
-      // Filter by series
-      const filtered = (data || []).filter(
-        (d: RaceData) => d.drivers?.series_id === series
-      )
-      setRaceData(filtered)
-    } catch (error) {
-      console.error('Error fetching race data:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const getTireColor = (compound: string) => {
     switch (compound?.toLowerCase()) {
