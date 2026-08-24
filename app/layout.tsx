@@ -33,13 +33,26 @@ export const metadata: Metadata = {
     "live racing",
     "race dashboard",
     "Top Fuel",
+    "live telemetry",
+    "racing AI"
   ],
+  authors: [{ name: "Haresh Murugesan" }],
+  creator: "Haresh Murugesan",
+  publisher: "The Motorsport Hub",
   openGraph: {
     title: "The Motorsport Hub | Your Racing Universe",
     description:
       "Live telemetry, AI insights, and comprehensive coverage across F1, NASCAR, Formula E, and more.",
     type: "website",
     siteName: "The Motorsport Hub",
+    images: [
+      {
+        url: "/icon.jpg",
+        width: 1024,
+        height: 1024,
+        alt: "The Motorsport Hub Logo",
+      }
+    ]
   },
   twitter: {
     card: "summary_large_image",
