@@ -223,6 +223,7 @@ export default function SeriesDashboard() {
             <div className="animate-fade-in-up delay-150">
               <LiveStandings 
                 series={series} 
+                sessionKey={selectedSessionKey}
                 dataSource={series === 'f1' ? 'live' : isScanningActive ? 'cv' : 'mock'} 
                 externalData={cvData}
                 onLiveStandingsUpdate={setLiveRaceData}

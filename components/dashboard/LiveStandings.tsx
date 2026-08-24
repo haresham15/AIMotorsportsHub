@@ -5,6 +5,7 @@ import { BarChart3 } from 'lucide-react'
 
 interface LiveStandingsProps {
   series: string
+  sessionKey?: number | null
   dataSource?: "live" | "mock" | "cv"
   externalData?: CVData[]
   onLiveStandingsUpdate?: (data: RaceData[]) => void
@@ -36,25 +37,33 @@ const INITIAL_DATA: RaceData[] = [
   { driver_id: '5', position: 5, gap_to_leader: '+18.991', last_lap: '1:31.123', tire_compound: 'Soft', drivers: { name: 'Oscar Piastri', series_id: 'f1' } },
 ]
 
-export default function LiveStandings({ series, dataSource = "mock", externalData, onLiveStandingsUpdate }: LiveStandingsProps) {
+export default function LiveStandings({ series, sessionKey, dataSource = "mock", externalData, onLiveStandingsUpdate }: LiveStandingsProps) {
   const [raceData, setRaceData] = useState<RaceData[]>([])
   const [loading, setLoading] = useState(true)
   const isFetchingRef = useRef(false)
+  const previousSessionKey = useRef(sessionKey)
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout
 
     if (dataSource === 'live' && series === 'f1') {
+      // If sessionKey changes, show loading state immediately
+      if (sessionKey !== previousSessionKey.current) {
+        setLoading(true)
+        previousSessionKey.current = sessionKey
+      }
+
       const fetchLiveF1Data = async () => {
         if (isFetchingRef.current) return;
         isFetchingRef.current = true;
         try {
+          const sessionParam = sessionKey || 'latest';
           // Fetch data from OpenF1
           const [posRes, stintRes, driverRes, intervalRes] = await Promise.all([
-            fetch('https://api.openf1.org/v1/position?session_key=latest'),
-            fetch('https://api.openf1.org/v1/stints?session_key=latest'),
-            fetch('https://api.openf1.org/v1/drivers?session_key=latest'),
-            fetch('https://api.openf1.org/v1/intervals?session_key=latest')
+            fetch(`https://api.openf1.org/v1/position?session_key=${sessionParam}`),
+            fetch(`https://api.openf1.org/v1/stints?session_key=${sessionParam}`),
+            fetch(`https://api.openf1.org/v1/drivers?session_key=${sessionParam}`),
+            fetch(`https://api.openf1.org/v1/intervals?session_key=${sessionParam}`)
           ]);
 
           const [posData, stintData, driverData, intervalData] = await Promise.all([
@@ -164,7 +173,7 @@ export default function LiveStandings({ series, dataSource = "mock", externalDat
     }
 
     return () => clearInterval(intervalId)
-  }, [series, dataSource, externalData])
+  }, [series, dataSource, externalData, sessionKey, onLiveStandingsUpdate])
 
   const getTireColor = (compound: string) => {
     switch (compound?.toLowerCase()) {
