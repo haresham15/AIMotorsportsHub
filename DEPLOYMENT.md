@@ -1,6 +1,6 @@
 # Deployment Guide
 
-This guide will walk you through deploying **The Motorsport Hub** to Vercel. Since the application has been refactored to remove complex backend dependencies (like Supabase and Python) and now relies solely on Next.js and the Gemini API, deployment is incredibly fast and straightforward.
+This guide will walk you through deploying **The Motorsport Hub** to Vercel. Since the application has been refactored to use in-browser Computer Vision (Tesseract.js Web Workers) and a Multi-Agent AI Orchestrator (via Gemini), deployment is incredibly fast, 100% serverless, and requires zero external database configuration.
 
 ## Prerequisites
 
@@ -38,10 +38,11 @@ The most important step is setting up the environment variables.
    - **Value**: `your_actual_gemini_api_key_here`
 3. Click **Add**.
 
-### 4. Deploy!
+### 4. Deploy
 
 Click the **Deploy** button. Vercel will now:
-- Install your `npm` dependencies (including `@tensorflow/tfjs` and `@google/generative-ai`).
+
+- Install your `npm` dependencies (including `tesseract.js` and `@google/generative-ai`).
 - Build the Next.js application (`npm run build`).
 - Provision serverless functions for the Next.js API routes (`app/api/*`).
 
@@ -49,9 +50,9 @@ This process usually takes about 1-2 minutes.
 
 ### 5. View Your Live Application
 
-Once the deployment is complete, Vercel will provide you with a live URL (e.g., `https://aimotorsportshub.vercel.app`). 
+Once the deployment is complete, Vercel will provide you with a live URL (e.g., `https://aimotorsportshub.vercel.app`).
 
-Click on the URL to view your live, public-facing portfolio project. The ML features (TensorFlow.js) will run directly in the client's browser, and the GenAI features will securely call your Gemini API key via the Vercel serverless functions.
+Click on the URL to view your live, public-facing portfolio project. The Computer Vision features (Tesseract.js OCR) and Track Replay Engine will run directly and efficiently inside the client's browser via Web Workers, while the Multi-Agent AI will securely call your Gemini API key via the Vercel serverless functions.
 
 ## Troubleshooting
 

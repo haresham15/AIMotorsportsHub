@@ -6,12 +6,13 @@ import Link from 'next/link'
 import { SERIES_MAP } from '@/lib/data'
 import AiSummary from '@/components/dashboard/AiSummary'
 import MySupported from '@/components/dashboard/MySupported'
-import LiveStandings from '@/components/dashboard/LiveStandings'
+import LiveStandings, { RaceData } from '@/components/dashboard/LiveStandings'
 import LiveMap2D from '@/components/dashboard/LiveMap2D'
 import Chatbot from '@/components/dashboard/Chatbot'
 import StrategyPredictor from '@/components/dashboard/StrategyPredictor'
 import WhereToWatch from '@/components/dashboard/WhereToWatch'
 import TeamHistory from '@/components/dashboard/TeamHistory'
+import BroadcastScanner, { CVData } from '@/components/dashboard/BroadcastScanner'
 import RoundNavigator, { Round } from '@/components/dashboard/RoundNavigator'
 import ChampionshipStandings, { DriverStanding, ConstructorStanding } from '@/components/dashboard/ChampionshipStandings'
 import { ArrowLeft } from 'lucide-react'
@@ -26,6 +27,9 @@ export default function SeriesDashboard() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString())
   const [selectedRound, setSelectedRound] = useState<number>(1)
   const [selectedSessionKey, setSelectedSessionKey] = useState<number | null>(null)
+  const [isScanningActive, setIsScanningActive] = useState(false)
+  const [cvData, setCvData] = useState<CVData[]>([])
+  const [liveRaceData, setLiveRaceData] = useState<RaceData[]>([])
 
   useEffect(() => {
     if (series !== 'f1') return
@@ -180,6 +184,26 @@ export default function SeriesDashboard() {
         }}>
           {/* Main Column */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', minWidth: 0 }}>
+            {series !== 'f1' && !isScanningActive && (
+              <div className="animate-fade-in-up delay-100">
+                <div className="glass" style={{ padding: '16px 24px', borderRadius: 'var(--radius-xl)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 600 }}>Missing Live Data?</h3>
+                    <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)' }}>Use Computer Vision to extract standings directly from a race broadcast.</p>
+                  </div>
+                  <button onClick={() => setIsScanningActive(true)} className="btn-primary" style={{ padding: '8px 16px', fontSize: '12px' }}>
+                    Sync via Broadcast
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            {isScanningActive && (
+              <div className="animate-fade-in-up delay-100">
+                <BroadcastScanner onScan={setCvData} onClose={() => { setIsScanningActive(false); setCvData([]); }} />
+              </div>
+            )}
+
             <div className="animate-fade-in-up delay-100">
               {(() => {
                 const currentRoundData = scheduleData?.rounds.find((r) => r.round === selectedRound)
@@ -196,14 +220,20 @@ export default function SeriesDashboard() {
                 )
               })()}
             </div>
+            <div className="animate-fade-in-up delay-150">
+              <LiveStandings 
+                series={series} 
+                dataSource={series === 'f1' ? 'live' : isScanningActive ? 'cv' : 'mock'} 
+                externalData={cvData}
+                onLiveStandingsUpdate={setLiveRaceData}
+              />
+            </div>
             <div className="animate-fade-in-up delay-200">
-              {series === 'f1' && standingsData ? (
+              {series === 'f1' && standingsData && (
                 <ChampionshipStandings 
                   drivers={standingsData.driverStandings} 
                   constructors={standingsData.constructorStandings} 
                 />
-              ) : (
-                <LiveStandings series={series} />
               )}
             </div>
             <div className="animate-fade-in-up delay-300">
@@ -220,7 +250,7 @@ export default function SeriesDashboard() {
               <StrategyPredictor />
             </div>
             <div className="animate-fade-in-up delay-300">
-              <Chatbot series={series} />
+              <Chatbot series={series} contextData={{ standingsData, cvData, liveRaceData }} />
             </div>
             <div className="animate-fade-in-up delay-400">
               <WhereToWatch series={series} />

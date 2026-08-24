@@ -6,6 +6,7 @@ import { Bot, Send, Sparkles } from 'lucide-react'
 
 interface ChatbotProps {
   series: string
+  contextData?: any
 }
 
 interface Message {
@@ -13,7 +14,7 @@ interface Message {
   content: string
 }
 
-export default function Chatbot({ series }: ChatbotProps) {
+export default function Chatbot({ series, contextData }: ChatbotProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -37,7 +38,7 @@ export default function Chatbot({ series }: ChatbotProps) {
       const response = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: input, series }),
+        body: JSON.stringify({ prompt: input, series, contextData }),
       })
 
       const data = await response.json()

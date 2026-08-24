@@ -34,6 +34,7 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
   const frameIdxRef = useRef(playback.frameIndex)
 
   const [canvasSize, setCanvasSize] = useState({ w: 800, h: 450 })
+  const cachedTrackCanvasRef = useRef<HTMLCanvasElement | null>(null)
 
   /* keep ref in sync */
   useEffect(() => { frameIdxRef.current = playback.frameIndex }, [playback.frameIndex])
@@ -67,67 +68,64 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
     return () => ro.disconnect()
   }, [])
 
-  /* ── draw one frame ───────────────────────────────────────────── */
-  const drawFrame = useCallback((ctx: CanvasRenderingContext2D, w: number, h: number, frame: RaceFrame) => {
+  /* ── pre-render track cache ───────────────────────────────────── */
+  useEffect(() => {
+    if (canvasSize.w <= 0 || canvasSize.h <= 0) return;
+    const w = canvasSize.w;
+    const h = canvasSize.h;
+    const cacheCanvas = document.createElement('canvas');
+    cacheCanvas.width = w;
+    cacheCanvas.height = h;
+    const cacheCtx = cacheCanvas.getContext('2d', { alpha: false });
+    if (!cacheCtx) return;
+
     const { scale, tx, ty } = getTransform(w, h)
     const toScreen = (p: Point2D) => ({ x: p.x * scale + tx, y: h - (p.y * scale + ty) })
 
-    ctx.clearRect(0, 0, w, h)
-
     /* background */
-    ctx.fillStyle = '#060a13'
-    ctx.fillRect(0, 0, w, h)
+    cacheCtx.fillStyle = '#060a13'
+    cacheCtx.fillRect(0, 0, w, h)
 
     /* subtle grid */
-    ctx.strokeStyle = 'rgba(255,255,255,0.02)'
-    ctx.lineWidth = 1
-    for (let gx = 0; gx < w; gx += 40) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, h); ctx.stroke() }
-    for (let gy = 0; gy < h; gy += 40) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(w, gy); ctx.stroke() }
+    cacheCtx.strokeStyle = 'rgba(255,255,255,0.02)'
+    cacheCtx.lineWidth = 1
+    for (let gx = 0; gx < w; gx += 40) { cacheCtx.beginPath(); cacheCtx.moveTo(gx, 0); cacheCtx.lineTo(gx, h); cacheCtx.stroke() }
+    for (let gy = 0; gy < h; gy += 40) { cacheCtx.beginPath(); cacheCtx.moveTo(0, gy); cacheCtx.lineTo(w, gy); cacheCtx.stroke() }
 
-    /* track status colour */
-    const statusInfo = TRACK_STATUS_MAP[frame.trackStatus || '1'] || TRACK_STATUS_MAP['1']
-    const trackColor = frame.trackStatus === '4' ? 'rgba(249,115,22,0.35)'
-      : frame.trackStatus === '2' ? 'rgba(234,179,8,0.35)'
-        : frame.trackStatus === '5' ? 'rgba(239,68,68,0.35)'
-          : 'rgba(59,130,246,0.25)'
-
+    /* track status colour (use default for cache) */
+    const trackColor = 'rgba(59,130,246,0.25)'
     const isDrag = data.trackGeometry.type === 'drag'
 
-    /* draw track line */
     const drawLine = (pts: Point2D[], color: string, width: number, isClosed = false) => {
       if (pts.length < 2) return
-      ctx.beginPath()
-      ctx.lineCap = 'round'
-      ctx.lineJoin = 'round'
+      cacheCtx.beginPath()
+      cacheCtx.lineCap = 'round'
+      cacheCtx.lineJoin = 'round'
       const s0 = toScreen(pts[0])
-      ctx.moveTo(s0.x, s0.y)
+      cacheCtx.moveTo(s0.x, s0.y)
       for (let i = 1; i < pts.length; i++) {
         const s = toScreen(pts[i])
-        ctx.lineTo(s.x, s.y)
+        cacheCtx.lineTo(s.x, s.y)
       }
-      if (isClosed && !isDrag) ctx.closePath()
-      ctx.strokeStyle = color
-      ctx.lineWidth = width
-      ctx.stroke()
+      if (isClosed && !isDrag) cacheCtx.closePath()
+      cacheCtx.strokeStyle = color
+      cacheCtx.lineWidth = width
+      cacheCtx.stroke()
     }
 
     if (isDrag) {
       drawLine(data.trackGeometry.outerEdge, trackColor, 30)
       drawLine(data.trackGeometry.innerEdge, trackColor, 30)
-      const edgeColor = frame.trackStatus === '4' ? 'rgba(249,115,22,0.5)'
-        : frame.trackStatus === '2' ? 'rgba(234,179,8,0.5)' : 'rgba(100,160,255,0.3)'
-      drawLine(data.trackGeometry.outerEdge, edgeColor, 2)
-      drawLine(data.trackGeometry.innerEdge, edgeColor, 2)
-      ctx.setLineDash([8, 5])
+      drawLine(data.trackGeometry.outerEdge, 'rgba(100,160,255,0.3)', 2)
+      drawLine(data.trackGeometry.innerEdge, 'rgba(100,160,255,0.3)', 2)
+      cacheCtx.setLineDash([8, 5])
       drawLine(data.trackGeometry.referenceLine, 'rgba(96,165,250,0.12)', 1)
-      ctx.setLineDash([])
+      cacheCtx.setLineDash([])
     } else {
-      /* F1 style thick segmented track line based on f1dash */
       const ref = data.trackGeometry.referenceLine
       if (ref.length > 0) {
         drawLine(ref, trackColor, 12, true) // Base glow
 
-        // Split into 3 sectors
         const n = ref.length
         const s1End = Math.floor(n / 3)
         const s2End = Math.floor(2 * n / 3)
@@ -143,7 +141,6 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
       }
     }
 
-    /* DRS zones */
     if (playback.showDrsZones && data.trackGeometry.drsZones) {
       for (const zone of data.trackGeometry.drsZones) {
         const source = data.trackGeometry.outerEdge.length > 0 ? data.trackGeometry.outerEdge : data.trackGeometry.referenceLine
@@ -152,7 +149,6 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
       }
     }
 
-    /* start/finish line */
     if (!isDrag) {
       const sfIdx = data.trackGeometry.startFinishIdx || 0
       const ref = data.trackGeometry.referenceLine
@@ -165,30 +161,44 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
         const nx = -dy / len
         const ny = dx / len
         
-        // 5 pixels width on screen
         const sfLength = 5 / scale 
         const a = toScreen({ x: p.x + nx * sfLength, y: p.y + ny * sfLength })
         const b = toScreen({ x: p.x - nx * sfLength, y: p.y - ny * sfLength })
         
-        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y)
-        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 4; ctx.stroke()
+        cacheCtx.beginPath(); cacheCtx.moveTo(a.x, a.y); cacheCtx.lineTo(b.x, b.y)
+        cacheCtx.strokeStyle = '#ffffff'; cacheCtx.lineWidth = 4; cacheCtx.stroke()
       }
     } else {
-      /* drag strip: start + finish lines */
       const ref = data.trackGeometry.referenceLine
       if (ref.length > 2) {
         const startP = toScreen(ref[0])
         const endP = toScreen(ref[ref.length - 1])
-        ctx.strokeStyle = '#4ade80'; ctx.lineWidth = 3
-        ctx.beginPath(); ctx.moveTo(startP.x, startP.y - 40); ctx.lineTo(startP.x, startP.y + 40); ctx.stroke()
-        ctx.strokeStyle = '#f87171'
-        ctx.beginPath(); ctx.moveTo(endP.x, endP.y - 40); ctx.lineTo(endP.x, endP.y + 40); ctx.stroke()
-        ctx.fillStyle = '#4ade80'; ctx.font = '10px Inter'; ctx.textAlign = 'center'
-        ctx.fillText('START', startP.x, startP.y - 48)
-        ctx.fillStyle = '#f87171'
-        ctx.fillText('FINISH', endP.x, endP.y - 48)
+        cacheCtx.strokeStyle = '#4ade80'; cacheCtx.lineWidth = 3
+        cacheCtx.beginPath(); cacheCtx.moveTo(startP.x, startP.y - 40); cacheCtx.lineTo(startP.x, startP.y + 40); cacheCtx.stroke()
+        cacheCtx.strokeStyle = '#f87171'
+        cacheCtx.beginPath(); cacheCtx.moveTo(endP.x, endP.y - 40); cacheCtx.lineTo(endP.x, endP.y + 40); cacheCtx.stroke()
+        cacheCtx.fillStyle = '#4ade80'; cacheCtx.font = '10px Inter'; cacheCtx.textAlign = 'center'
+        cacheCtx.fillText('START', startP.x, startP.y - 48)
+        cacheCtx.fillStyle = '#f87171'
+        cacheCtx.fillText('FINISH', endP.x, endP.y - 48)
       }
     }
+    cachedTrackCanvasRef.current = cacheCanvas;
+  }, [canvasSize, data.trackGeometry, getTransform, playback.showDrsZones])
+
+  /* ── draw one frame ───────────────────────────────────────────── */
+  const drawFrame = useCallback((ctx: CanvasRenderingContext2D, w: number, h: number, frame: RaceFrame) => {
+    const { scale, tx, ty } = getTransform(w, h)
+    const toScreen = (p: Point2D) => ({ x: p.x * scale + tx, y: h - (p.y * scale + ty) })
+
+    /* draw cached background track */
+    if (cachedTrackCanvasRef.current) {
+      ctx.drawImage(cachedTrackCanvasRef.current, 0, 0)
+    } else {
+      ctx.clearRect(0, 0, w, h)
+    }
+
+    const statusInfo = TRACK_STATUS_MAP[frame.trackStatus || '1'] || TRACK_STATUS_MAP['1']
 
     /* safety car */
     if (frame.safetyCar) {

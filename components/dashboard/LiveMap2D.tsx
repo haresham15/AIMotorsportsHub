@@ -3,13 +3,29 @@
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import type { ReplayData, PlaybackState, RaceFrame, Point2D } from '@/lib/replayTypes'
 import { getTrackForCircuit } from '@/lib/trackData'
-import { generateReplayData } from '@/lib/raceSimulator'
 import { getDriverColor, SERIES_DRIVERS } from '@/lib/data'
 import RaceReplayCanvas from './RaceReplayCanvas'
 import ReplayControls from './ReplayControls'
 import ReplayLeaderboard from './ReplayLeaderboard'
 import DriverTelemetryPanel from './DriverTelemetryPanel'
 import { Loader, Radio, AlertTriangle } from 'lucide-react'
+
+// Helper to run simulation in Web Worker
+const generateReplayDataAsync = (series: string, track: any, driversList: any[]): Promise<ReplayData> => {
+  return new Promise((resolve, reject) => {
+    const worker = new Worker(new URL('../../workers/simulator.worker.ts', import.meta.url))
+    worker.onmessage = (e) => {
+      if (e.data.type === 'SUCCESS') resolve(e.data.data)
+      else reject(new Error(e.data.error))
+      worker.terminate()
+    }
+    worker.onerror = (err) => {
+      reject(err)
+      worker.terminate()
+    }
+    worker.postMessage({ series, track, driversList })
+  })
+}
 
 interface LiveMap2DProps {
   series: string
@@ -105,8 +121,9 @@ export default function LiveMap2D({ series, round = 1, sessionKey = null, circui
               outerEdge: []
             }
 
-            const simData = generateReplayData(series, track, driversList)
+            const simData = await generateReplayDataAsync(series, track, driversList)
             
+            if (cancelled) return
             setReplayData(simData)
             setDataSource('openf1')
             setLoading(false)
@@ -123,7 +140,8 @@ export default function LiveMap2D({ series, round = 1, sessionKey = null, circui
         if (json.source === 'simulation' || !json.frames) {
           console.log(`[LiveMap2D] No API data for ${series}, using fallback simulation`)
           const track = getTrackForCircuit(circuitName, series)
-          const simData = generateReplayData(series, track, driversList)
+          const simData = await generateReplayDataAsync(series, track, driversList)
+          if (cancelled) return
           setReplayData(simData)
           setDataSource('simulation')
         } else {
@@ -144,7 +162,8 @@ export default function LiveMap2D({ series, round = 1, sessionKey = null, circui
           color: getDriverColor(series, d.code) || '#ffffff'
         })) : (SERIES_DRIVERS[series] || SERIES_DRIVERS['f1'])
 
-        const simData = generateReplayData(series, track, fallbackDrivers)
+        const simData = await generateReplayDataAsync(series, track, fallbackDrivers)
+        if (cancelled) return
         setReplayData(simData)
         setDataSource('simulation')
       } finally {

@@ -1,13 +1,22 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { BarChart3 } from 'lucide-react'
 
 interface LiveStandingsProps {
   series: string
+  dataSource?: "live" | "mock" | "cv"
+  externalData?: CVData[]
+  onLiveStandingsUpdate?: (data: RaceData[]) => void
 }
 
-interface RaceData {
+export interface CVData {
+  driver_id: string;
+  position: number;
+  gap_to_leader: string;
+}
+
+export interface RaceData {
   driver_id: string
   position: number
   gap_to_leader: string
@@ -27,39 +36,135 @@ const INITIAL_DATA: RaceData[] = [
   { driver_id: '5', position: 5, gap_to_leader: '+18.991', last_lap: '1:31.123', tire_compound: 'Soft', drivers: { name: 'Oscar Piastri', series_id: 'f1' } },
 ]
 
-export default function LiveStandings({ series }: LiveStandingsProps) {
+export default function LiveStandings({ series, dataSource = "mock", externalData, onLiveStandingsUpdate }: LiveStandingsProps) {
   const [raceData, setRaceData] = useState<RaceData[]>([])
   const [loading, setLoading] = useState(true)
+  const isFetchingRef = useRef(false)
 
   useEffect(() => {
-    // Initial load
-    const filtered = INITIAL_DATA.filter(d => d.drivers?.series_id === series || series === 'f1')
-    setRaceData(filtered)
-    setLoading(false)
+    let intervalId: NodeJS.Timeout
 
-    // Simulate live updates
-    const interval = setInterval(() => {
-      setRaceData(currentData => {
-        return currentData.map(d => {
-          if (d.position === 1) return d;
-          const currentGap = parseFloat(d.gap_to_leader.replace('+', ''))
-          // Randomly fluctuate gap between -0.2 and +0.2
-          const change = (Math.random() * 0.4 - 0.2)
-          const newGap = Math.max(0, currentGap + change).toFixed(3)
+    if (dataSource === 'live' && series === 'f1') {
+      const fetchLiveF1Data = async () => {
+        if (isFetchingRef.current) return;
+        isFetchingRef.current = true;
+        try {
+          // Fetch data from OpenF1
+          const [posRes, stintRes, driverRes, intervalRes] = await Promise.all([
+            fetch('https://api.openf1.org/v1/position?session_key=latest'),
+            fetch('https://api.openf1.org/v1/stints?session_key=latest'),
+            fetch('https://api.openf1.org/v1/drivers?session_key=latest'),
+            fetch('https://api.openf1.org/v1/intervals?session_key=latest')
+          ]);
+
+          const [posData, stintData, driverData, intervalData] = await Promise.all([
+            posRes.json(), stintRes.json(), driverRes.json(), intervalRes.json()
+          ]);
+
+          // Process positions (get latest for each driver)
+          const latestPositions = new Map<number, number>();
+          for (const p of posData) {
+            latestPositions.set(p.driver_number, p.position);
+          }
+
+          // Process stints (get latest for each driver)
+          const latestStints = new Map<number, string>();
+          for (const s of stintData) {
+            latestStints.set(s.driver_number, s.compound || 'Unknown');
+          }
           
-          // Random last lap fluctuation around 1:30.500
-          const lapMs = 90000 + (Math.random() * 2000 - 1000)
-          const mins = Math.floor(lapMs / 60000)
-          const secs = ((lapMs % 60000) / 1000).toFixed(3)
-          const newLap = `${mins}:${secs.padStart(6, '0')}`
+          // Process intervals
+          const latestIntervals = new Map<number, number>();
+          for (const i of intervalData) {
+            if (i.gap_to_leader !== null && i.gap_to_leader !== undefined) {
+              latestIntervals.set(i.driver_number, i.gap_to_leader);
+            }
+          }
 
-          return { ...d, gap_to_leader: `+${newGap}`, last_lap: newLap }
+          // Build race data array
+          const newRaceData: RaceData[] = [];
+          for (const d of driverData) {
+            const pos = latestPositions.get(d.driver_number);
+            if (pos !== undefined) {
+              const gap = latestIntervals.get(d.driver_number);
+              newRaceData.push({
+                driver_id: d.driver_number.toString(),
+                position: pos,
+                gap_to_leader: gap === 0 || gap === undefined ? 'Interval' : `+${gap.toFixed(3)}`,
+                last_lap: 'Live',
+                tire_compound: latestStints.get(d.driver_number) || 'Unknown',
+                drivers: {
+                  name: d.full_name,
+                  series_id: 'f1'
+                }
+              });
+            }
+          }
+
+          // Sort by position
+          newRaceData.sort((a, b) => a.position - b.position);
+          const top20 = newRaceData.slice(0, 20)
+          setRaceData(top20); // Top 20
+          if (onLiveStandingsUpdate) onLiveStandingsUpdate(top20)
+          setLoading(false);
+        } catch (err) {
+          console.error("Error fetching live F1 data", err);
+        } finally {
+          isFetchingRef.current = false;
+        }
+      };
+
+      fetchLiveF1Data();
+      intervalId = setInterval(fetchLiveF1Data, 10000); // Poll every 10 seconds
+
+    } else if (dataSource === 'cv') {
+      if (externalData && externalData.length > 0) {
+        // Map CVData to RaceData
+        const newData = externalData.map(d => ({
+          driver_id: d.driver_id,
+          position: d.position,
+          gap_to_leader: d.gap_to_leader,
+          last_lap: 'Live',
+          tire_compound: 'Unknown',
+          drivers: { name: d.driver_id, series_id: series }
+        }));
+        setRaceData(newData);
+        if (onLiveStandingsUpdate) onLiveStandingsUpdate(newData)
+        setLoading(false);
+      } else if (raceData.length === 0) {
+        setLoading(false); // Waiting for CV scan
+      }
+    } else {
+      // Mock logic
+      const filtered = INITIAL_DATA.filter(d => d.drivers?.series_id === series || series === 'f1')
+      setRaceData(filtered)
+      if (onLiveStandingsUpdate) onLiveStandingsUpdate(filtered)
+      setLoading(false)
+
+      intervalId = setInterval(() => {
+        setRaceData(currentData => {
+          const mapped = currentData.map(d => {
+            if (d.position === 1) return d;
+            let currentGap = parseFloat(d.gap_to_leader.replace('+', ''))
+            if (isNaN(currentGap)) currentGap = 0;
+            const change = (Math.random() * 0.4 - 0.2)
+            const newGap = Math.max(0, currentGap + change).toFixed(3)
+            
+            const lapMs = 90000 + (Math.random() * 2000 - 1000)
+            const mins = Math.floor(lapMs / 60000)
+            const secs = ((lapMs % 60000) / 1000).toFixed(3)
+            const newLap = `${mins}:${secs.padStart(6, '0')}`
+
+            return { ...d, gap_to_leader: `+${newGap}`, last_lap: newLap }
+          })
+          if (onLiveStandingsUpdate) onLiveStandingsUpdate(mapped)
+          return mapped
         })
-      })
-    }, 3000)
+      }, 3000)
+    }
 
-    return () => clearInterval(interval)
-  }, [series])
+    return () => clearInterval(intervalId)
+  }, [series, dataSource, externalData])
 
   const getTireColor = (compound: string) => {
     switch (compound?.toLowerCase()) {
@@ -104,9 +209,16 @@ export default function LiveStandings({ series }: LiveStandingsProps) {
         </div>
 
         {raceData.length > 0 && (
-          <div className="live-badge">
-            <div className="live-dot" />
-            LIVE
+          <div className="live-badge" style={{ 
+            background: dataSource === 'mock' ? 'rgba(251,191,36,0.12)' : undefined, 
+            color: dataSource === 'mock' ? '#fbbf24' : dataSource === 'cv' ? '#3b82f6' : undefined,
+            border: dataSource === 'mock' ? '1px solid rgba(251,191,36,0.2)' : dataSource === 'cv' ? '1px solid rgba(59,130,246,0.2)' : undefined
+          }}>
+            <div className="live-dot" style={{ 
+              background: dataSource === 'mock' ? '#fbbf24' : dataSource === 'cv' ? '#3b82f6' : undefined, 
+              boxShadow: dataSource === 'mock' ? '0 0 8px #fbbf24' : dataSource === 'cv' ? '0 0 8px #3b82f6' : undefined 
+            }} />
+            {dataSource === 'mock' ? 'SIMULATED DATA' : dataSource === 'cv' ? 'LIVE (CV OCR)' : 'LIVE (OPENF1)'}
           </div>
         )}
       </div>
