@@ -17,6 +17,10 @@ CREATE TABLE IF NOT EXISTS documents (
   embedding vector(3072)
 );
 
+-- Note: We are using a sequential scan (no index) because pgvector's HNSW index 
+-- has a hard limit of 2000 dimensions for standard vectors, and our Gemini embeddings are 3072.
+-- For a small dataset like a rulebook, a sequential scan is extremely fast (under 10ms).
+
 -- Match function for pgvector similarity search
 CREATE OR REPLACE FUNCTION match_documents (
   query_embedding vector(3072),
@@ -328,21 +332,39 @@ DROP POLICY IF EXISTS "Users can delete own followed drivers" ON user_followed_d
 DROP POLICY IF EXISTS "Public read for race data" ON mock_live_race_data;
 
 -- Public read policies
+DROP POLICY IF EXISTS "Public read for series" ON series;
 CREATE POLICY "Public read for series" ON series FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Public read for teams" ON teams;
 CREATE POLICY "Public read for teams" ON teams FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Public read for drivers" ON drivers;
 CREATE POLICY "Public read for drivers" ON drivers FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Public read for race data" ON mock_live_race_data;
 CREATE POLICY "Public read for race data" ON mock_live_race_data FOR SELECT USING (true);
 
 -- User-specific policies for followed drivers
+DROP POLICY IF EXISTS "Users can read own followed drivers" ON user_followed_drivers;
 CREATE POLICY "Users can read own followed drivers" ON user_followed_drivers
   FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can insert own followed drivers" ON user_followed_drivers;
 CREATE POLICY "Users can insert own followed drivers" ON user_followed_drivers
   FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can delete own followed drivers" ON user_followed_drivers;
 CREATE POLICY "Users can delete own followed drivers" ON user_followed_drivers
   FOR DELETE USING (auth.uid() = user_id);
 
 -- API Keys RLS
 ALTER TABLE api_keys ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can read own api keys" ON api_keys;
 CREATE POLICY "Users can read own api keys" ON api_keys FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can insert own api keys" ON api_keys;
 CREATE POLICY "Users can insert own api keys" ON api_keys FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can delete own api keys" ON api_keys;
 CREATE POLICY "Users can delete own api keys" ON api_keys FOR DELETE USING (auth.uid() = user_id);
