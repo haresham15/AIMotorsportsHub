@@ -12,8 +12,9 @@ export default function StrategyPredictor() {
     let isMounted = true
 
     const runML = async () => {
+      let model: TireDegradationModel | null = null
       try {
-        const model = new TireDegradationModel()
+        model = new TireDegradationModel()
         // In a real app, this would use live telemetry. We train on simulated data for the POC.
         await model.train()
         
@@ -30,6 +31,9 @@ export default function StrategyPredictor() {
       } catch (error) {
         console.error('ML Model Error:', error)
       } finally {
+        if (model) {
+          model.dispose()
+        }
         if (isMounted) setLoading(false)
       }
     }

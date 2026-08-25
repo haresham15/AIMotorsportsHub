@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { SERIES_MAP } from '@/lib/data'
-import { Bot, Send, Sparkles } from 'lucide-react'
+import { Bot, Send, Sparkles, X, MessageCircle } from 'lucide-react'
 
 interface ChatbotProps {
   series: string
@@ -18,12 +18,15 @@ export default function Chatbot({ series, contextData }: ChatbotProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const seriesInfo = SERIES_MAP[series]
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+    if (isOpen) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [messages, isOpen])
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -65,8 +68,35 @@ export default function Chatbot({ series, contextData }: ChatbotProps) {
     'Championship standings',
   ]
 
+  if (!isOpen) {
+    return (
+      <button 
+        onClick={() => setIsOpen(true)}
+        className="glass-hover"
+        style={{
+          width: '64px',
+          height: '64px',
+          borderRadius: '50%',
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border-subtle)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          color: 'var(--text-primary)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+        }}
+      >
+        <MessageCircle size={28} />
+      </button>
+    )
+  }
+
   return (
-    <div className="glass" style={{
+    <div className="card" style={{
+      width: '380px',
+      background: 'var(--bg-card)',
+      border: '1px solid var(--border-subtle)',
       borderRadius: 'var(--radius-xl)',
       padding: '24px',
       display: 'flex',
@@ -74,37 +104,55 @@ export default function Chatbot({ series, contextData }: ChatbotProps) {
       height: '520px',
       position: 'relative',
       overflow: 'hidden',
+      boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
     }}>
       {/* Header */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
-        gap: '10px',
+        justifyContent: 'space-between',
         marginBottom: '16px',
         flexShrink: 0,
       }}>
-        <div style={{
-          width: '32px',
-          height: '32px',
-          borderRadius: 'var(--radius-sm)',
-          background: 'rgba(59,130,246,0.12)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#60a5fa',
-        }}>
-          <Bot size={16} />
-        </div>
-        <div>
-          <h2 style={{ fontSize: '16px', fontWeight: 700 }}>Race Engineer AI</h2>
-          <p style={{
-            fontSize: '11px',
-            color: 'var(--text-muted)',
-            fontWeight: 500,
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{
+            width: '32px',
+            height: '32px',
+            borderRadius: 'var(--radius-sm)',
+            background: 'rgba(59,130,246,0.12)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#60a5fa',
           }}>
-            {seriesInfo?.name || series.toUpperCase()} Expert
-          </p>
+            <Bot size={16} />
+          </div>
+          <div>
+            <h2 style={{ fontSize: '16px', fontWeight: 700 }}>Race Engineer AI</h2>
+            <p style={{
+              fontSize: '11px',
+              color: 'var(--text-muted)',
+              fontWeight: 500,
+            }}>
+              {seriesInfo?.name || series.toUpperCase()} Expert
+            </p>
+          </div>
         </div>
+        <button 
+          onClick={() => setIsOpen(false)}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: 'var(--text-muted)',
+            cursor: 'pointer',
+            padding: '4px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <X size={20} />
+        </button>
       </div>
 
       {/* Messages */}

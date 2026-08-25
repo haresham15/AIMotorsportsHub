@@ -36,7 +36,15 @@ export async function GET(
     const endIso = new Date(end).toISOString()
 
     // 4. Fetch the location data for this exact lap
-    const locRes = await fetch(`https://api.openf1.org/v1/location?session_key=${sessionKey}&driver_number=${driver}&date>=${startIso}&date<${endIso}`)
+    const queryParams = new URLSearchParams({
+      session_key: sessionKey,
+      driver_number: driver,
+      'date>=': startIso,
+      'date<': endIso
+    })
+
+    const url = `https://api.openf1.org/v1/location?${queryParams.toString()}`
+    const locRes = await fetch(url)
     if (!locRes.ok) throw new Error('Failed to fetch location')
     const locData = await locRes.json()
 
@@ -44,18 +52,24 @@ export async function GET(
       return NextResponse.json({ error: 'No location data found' }, { status: 404 })
     }
 
-    // 5. Return full fidelity points without downsampling for extreme accuracy
-    const points = locData.map((p: any) => ({
-      x: p.x,
-      y: p.y
-    }))
+    // 5. Downsample by taking 1 in every 3 points to shrink payload size for real-time trace
+    const points = locData
+      .filter((_: unknown, i: number) => i % 3 === 0)
+      .map((p: any) => ({
+        x: p.x,
+        y: p.y
+      }))
 
     // Ensure it forms a closed loop
     if (points.length > 0) {
       points.push({ ...points[0] })
     }
 
-    return NextResponse.json(points)
+    return NextResponse.json(points, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120'
+      }
+    })
   } catch (error) {
     console.error('Error fetching OpenF1 circuit path:', error)
     return NextResponse.json({ error: 'Failed to fetch circuit path' }, { status: 500 })

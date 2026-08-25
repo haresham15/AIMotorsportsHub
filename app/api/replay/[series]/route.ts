@@ -15,13 +15,29 @@ export async function GET(
   const { series } = await params;
   const { searchParams } = new URL(request.url);
 
+  const VALID_SERIES = ['f1', 'f2', 'f3', 'formula-e', 'nascar', 'gt-world-challenge', 'top-fuel'];
+  if (!VALID_SERIES.includes(series)) {
+    return NextResponse.json({ error: 'Invalid series requested.' }, { status: 400 });
+  }
+
   const year = searchParams.get('year') || '2024';
   const round = searchParams.get('round') || '1';
   const session = searchParams.get('session') || 'race';
 
+  // Prevent path traversal by sanitizing inputs to their basenames
+  const cleanYear = path.basename(year);
+  const cleanRound = path.basename(round);
+  const cleanSession = path.basename(session);
+
   // Construct the path to the pre-computed JSON
-  const filename = `${year}_round${round}_${session}.json`;
+  const filename = `${cleanYear}_round${cleanRound}_${cleanSession}.json`;
   const filePath = path.join(process.cwd(), 'public', 'replay-data', series, filename);
+  
+  // Extra layer of protection: ensure the resolved path still targets our public directory
+  const publicDir = path.join(process.cwd(), 'public', 'replay-data');
+  if (!filePath.startsWith(publicDir)) {
+    return NextResponse.json({ error: 'Invalid file path.' }, { status: 400 });
+  }
 
   try {
     const data = await readFile(filePath, 'utf-8');

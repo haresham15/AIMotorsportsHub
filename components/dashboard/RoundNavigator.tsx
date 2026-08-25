@@ -120,16 +120,38 @@ export default function RoundNavigator({
 
       {/* Session Tabs */}
       {current?.sessions && current.sessions.length > 0 ? (
-        <div className="round-nav__sessions">
-          {current.sessions.map(s => (
-            <button
-              key={s.key}
-              className={`round-nav__session-btn ${selectedSessionKey === s.key ? 'active' : ''}`}
-              onClick={() => onSelectSession(s.key)}
+        <div className="round-nav__sessions" style={{ position: 'relative' }}>
+          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto' }}>
+            {current.sessions.map(s => (
+              <button
+                key={s.key}
+                className={`round-nav__session-btn ${selectedSessionKey === s.key ? 'active' : ''}`}
+                onClick={() => onSelectSession(s.key)}
+              >
+                {s.name}
+              </button>
+            ))}
+          </div>
+          {current.status === 'completed' && (
+            <a 
+              href={`/results/f1/${year}/${current.round}`}
+              className="btn-ghost"
+              style={{
+                position: 'absolute',
+                right: 0,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                fontSize: '12px',
+                textDecoration: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
             >
-              {s.name}
-            </button>
-          ))}
+              View Full Results
+              <ChevronRight size={14} />
+            </a>
+          )}
         </div>
       ) : (
         <div style={{ textAlign: 'center', fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px' }}>

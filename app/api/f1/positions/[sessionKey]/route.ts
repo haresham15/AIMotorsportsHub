@@ -14,10 +14,12 @@ export async function GET(
   const downsample = parseInt(searchParams.get('downsample') || '1')
 
   try {
-    let url = `https://api.openf1.org/v1/location?session_key=${sessionKey}`
-    if (driver) url += `&driver_number=${driver}`
-    if (dateGte) url += `&date>=${dateGte}`
-    if (dateLt) url += `&date<${dateLt}`
+    const queryParams = new URLSearchParams({ session_key: sessionKey })
+    if (driver) queryParams.append('driver_number', driver)
+    if (dateGte) queryParams.append('date>=', dateGte)
+    if (dateLt) queryParams.append('date<', dateLt)
+
+    const url = `https://api.openf1.org/v1/location?${queryParams.toString()}`
 
     const response = await fetch(url)
     if (!response.ok) throw new Error('Failed to fetch from OpenF1')
@@ -29,7 +31,11 @@ export async function GET(
       data = data.filter((_: unknown, index: number) => index % downsample === 0)
     }
 
-    return NextResponse.json(data)
+    return NextResponse.json(data, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120'
+      }
+    })
   } catch (error) {
     console.error('Error fetching OpenF1 positions:', error)
     return NextResponse.json({ error: 'Failed to fetch positions' }, { status: 500 })

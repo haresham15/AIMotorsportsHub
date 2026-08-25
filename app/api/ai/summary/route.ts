@@ -28,8 +28,35 @@ export async function GET(request: NextRequest) {
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-    const prompt = `You are a professional motorsports journalist. Write a concise, engaging 2-paragraph summary of the CURRENT state of ${seriesName}. 
+    let contextData = ""
+    try {
+      if (series === 'f1') {
+        const standingsUrl = new URL('/api/f1/standings', request.url)
+        const scheduleUrl = new URL('/api/f1/schedule', request.url)
+        const [standingsRes, scheduleRes] = await Promise.all([
+          fetch(standingsUrl.toString()),
+          fetch(scheduleUrl.toString())
+        ])
+        if (standingsRes.ok && scheduleRes.ok) {
+          const standings = await standingsRes.json()
+          const schedule = await scheduleRes.json()
+          
+          const top5Drivers = standings.driverStandings?.slice(0, 5).map((d: any) => `${d.position}. ${d.firstName} ${d.lastName} (${d.points} pts)`).join(', ')
+          const currentRound = schedule.rounds?.find((r: any) => r.round === schedule.currentRound)
+          
+          contextData = `
+          CURRENT LIVE DATA (Use this for factual grounding):
+          - Championship Top 5: ${top5Drivers || 'N/A'}
+          - Current/Next Race: Round ${schedule.currentRound} - ${currentRound?.name || 'N/A'} in ${currentRound?.country || 'N/A'} (Status: ${currentRound?.status || 'N/A'})
+          `
+        }
+      }
+    } catch (e) {
+      console.error("Failed to fetch context data for AI summary", e)
+    }
 
+    const prompt = `You are a professional motorsports journalist. Write a concise, engaging 2-paragraph summary of the CURRENT state of ${seriesName}. 
+${contextData}
 Include:
 - The current or most recent race/event and notable results
 - Championship standings highlights  

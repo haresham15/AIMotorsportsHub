@@ -56,7 +56,8 @@ export async function GET(request: NextRequest) {
       const raceSessionNameMatch = race.raceName.replace(' Grand Prix', '')
       const openF1RaceSession = openF1Sessions.find(s => 
         s.session_name === 'Race' && 
-        (s.country_name === race.Circuit.Location.country || s.location === race.Circuit.Location.locality)
+        (s.country_name === race.Circuit.Location.country || s.location === race.Circuit.Location.locality) &&
+        new Date(s.date_start).toISOString().split('T')[0] === race.date
       )
 
       const meetingKey = openF1RaceSession?.meeting_key

@@ -52,4 +52,11 @@ export class TireDegradationModel {
     
     return prediction
   }
+
+  /**
+   * Dispose of the model and its tensors to free memory
+   */
+  dispose() {
+    this.model.dispose()
+  }
 }

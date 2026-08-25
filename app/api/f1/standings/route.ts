@@ -29,8 +29,8 @@ export async function GET(request: NextRequest) {
         code: ds.Driver.code,
         firstName: ds.Driver.givenName,
         lastName: ds.Driver.familyName,
-        constructorId: ds.Constructors[0]?.constructorId,
-        constructorName: ds.Constructors[0]?.name
+        constructorId: ds.Constructors?.[0]?.constructorId,
+        constructorName: ds.Constructors?.[0]?.name
       })),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       constructorStandings: constructorStandings.map((cs: any) => ({

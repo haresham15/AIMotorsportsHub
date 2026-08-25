@@ -42,15 +42,18 @@ export default function LiveStandings({ series, sessionKey, dataSource = "mock",
   const [loading, setLoading] = useState(true)
   const isFetchingRef = useRef(false)
   const previousSessionKey = useRef(sessionKey)
+  const hasLiveData = useRef(false)
+  const lastAlertedEventRef = useRef<string | null>(null)
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout
 
     if (dataSource === 'live' && series === 'f1') {
       // If sessionKey changes, show loading state immediately
-      if (sessionKey !== previousSessionKey.current) {
+      if (previousSessionKey.current !== sessionKey) {
         setLoading(true)
         previousSessionKey.current = sessionKey
+        hasLiveData.current = false // reset on session change
       }
 
       const fetchLiveF1Data = async () => {
@@ -59,20 +62,52 @@ export default function LiveStandings({ series, sessionKey, dataSource = "mock",
         try {
           const sessionParam = sessionKey || 'latest';
           // Fetch data from OpenF1
-          const [posRes, stintRes, driverRes, intervalRes] = await Promise.all([
+          const [posRes, stintRes, driverRes, intervalRes, raceControlRes] = await Promise.all([
             fetch(`https://api.openf1.org/v1/position?session_key=${sessionParam}`),
             fetch(`https://api.openf1.org/v1/stints?session_key=${sessionParam}`),
             fetch(`https://api.openf1.org/v1/drivers?session_key=${sessionParam}`),
-            fetch(`https://api.openf1.org/v1/intervals?session_key=${sessionParam}`)
+            fetch(`https://api.openf1.org/v1/intervals?session_key=${sessionParam}`),
+            fetch(`https://api.openf1.org/v1/race_control?session_key=${sessionParam}`)
           ]);
 
-          const [posData, stintData, driverData, intervalData] = await Promise.all([
-            posRes.json(), stintRes.json(), driverRes.json(), intervalRes.json()
+          const [posData, stintData, driverData, intervalData, raceControlData] = await Promise.all([
+            posRes.json(), stintRes.json(), driverRes.json(), intervalRes.json(), raceControlRes.json()
           ]);
 
           if (!Array.isArray(posData) || !Array.isArray(driverData)) {
             console.warn("OpenF1 API Rate Limited or invalid data. Falling back to mock data.");
             throw new Error("Invalid API Response");
+          }
+
+          // Check for Race Control Alerts (Safety Car, Red Flag)
+          if (Array.isArray(raceControlData) && raceControlData.length > 0) {
+            const latestEvent = raceControlData[raceControlData.length - 1];
+            const eventId = `${latestEvent.date}-${latestEvent.category}`;
+            
+            // Only trigger alert if we haven't alerted for this exact event yet
+            if (lastAlertedEventRef.current !== eventId) {
+              lastAlertedEventRef.current = eventId;
+              
+              if (latestEvent.category === 'SafetyCar' || latestEvent.flag === 'RED' || latestEvent.flag === 'YELLOW') {
+                const webhookUrl = localStorage.getItem('motorsport-discord-webhook');
+                if (webhookUrl) {
+                  fetch('/api/alerts/discord', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      webhookUrl,
+                      series: 'f1',
+                      eventType: latestEvent.category === 'SafetyCar' ? 'SAFETY_CAR' : latestEvent.flag,
+                      message: latestEvent.message || `Race control event: ${latestEvent.category}`,
+                      data: {
+                        Sector: latestEvent.sector || 'N/A',
+                        Scope: latestEvent.scope || 'N/A'
+                      }
+                    })
+                  }).catch(console.error); // Fire and forget
+                }
+              }
+            }
           }
 
           // Process positions (get latest for each driver)
@@ -104,7 +139,7 @@ export default function LiveStandings({ series, sessionKey, dataSource = "mock",
               newRaceData.push({
                 driver_id: d.driver_number.toString(),
                 position: pos,
-                gap_to_leader: gap === 0 || gap === undefined ? 'Interval' : `+${gap.toFixed(3)}`,
+                gap_to_leader: gap === 0 || gap === undefined ? 'Interval' : (typeof gap === 'number' ? `+${gap.toFixed(3)}` : `+${gap}`),
                 last_lap: 'Live',
                 tire_compound: latestStints.get(d.driver_number) || 'Unknown',
                 drivers: {
@@ -121,9 +156,10 @@ export default function LiveStandings({ series, sessionKey, dataSource = "mock",
           setRaceData(top20); // Top 20
           if (onLiveStandingsUpdate) onLiveStandingsUpdate(top20)
           setLoading(false);
+          hasLiveData.current = true;
         } catch (err) {
           console.error("Error fetching live F1 data", err);
-          if (raceData.length === 0) {
+          if (!hasLiveData.current) {
             // Fall back to mock data
             const filtered = INITIAL_DATA.filter(d => d.drivers?.series_id === series || series === 'f1')
             setRaceData(filtered)
@@ -199,10 +235,7 @@ export default function LiveStandings({ series, sessionKey, dataSource = "mock",
   }
 
   return (
-    <div className="glass" style={{
-      borderRadius: 'var(--radius-xl)',
-      padding: '24px',
-    }}>
+    <div style={{ padding: '0 8px' }}>
       <div style={{
         display: 'flex',
         alignItems: 'center',

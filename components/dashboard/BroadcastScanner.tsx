@@ -18,6 +18,7 @@ interface BroadcastScannerProps {
 export default function BroadcastScanner({ onScan, onClose }: BroadcastScannerProps) {
   const [isCapturing, setIsCapturing] = useState(false)
   const [stream, setStream] = useState<MediaStream | null>(null)
+  const streamRef = useRef<MediaStream | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   
   // Bounding box state
@@ -54,6 +55,7 @@ export default function BroadcastScanner({ onScan, onClose }: BroadcastScannerPr
     try {
       const displayStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false })
       setStream(displayStream)
+      streamRef.current = displayStream
       if (videoRef.current) {
         videoRef.current.srcObject = displayStream
         videoRef.current.play()
@@ -66,20 +68,25 @@ export default function BroadcastScanner({ onScan, onClose }: BroadcastScannerPr
 
   // Stop Screen Capture
   const stopCapture = () => {
-    if (stream) {
-      stream.getTracks().forEach(t => t.stop())
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(t => t.stop())
     }
     setStream(null)
+    streamRef.current = null
     setIsCapturing(false)
     stopScanning()
   }
 
   useEffect(() => {
     return () => {
-      stopCapture()
-      stopScanning()
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(t => t.stop())
+      }
+      if (scanIntervalRef.current) {
+        clearInterval(scanIntervalRef.current)
+      }
     }
-  }, [stream])
+  }, [])
 
   // Drawing the bounding box
   const handleMouseDown = (e: MouseEvent<HTMLDivElement>) => {
