@@ -1,6 +1,4 @@
 import { Metadata } from 'next'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
 import ApexisLogo from '@/components/ui/ApexisLogo'
 import { BrainCircuit, Target, LineChart, Cpu } from 'lucide-react'
 import Link from 'next/link'
@@ -42,37 +40,37 @@ export default function ModelsPage() {
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="bg-slate-900 border-slate-800">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg text-slate-300">Model Selection</CardTitle>
-              </CardHeader>
-              <CardContent>
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-sm">
+              <div className="mb-2">
+                <h3 className="text-lg font-semibold tracking-tight text-slate-300">Model Selection</h3>
+              </div>
+              <div>
                 <p className="text-3xl font-bold text-blue-400">XGBoost</p>
                 <p className="text-xs text-slate-500 mt-1">Outperformed LightGBM in cross-validation</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-slate-900 border-slate-800">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg text-slate-300">Test Log-Loss</CardTitle>
-              </CardHeader>
-              <CardContent>
+              </div>
+            </div>
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-sm">
+              <div className="mb-2">
+                <h3 className="text-lg font-semibold tracking-tight text-slate-300">Test Log-Loss</h3>
+              </div>
+              <div>
                 <p className="text-3xl font-bold text-cyan-400">0.241</p>
                 <p className="text-xs text-slate-500 mt-1">Holdout test set (20% split)</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-slate-900 border-slate-800">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg text-slate-300">Top Feature</CardTitle>
-              </CardHeader>
-              <CardContent>
+              </div>
+            </div>
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-sm">
+              <div className="mb-2">
+                <h3 className="text-lg font-semibold tracking-tight text-slate-300">Top Feature</h3>
+              </div>
+              <div>
                 <p className="text-xl font-bold text-slate-200">Grid Position (64%)</p>
                 <p className="text-xs text-slate-500 mt-1">SHAP Feature Importance</p>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         </section>
 
-        <Separator className="bg-slate-800" />
+        <hr className="border-t border-slate-800" />
 
         {/* 2. Tire Degradation Pipeline */}
         <section className="space-y-6">
@@ -103,7 +101,7 @@ export default function ModelsPage() {
           </div>
         </section>
 
-        <Separator className="bg-slate-800" />
+        <hr className="border-t border-slate-800" />
 
         {/* 3. Driver Season Similarity */}
         <section className="space-y-6">
@@ -119,7 +117,7 @@ export default function ModelsPage() {
           </div>
         </section>
 
-        <Separator className="bg-slate-800" />
+        <hr className="border-t border-slate-800" />
 
         {/* 4. NLP & Agentic Execution */}
         <section className="space-y-6">
