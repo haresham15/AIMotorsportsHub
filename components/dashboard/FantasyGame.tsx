@@ -26,7 +26,7 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
   const [submitted, setSubmitted] = useState(false)
   const [score, setScore] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
-  const [leaderboard, setLeaderboard] = useState<{ username: string, totalScore: number }[]>([])
+  const [leaderboard, setLeaderboard] = useState<{ username: string, totalScore: number, userId: string }[]>([])
   
   const supabase = createClient()
 
@@ -91,7 +91,7 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
     const username = user.email?.split('@')[0] || 'Anonymous'
 
     try {
-      await fetch('/api/fantasy', {
+      const res = await fetch('/api/fantasy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -102,9 +102,16 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
           ...predictions
         })
       })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to submit prediction")
+      }
       setSubmitted(true)
       fetchLeaderboard() // Refresh in case we added a new user
-    } catch (e) {
+    } catch (e: any) {
+      if (e.message) {
+        alert(e.message)
+      }
       console.error(e)
     } finally {
       setLoading(false)
@@ -308,12 +315,12 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', overflowY: 'auto', maxHeight: '250px' }}>
               {leaderboard.map((lbUser, idx) => (
-                <div key={lbUser.username} style={{
+                <div key={lbUser.userId} style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   padding: '8px 12px',
                   background: 'rgba(255,255,255,0.02)',
                   borderRadius: 'var(--radius-sm)',
-                  border: (user?.email?.split('@')[0] || 'Anonymous') === lbUser.username ? '1px solid rgba(234,179,8,0.3)' : '1px solid transparent',
+                  border: user?.id === lbUser.userId ? '1px solid rgba(234,179,8,0.3)' : '1px solid transparent',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <span style={{ 

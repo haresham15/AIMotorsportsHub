@@ -13,6 +13,8 @@ import numpy as np
 import json
 import os
 from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import log_loss
 
 # Setup FastF1 caching (creates a cache folder)
 if not os.path.exists('fastf1_cache'):
@@ -58,12 +60,18 @@ def train_model():
     # Target: Podium (1 if Position <= 3, else 0)
     y = (full_data['Position'] <= 3).astype(int).values
     
-    print(f"Training Logistic Regression on {len(X)} race entries...")
-    clf = LogisticRegression()
-    clf.fit(X, y)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     
-    accuracy = clf.score(X, y)
-    print(f"Training Accuracy: {accuracy:.2f}")
+    print(f"Training Logistic Regression on {len(X_train)} training entries and {len(X_test)} test entries...")
+    clf = LogisticRegression()
+    clf.fit(X_train, y_train)
+    
+    accuracy = clf.score(X_test, y_test)
+    y_pred_proba = clf.predict_proba(X_test)
+    loss = log_loss(y_test, y_pred_proba)
+    
+    print(f"Test Accuracy: {accuracy:.2f}")
+    print(f"Test Log-Loss: {loss:.3f}")
     
     # Export weights for frontend usage
     output = {

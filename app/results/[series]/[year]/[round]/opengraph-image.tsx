@@ -9,8 +9,8 @@ export const size = {
 }
 export const contentType = 'image/png'
 
-export default async function Image({ params }: { params: { series: string, year: string, round: string } }) {
-  const { series, year, round } = params
+export default async function Image({ params }: { params: Promise<{ series: string, year: string, round: string }> }) {
+  const { series, year, round } = await params
   
   if (series !== 'f1') {
     return new ImageResponse(

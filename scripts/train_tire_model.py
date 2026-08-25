@@ -29,8 +29,8 @@ def fetch_tire_data(year, round_idx):
         # Filter for valid racing laps (no safety cars, in/out laps)
         laps = laps.pick_quicklaps()
         
-        # We need Stint length and LapTime
-        df = laps[['Compound', 'TyreLife', 'LapTime (s)']].dropna()
+        # We need Stint length, LapTime, and LapNumber for fuel correction
+        df = laps[['Compound', 'TyreLife', 'LapNumber', 'LapTime (s)']].dropna()
         return df
     except Exception as e:
         print(f"Error fetching {year} R{round_idx}: {e}")
@@ -64,7 +64,12 @@ def train_model():
             continue
             
         X = c_data[['TyreLife']].values
-        y = c_data['LapTime (s)'].values
+        
+        # Fuel burn makes the car ~0.06s faster per lap.
+        # We add 0.06s for every lap completed to normalize to a heavy car.
+        lap_numbers = c_data['LapNumber'].values
+        fuel_correction = (lap_numbers - 1) * 0.06
+        y = c_data['LapTime (s)'].values + fuel_correction
         
         reg = LinearRegression()
         reg.fit(X, y)

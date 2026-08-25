@@ -31,7 +31,7 @@ export default async function EmbedStandingsPage({ params }: EmbedProps) {
       <div style={{ height: 'calc(100% - 24px)' }}>
         <LiveStandings 
           series={series} 
-          dataSource="live" 
+          dataSource={series === 'f1' ? 'live' : 'mock'} 
         />
       </div>
       <div style={{

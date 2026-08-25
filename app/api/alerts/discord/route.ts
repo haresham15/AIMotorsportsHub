@@ -5,8 +5,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { webhookUrl, series, eventType, message, data } = body;
 
-    if (!webhookUrl) {
-      return NextResponse.json({ error: "Missing webhookUrl" }, { status: 400 });
+    if (!webhookUrl || !webhookUrl.startsWith('https://discord.com/api/webhooks/')) {
+      return NextResponse.json({ error: "Invalid or missing webhookUrl" }, { status: 400 });
     }
 
     // Determine embed color based on series or eventType

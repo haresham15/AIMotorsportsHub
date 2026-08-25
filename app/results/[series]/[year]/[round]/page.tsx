@@ -8,11 +8,11 @@ import { SERIES_MAP } from '@/lib/data'
 export const revalidate = 86400 // Cache for 24 hours
 
 interface PageProps {
-  params: {
+  params: Promise<{
     series: string
     year: string
     round: string
-  }
+  }>
 }
 
 async function getRaceResults(year: string, round: string) {
@@ -30,7 +30,7 @@ async function getRaceResults(year: string, round: string) {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { series, year, round } = params
+  const { series, year, round } = await params
   
   if (series !== 'f1') {
     return { title: 'Results Not Found - Motorsports Hub' }
@@ -78,7 +78,7 @@ export async function generateStaticParams() {
 }
 
 export default async function RaceResultPage({ params }: PageProps) {
-  const { series, year, round } = params
+  const { series, year, round } = await params
   
   if (series !== 'f1') {
     // We only support F1 historical results via Jolpica right now

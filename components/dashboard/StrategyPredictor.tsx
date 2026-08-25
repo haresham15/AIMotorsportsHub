@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { TireDegradationModel } from '@/lib/ml/tireModel'
 import { BrainCircuit } from 'lucide-react'
 
 export default function StrategyPredictor() {
@@ -11,19 +10,23 @@ export default function StrategyPredictor() {
   useEffect(() => {
     let isMounted = true
 
-    const runML = async () => {
-      let model: TireDegradationModel | null = null
+    const loadModel = async () => {
       try {
-        model = new TireDegradationModel()
-        // In a real app, this would use live telemetry. We train on simulated data for the POC.
-        await model.train()
+        const res = await fetch('/models/tire_degradation_weights.json')
+        let softDegRate = 0.12 // Fallback default
+        if (res.ok) {
+          const data = await res.json()
+          if (data['SOFT']) {
+            softDegRate = data['SOFT'].degradation_rate_per_lap
+          }
+        }
         
         if (!isMounted) return
 
-        // Generate predictions for laps 1 to 30 (intervals of 5)
+        // Generate predictions for laps 5 to 30 (intervals of 5)
         const preds = []
         for (let lap = 5; lap <= 30; lap += 5) {
-          const pred = model.predict(lap)
+          const pred = softDegRate * lap
           preds.push({ lap, degradation: pred })
         }
         
@@ -31,14 +34,11 @@ export default function StrategyPredictor() {
       } catch (error) {
         console.error('ML Model Error:', error)
       } finally {
-        if (model) {
-          model.dispose()
-        }
         if (isMounted) setLoading(false)
       }
     }
 
-    runML()
+    loadModel()
 
     return () => {
       isMounted = false

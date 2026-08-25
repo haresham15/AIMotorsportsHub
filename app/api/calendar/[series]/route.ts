@@ -80,5 +80,9 @@ function createIcsEvent(summary: string, start: Date, end: Date, location: strin
   const dtEnd = formatIcsDate(end);
   const uid = `${dtStart}-${summary.replace(/\s+/g, '')}@themotorsporthub.com`;
   
-  return `BEGIN:VEVENT\r\nUID:${uid}\r\nDTSTAMP:${dtStamp}\r\nDTSTART:${dtStart}\r\nDTEND:${dtEnd}\r\nSUMMARY:${summary}\r\nLOCATION:${location}\r\nDESCRIPTION:${description}\r\nEND:VEVENT\r\n`;
+  const safeSummary = summary.replace(/[,;]/g, '\\$&');
+  const safeLocation = location.replace(/[,;]/g, '\\$&');
+  const safeDescription = description.replace(/[,;]/g, '\\$&');
+  
+  return `BEGIN:VEVENT\r\nUID:${uid}\r\nDTSTAMP:${dtStamp}\r\nDTSTART:${dtStart}\r\nDTEND:${dtEnd}\r\nSUMMARY:${safeSummary}\r\nLOCATION:${safeLocation}\r\nDESCRIPTION:${safeDescription}\r\nEND:VEVENT\r\n`;
 }

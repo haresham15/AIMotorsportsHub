@@ -20,11 +20,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Failed to fetch leaderboard" }, { status: 500 });
     }
 
-    const scores: Record<string, { username: string, totalScore: number }> = {};
+    const scores: Record<string, { username: string, totalScore: number, userId: string }> = {};
     
     data.forEach(p => {
       if (!scores[p.user_id]) {
-        scores[p.user_id] = { username: p.username, totalScore: 0 };
+        scores[p.user_id] = { username: p.username, totalScore: 0, userId: p.user_id };
       }
       scores[p.user_id].totalScore += p.score || 0;
     });
@@ -47,17 +47,38 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Failed to fetch predictions" }, { status: 500 });
   }
 
-  // Map database columns back to camelCase for the frontend if needed
-  const predictions = data.map(p => ({
-    userId: p.user_id,
-    username: p.username,
-    series: p.series,
-    round: p.round,
-    p1: p.p1,
-    p2: p.p2,
-    p3: p.p3,
-    score: p.score
-  }));
+  // Fetch schedule to determine if we should lock visibility
+  let isLocked = false;
+  try {
+    const origin = request.nextUrl.origin;
+    const scheduleRes = await fetch(`${origin}/api/f1/schedule`);
+    if (scheduleRes.ok) {
+      const scheduleData = await scheduleRes.json();
+      const currentRoundData = scheduleData.rounds?.find((r: any) => r.round === parseInt(round));
+      if (currentRoundData && currentRoundData.status === 'upcoming') {
+        isLocked = true;
+      }
+    }
+  } catch (e) {
+    console.error("Error checking schedule for GET", e);
+  }
+
+  const { data: { session } } = await supabase.auth.getSession();
+  const currentUserId = session?.user?.id;
+
+  // Filter predictions to hide others' picks before the race starts
+  const predictions = data
+    .filter(p => !isLocked || p.user_id === currentUserId)
+    .map(p => ({
+      userId: p.user_id,
+      username: p.username,
+      series: p.series,
+      round: p.round,
+      p1: p.p1,
+      p2: p.p2,
+      p3: p.p3,
+      score: p.score
+    }));
 
   return NextResponse.json({ predictions });
 }
@@ -77,6 +98,21 @@ export async function POST(request: NextRequest) {
 
     if (!username || !series || round === undefined || !p1 || !p2 || !p3) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    // Check schedule for round locking
+    try {
+      const origin = request.nextUrl.origin;
+      const scheduleRes = await fetch(`${origin}/api/f1/schedule`);
+      if (scheduleRes.ok) {
+        const scheduleData = await scheduleRes.json();
+        const currentRoundData = scheduleData.rounds?.find((r: any) => r.round === parseInt(round));
+        if (currentRoundData && (currentRoundData.status === 'live' || currentRoundData.status === 'completed')) {
+          return NextResponse.json({ error: "Cannot submit predictions after the round has started." }, { status: 403 });
+        }
+      }
+    } catch (e) {
+      console.error("Error checking schedule for POST", e);
     }
 
     // Upsert into Supabase (requires UNIQUE constraint on user_id, series, round)
