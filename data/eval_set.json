@@ -1,0 +1,27 @@
+[
+  {
+    "question": "What is the penalty for exceeding track limits in Formula 1?",
+    "expected_answer_keywords": ["time penalty", "5 seconds", "10 seconds", "black and white flag"],
+    "category": "rules"
+  },
+  {
+    "question": "Who is currently leading the F1 Championship?",
+    "expected_answer_keywords": ["Max Verstappen", "Red Bull"],
+    "category": "live_data"
+  },
+  {
+    "question": "What tire compound degrades the fastest?",
+    "expected_answer_keywords": ["soft", "red"],
+    "category": "strategy"
+  },
+  {
+    "question": "If a safety car is deployed, are drivers allowed to pit?",
+    "expected_answer_keywords": ["yes", "allowed to pit", "pit lane"],
+    "category": "rules"
+  },
+  {
+    "question": "What does a double yellow flag mean?",
+    "expected_answer_keywords": ["reduce your speed significantly", "do not overtake", "be prepared to change direction or stop"],
+    "category": "rules"
+  }
+]

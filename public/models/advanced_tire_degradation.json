@@ -1,0 +1,23 @@
+{
+  "SOFT": {
+    "rmse": 0.9386518861577962,
+    "shap_importance": {
+      "TyreLife": 0.40514337785092125,
+      "TrackTemp": 1.3552444275514661
+    }
+  },
+  "MEDIUM": {
+    "rmse": 0.846568160540164,
+    "shap_importance": {
+      "TyreLife": 0.16605680209999996,
+      "TrackTemp": 4.11877786406273
+    }
+  },
+  "HARD": {
+    "rmse": 0.7780780933210668,
+    "shap_importance": {
+      "TyreLife": 0.09598221246228186,
+      "TrackTemp": 6.281967623421159
+    }
+  }
+}

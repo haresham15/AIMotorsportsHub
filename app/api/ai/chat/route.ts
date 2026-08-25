@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI, FunctionDeclaration, SchemaType } from "@google/generative-ai";
-import { readFile } from "fs/promises";
-import path from "path";
+import { createClient } from '@supabase/supabase-js';
 
-const MAX_PROMPT_LENGTH = 500;
+const MAX_PROMPT_LENGTH = 1000;
+const MAX_AGENT_TURNS = 5; // Prevent infinite loops
 
 const getLiveStandingsDeclaration: FunctionDeclaration = {
   name: "get_live_standings",
@@ -52,16 +52,20 @@ const getScheduleDeclaration: FunctionDeclaration = {
 
 const searchRulebookDeclaration: FunctionDeclaration = {
   name: "search_rulebook",
-  description: "Search the official FIA sporting regulations and rulebook for the given series. Call this when the user asks about rules, penalties, race formats, safety cars, points systems, or flag meanings.",
+  description: "Search the official FIA sporting regulations and rulebook for the given series using semantic search. Call this when the user asks about rules, penalties, race formats, safety cars, points systems, or flag meanings.",
   parameters: {
     type: SchemaType.OBJECT,
     properties: {
+      query: {
+        type: SchemaType.STRING,
+        description: "The semantic search query for the rulebook",
+      },
       series: {
         type: SchemaType.STRING,
         description: "The racing series (e.g. 'f1')",
       },
     },
-    required: ["series"],
+    required: ["query", "series"],
   },
 };
 
@@ -107,7 +111,7 @@ export async function POST(request: NextRequest) {
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-3.6-flash",
+      model: "gemini-3.5-flash", // Upgraded to latest fast model
       tools: tools
     });
 
@@ -115,63 +119,87 @@ export async function POST(request: NextRequest) {
       systemInstruction: {
         role: "system",
         parts: [{
-          text: `You are the ${seriesName} Race Engineer AI. You have access to tools to fetch live telemetry, championship standings, and schedule data. 
-          Use them when needed to answer the user's question accurately. If the user asks a general racing question, you can answer from your own knowledge.
+          text: `You are the ${seriesName} Race Engineer AI for Apexis. 
+          You have access to live tools. YOU MUST call tools if the user asks for data you don't inherently know (live gaps, rulebook details, schedule).
           Keep responses concise, informative, and enthusiastic. Use racing terminology naturally. Keep responses under 150 words.`
         }]
       }
     });
 
     let result = await chat.sendMessage(userPrompt);
-    let functionCall = result.response.functionCalls()?.[0];
+    let turns = 0;
     
-    // Simple 1-iteration loop for function calling
-    if (functionCall) {
-      let apiResponse;
-      const { name, args } = functionCall;
-      const targetSeries = (args as any).series || series;
-      const origin = request.nextUrl.origin;
+    // Multi-turn Agentic Loop
+    while (result.response.functionCalls() && turns < MAX_AGENT_TURNS) {
+      turns++;
+      const functionCalls = result.response.functionCalls();
+      const functionResponses = [];
       
-      try {
-        if (name === "get_live_standings") {
-          // Live standings are fetched client-side and sent via contextData
-          apiResponse = {
-            liveRaceData: contextData?.liveRaceData || "No live telemetry available right now",
-            cvData: contextData?.cvData || "No Computer Vision scan data available"
-          };
-        } else if (name === "get_championship_standings") {
-          // In production, we'd fetch this. For now, since the frontend passes it, we can use it to save a round trip.
-          if (contextData?.championship) {
-            apiResponse = contextData.championship;
+      for (const call of functionCalls!) {
+        const { name, args } = call;
+        const targetSeries = (args as any).series || series;
+        const origin = request.nextUrl.origin;
+        let apiResponse;
+        
+        try {
+          if (name === "get_live_standings") {
+            apiResponse = {
+              liveRaceData: contextData?.liveRaceData || "No live telemetry available right now",
+              cvData: contextData?.cvData || "No Computer Vision scan data available"
+            };
+          } else if (name === "get_championship_standings") {
+            if (contextData?.championship) {
+              apiResponse = contextData.championship;
+            } else {
+              const res = await fetch(`${origin}/api/${targetSeries}/standings`);
+              apiResponse = res.ok ? await res.json() : { error: "Failed to fetch standings" };
+            }
+          } else if (name === "get_schedule") {
+            const res = await fetch(`${origin}/api/${targetSeries}/schedule`);
+            apiResponse = res.ok ? await res.json() : { error: "Failed to fetch schedule" };
+          } else if (name === "search_rulebook") {
+            // Semantic Search using pgvector
+            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+            const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+            if (supabaseUrl && supabaseKey) {
+              const supabase = createClient(supabaseUrl, supabaseKey);
+              const queryStr = (args as any).query;
+              
+              // 1. Embed query
+              const embedModel = genAI.getGenerativeModel({ model: "gemini-embedding-001" });
+              const embedRes = await embedModel.embedContent(queryStr);
+              const queryEmbedding = embedRes.embedding.values;
+              
+              // 2. Vector search via RPC
+              const { data, error } = await supabase.rpc('match_documents', {
+                query_embedding: queryEmbedding,
+                match_threshold: 0.7,
+                match_count: 3
+              });
+              
+              if (error) throw error;
+              apiResponse = { rules_chunks: data.map((d: any) => d.content) };
+            } else {
+               apiResponse = { error: "Supabase credentials missing for rulebook search." };
+            }
           } else {
-            const res = await fetch(`${origin}/api/${targetSeries}/standings`);
-            apiResponse = res.ok ? await res.json() : { error: "Failed to fetch standings" };
+             apiResponse = { error: "Unknown tool" };
           }
-        } else if (name === "get_schedule") {
-          const res = await fetch(`${origin}/api/${targetSeries}/schedule`);
-          apiResponse = res.ok ? await res.json() : { error: "Failed to fetch schedule" };
-        } else if (name === "search_rulebook") {
-          try {
-            const filePath = path.join(process.cwd(), 'data', 'fia_regulations_2024.md');
-            const rulesContent = await readFile(filePath, 'utf-8');
-            apiResponse = { rules: rulesContent };
-          } catch (e) {
-            apiResponse = { error: "Rulebook not found for this series" };
-          }
-        } else {
-           apiResponse = { error: "Unknown tool" };
+        } catch (e) {
+          console.error(`Tool execution failed for ${name}:`, e);
+          apiResponse = { error: "Tool execution failed due to internal error." };
         }
-      } catch (e) {
-        apiResponse = { error: "Tool execution failed" };
+        
+        functionResponses.push({
+          functionResponse: {
+            name: name,
+            response: apiResponse
+          }
+        });
       }
       
-      // Send tool response back to the model
-      result = await chat.sendMessage([{
-        functionResponse: {
-          name: name,
-          response: apiResponse
-        }
-      }]);
+      // Send all tool responses back to the model to continue the conversation
+      result = await chat.sendMessage(functionResponses);
     }
     
     const reply = result.response.text();
