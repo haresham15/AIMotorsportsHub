@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { ArrowLeft, Loader2 } from 'lucide-react'
+import ApexisLogo from '@/components/ui/ApexisLogo'
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true)
@@ -69,8 +70,8 @@ export default function LoginPage() {
             gap: '8px',
             color: 'var(--text-primary)'
           }}>
-            <span style={{ fontSize: '24px' }}>🏎️</span>
-            Motorsport Hub
+            <ApexisLogo width={24} height={24} />
+            Apexis
           </Link>
           <Link href="/" className="btn-ghost" style={{
             display: 'flex',
@@ -79,7 +80,7 @@ export default function LoginPage() {
             textDecoration: 'none',
           }}>
             <ArrowLeft size={14} />
-            <span>Back to Hub</span>
+            <span>Back to Apexis</span>
           </Link>
         </div>
       </nav>
@@ -107,7 +108,7 @@ export default function LoginPage() {
             <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
               {isLogin 
                 ? 'Sign in to access Fantasy Predictions and more.' 
-                : 'Join the Hub to start playing Fantasy Predictions.'}
+                : 'Join Apexis to start playing Fantasy Predictions.'}
             </p>
           </div>
 

@@ -22,7 +22,7 @@ export async function GET(
     const rounds = data.rounds || [];
 
     // Build the iCalendar string
-    let ics = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//The Motorsport Hub//EN\r\nCALSCALE:GREGORIAN\r\nX-WR-CALNAME:${series.toUpperCase()} Schedule\r\n`;
+    let ics = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Apexis//EN\r\nCALSCALE:GREGORIAN\r\nX-WR-CALNAME:${series.toUpperCase()} Schedule\r\n`;
 
     rounds.forEach((round: any) => {
       // If we have detailed OpenF1 sessions, create an event for each session

@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
       color,
       timestamp: new Date().toISOString(),
       footer: {
-        text: 'The Motorsport Hub - Live Updates'
+        text: 'Apexis - Live Updates'
       },
       fields: data ? Object.entries(data).map(([key, value]) => ({
         name: key,
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
 
     const payload = {
       username: "Race Control",
-      avatar_url: "https://ai-motorsports-hub.vercel.app/favicon.ico", // Ensure this URL exists or use a generic one
+      avatar_url: "https://apexis-racing.vercel.app/icon", // Ensure this URL exists or use a generic one
       embeds: [embed]
     };
 

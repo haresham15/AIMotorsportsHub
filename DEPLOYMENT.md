@@ -1,6 +1,6 @@
 # Deployment Guide
 
-This guide will walk you through deploying **The Motorsport Hub** to Vercel. Since the application has been refactored to use in-browser Computer Vision (Tesseract.js Web Workers) and a Multi-Agent AI Orchestrator (via Gemini), deployment is incredibly fast, 100% serverless, and requires zero external database configuration.
+This guide will walk you through deploying **Apexis** to Vercel. Since the application has been refactored to use in-browser Computer Vision (Tesseract.js Web Workers) and a Multi-Agent AI Orchestrator (via Gemini), deployment is incredibly fast, 100% serverless, and requires zero external database configuration.
 
 ## Prerequisites
 

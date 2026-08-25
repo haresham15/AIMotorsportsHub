@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 ╔══════════════════════════════════════════════════════════════════════════╗
-║  MOTORSPORT HUB — TELEMETRY FETCHER                                    ║
+║  APEXIS — TELEMETRY FETCHER                                            ║
 ║  Fetches race telemetry via free/open-source APIs and exports JSON     ║
 ║  for the Next.js frontend to replay.                                    ║
 ╚══════════════════════════════════════════════════════════════════════════╝
@@ -532,7 +532,7 @@ def list_races(year, series):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Motorsport Hub Telemetry Fetcher — Extracts race data via FastF1",
+        description="Apexis Telemetry Fetcher — Extracts race data via FastF1",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -572,7 +572,7 @@ Examples:
     session_type_code = SERIES_SESSION_MAP[args.series][args.session]
 
     print(f"\n{'═' * 60}")
-    print(f"  Motorsport Hub — Telemetry Fetcher")
+    print(f"  Apexis — Telemetry Fetcher")
     print(f"  Series: {args.series.upper()} | Year: {args.year} | Round: {args.round}")
     print(f"  Session: {args.session} ({session_type_code})")
     print(f"{'═' * 60}\n")

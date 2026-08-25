@@ -1,4 +1,4 @@
-# The Motorsport Hub
+# Apexis
 
 A centralized, personalized web platform for motorsport fans to track their favorite racing series, teams, and drivers. Currently features AI-powered race analysis and predictive strategy modeling.
 

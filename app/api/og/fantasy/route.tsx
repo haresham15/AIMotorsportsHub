@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
                 color: 'transparent',
               }}
             >
-              The Motorsport Hub
+              Apexis
             </h1>
             
             <p style={{ fontSize: '32px', color: '#9ca3af', margin: '0 0 60px 0' }}>

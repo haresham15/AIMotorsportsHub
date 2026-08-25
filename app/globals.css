@@ -2,18 +2,18 @@
 
 /* ========== DESIGN TOKENS ========== */
 :root {
-  --bg-primary: #000000;
-  --bg-secondary: #0a0a0a;
-  --bg-card: #111111;
-  --bg-card-hover: #171717;
-  --border-subtle: #262626;
-  --border-hover: #404040;
-  --text-primary: #ffffff;
-  --text-secondary: #a3a3a3;
-  --text-muted: #737373;
-  --accent-blue: #3b82f6;
+  --bg-primary: #020817;
+  --bg-secondary: #0B1120;
+  --bg-card: #0F172A;
+  --bg-card-hover: #1E293B;
+  --border-subtle: #334155;
+  --border-hover: #475569;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --accent-blue: #0B57CF;
   --accent-purple: #8b5cf6;
-  --accent-cyan: #06b6d4;
+  --accent-cyan: #25B9B6;
   --accent-pink: #ec4899;
   --accent-green: #10b981;
   --accent-amber: #f59e0b;
@@ -117,7 +117,7 @@ body {
 
 /* ========== BUTTONS ========== */
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
   color: white;
   border: none;
   border-radius: var(--radius-full);
@@ -492,7 +492,7 @@ body {
 .replay-controls__btn--play {
   width: 38px;
   height: 38px;
-  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
   border: none;
   color: #fff;
 }
@@ -591,7 +591,7 @@ body {
   top: 50%;
   left: 0;
   height: 4px;
-  background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
   border-radius: 2px;
   transform: translateY(-50%);
   pointer-events: none;

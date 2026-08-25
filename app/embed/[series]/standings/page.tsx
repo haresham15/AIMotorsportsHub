@@ -52,7 +52,7 @@ export default async function EmbedStandingsPage({ params }: EmbedProps) {
             gap: '4px'
           }}
         >
-          Powered by The Motorsport Hub &rarr;
+          Powered by Apexis &rarr;
         </a>
       </div>
     </div>

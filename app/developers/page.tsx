@@ -31,7 +31,7 @@ export default function DevelopersPage() {
       {/* Simple Header */}
       <header style={{ padding: '24px 48px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Link href="/" style={{ fontSize: '20px', fontWeight: 800, color: 'var(--accent)', textDecoration: 'none' }}>
-          THE MOTORSPORT HUB
+          APEXIS
         </Link>
         <div style={{ display: 'flex', gap: '24px' }}>
           <Link href="/dashboard/f1" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Dashboard</Link>
@@ -114,7 +114,7 @@ export default function DevelopersPage() {
             lineHeight: 1.5,
             color: '#a5b4fc'
           }}>
-{`curl -X GET "https://api.themotorsporthub.com/api/v1/f1/standings" \\
+{`curl -X GET "https://api.apexis.com/api/v1/f1/standings" \\
   -H "Authorization: Bearer YOUR_API_KEY"`}
           </pre>
         </div>

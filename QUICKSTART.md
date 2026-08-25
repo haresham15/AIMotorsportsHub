@@ -1,6 +1,6 @@
 # Quick Start Guide
 
-Get The Motorsport Hub running locally in just a few minutes!
+Get Apexis running locally in just a few minutes!
 
 ## Step 1: Install Dependencies
 

@@ -120,11 +120,11 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
 
   const handleShare = () => {
     const text = score !== null 
-      ? `I scored ${score} pts in the ${series.toUpperCase()} Fantasy Game for Round ${round}! 🏎️🏆 Play now at The Motorsport Hub!`
-      : `I just predicted my podium for ${series.toUpperCase()} Round ${round}! 🏎️🏆\n🥇 ${predictions.p1}\n🥈 ${predictions.p2}\n🥉 ${predictions.p3}\nPlay now at The Motorsport Hub!`
+      ? `I scored ${score} pts in the ${series.toUpperCase()} Fantasy Game for Round ${round}! 🏆 Play now at Apexis!`
+      : `I just predicted my podium for ${series.toUpperCase()} Round ${round}! 🏆\n🥇 ${predictions.p1}\n🥈 ${predictions.p2}\n🥉 ${predictions.p3}\nPlay now at Apexis!`
       
     if (navigator.share) {
-      navigator.share({ title: 'Motorsport Hub Fantasy', text })
+      navigator.share({ title: 'Apexis Fantasy', text })
     } else {
       navigator.clipboard.writeText(text)
       alert("Results copied to clipboard!")

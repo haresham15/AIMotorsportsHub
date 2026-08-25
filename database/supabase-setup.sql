@@ -1,4 +1,4 @@
--- Motorsport Hub Database Schema
+-- Apexis Database Schema
 -- Run this in your Supabase SQL Editor
 
 -- 1. Racing Series

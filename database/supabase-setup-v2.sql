@@ -1,5 +1,5 @@
 -- ============================================================
--- The Motorsport Hub — Complete Database Schema (V2)
+-- Apexis — Complete Database Schema (V2)
 -- Run this in your Supabase SQL Editor
 -- ============================================================
 

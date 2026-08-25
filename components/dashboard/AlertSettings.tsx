@@ -49,7 +49,7 @@ export default function AlertSettings() {
           webhookUrl: savedUrl,
           series: 'System',
           eventType: 'TEST_ALERT',
-          message: 'This is a test alert from The Motorsport Hub.',
+          message: 'This is a test alert from Apexis.',
           data: { Connection: 'Successful' }
         })
       })

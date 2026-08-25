@@ -2,7 +2,7 @@ import { ImageResponse } from 'next/og'
 
 export const runtime = 'edge'
 
-export const alt = 'Race Results - Motorsports Hub'
+export const alt = 'Race Results - Apexis'
 export const size = {
   width: 1200,
   height: 630,
@@ -16,7 +16,7 @@ export default async function Image({ params }: { params: Promise<{ series: stri
     return new ImageResponse(
       (
         <div style={{ background: 'black', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <h1 style={{ color: 'white', fontSize: 64 }}>Motorsports Hub</h1>
+          <h1 style={{ color: 'white', fontSize: 64 }}>Apexis</h1>
         </div>
       )
     )
@@ -60,8 +60,7 @@ export default async function Image({ params }: { params: Promise<{ series: stri
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '8px', background: 'linear-gradient(135deg, #e10600, #ff4444)' }} />
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: 'auto' }}>
-          <div style={{ fontSize: 48 }}>🏎️</div>
-          <div style={{ fontSize: 32, fontWeight: 700, color: '#fbbf24' }}>Motorsports Hub</div>
+          <div style={{ fontSize: 32, fontWeight: 700, color: '#06B6D4' }}>Apexis</div>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', marginBottom: '64px' }}>

@@ -21,6 +21,7 @@ import { ArrowLeft } from 'lucide-react'
 import { useSeriesData } from '@/lib/hooks/useSeriesData'
 import { RaceData, CVData, Round, DriverStanding, ConstructorStanding } from '@/lib/types'
 import AuthButton from '@/components/AuthButton'
+import ApexisLogo from '@/components/ui/ApexisLogo'
 
 export default function SeriesDashboard() {
   const params = useParams()
@@ -92,8 +93,8 @@ export default function SeriesDashboard() {
               gap: '8px',
               color: 'var(--text-primary)'
             }}>
-              <span style={{ fontSize: '20px' }}>🏎️</span>
-              <span className="hide-mobile">Motorsport Hub</span>
+              <ApexisLogo width={20} height={20} />
+              <span className="hide-mobile">Apexis</span>
             </Link>
             <span style={{
               color: 'var(--text-muted)',

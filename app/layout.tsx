@@ -21,8 +21,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://ai-motorsports-hub.vercel.app'),
-  title: "The Motorsport Hub | Your Racing Universe",
+  metadataBase: new URL('https://apexis-racing.vercel.app'),
+  title: "Apexis | Your Racing Universe",
   description:
     "The ultimate personalized dashboard for motorsport fans. Live telemetry, AI insights, and comprehensive coverage across F1, F2, F3, Formula E, NASCAR, GT World Challenge, and Top Fuel Drag Racing.",
   keywords: [
@@ -35,29 +35,23 @@ export const metadata: Metadata = {
     "race dashboard",
     "Top Fuel",
     "live telemetry",
-    "racing AI"
+    "racing AI",
+    "Apexis",
+    "Apexis racing"
   ],
   authors: [{ name: "Haresh Murugesan" }],
   creator: "Haresh Murugesan",
-  publisher: "The Motorsport Hub",
+  publisher: "Apexis",
   openGraph: {
-    title: "The Motorsport Hub | Your Racing Universe",
+    title: "Apexis | Your Racing Universe",
     description:
       "Live telemetry, AI insights, and comprehensive coverage across F1, NASCAR, Formula E, and more.",
     type: "website",
-    siteName: "The Motorsport Hub",
-    images: [
-      {
-        url: "/icon.jpg",
-        width: 1024,
-        height: 1024,
-        alt: "The Motorsport Hub Logo",
-      }
-    ]
+    siteName: "Apexis",
   },
   twitter: {
     card: "summary_large_image",
-    title: "The Motorsport Hub | Your Racing Universe",
+    title: "Apexis | Your Racing Universe",
     description:
       "Live telemetry, AI insights, and comprehensive coverage across F1, NASCAR, Formula E, and more.",
   },

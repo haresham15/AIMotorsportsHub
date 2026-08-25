@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { SERIES, MOCK_NOTIFICATIONS, type NotificationItem } from '@/lib/data'
 import { Bell, ChevronRight, Zap, Trophy, Clock, AlertTriangle } from 'lucide-react'
 import AuthButton from '@/components/AuthButton'
+import ApexisLogo from '@/components/ui/ApexisLogo'
 
 export default function Home() {
   const [summaries, setSummaries] = useState<Record<string, string>>({})
@@ -61,14 +62,14 @@ export default function Home() {
           height: '64px',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '24px' }}>🏎️</span>
+            <ApexisLogo width={24} height={24} />
             <h1 style={{
               fontSize: '20px',
               fontWeight: 800,
               letterSpacing: '-0.01em',
               color: 'var(--text-primary)'
             }}>
-              Motorsport Hub
+              Apexis
             </h1>
           </div>
 
@@ -292,7 +293,7 @@ export default function Home() {
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     <div className="btn-primary" style={{ display: 'inline-flex', padding: '12px 32px', fontSize: '15px' }}>
-                      Enter Hub
+                      Enter Apexis
                     </div>
                     {summaries[featuredSport.id] && (
                       <div style={{ 
@@ -460,7 +461,7 @@ export default function Home() {
                     fontWeight: 600,
                     color: sport.color,
                   }}>
-                    Enter Hub <ChevronRight size={14} />
+                    Enter Apexis <ChevronRight size={14} />
                   </span>
                 </div>
               </Link>

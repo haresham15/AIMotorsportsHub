@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import Link from 'next/link'
+import ApexisLogo from '@/components/ui/ApexisLogo'
 import { ArrowLeft, Calendar, MapPin, Flag } from 'lucide-react'
 import RaceResultTable from '@/components/results/RaceResultTable'
 import { SERIES_MAP } from '@/lib/data'
@@ -33,16 +34,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { series, year, round } = await params
   
   if (series !== 'f1') {
-    return { title: 'Results Not Found - Motorsports Hub' }
+    return { title: 'Results Not Found - Apexis' }
   }
 
   const race = await getRaceResults(year, round)
   
   if (!race) {
-    return { title: 'Results Not Found - Motorsports Hub' }
+    return { title: 'Results Not Found - Apexis' }
   }
 
-  const title = `${race.raceName} ${year} Results - Motorsports Hub`
+  const title = `${race.raceName} ${year} Results - Apexis`
   const description = `Full race results, points, and fastest laps for the ${year} ${race.raceName} at ${race.Circuit.circuitName}.`
 
   return {
@@ -120,8 +121,8 @@ export default async function RaceResultPage({ params }: PageProps) {
               alignItems: 'center',
               gap: '8px',
             }}>
-              <span style={{ fontSize: '20px' }}>🏎️</span>
-              <span className="hide-mobile">Motorsport Hub</span>
+              <ApexisLogo width={20} height={20} />
+              <span className="hide-mobile">Apexis</span>
             </Link>
             <span style={{
               color: 'var(--text-muted)',
