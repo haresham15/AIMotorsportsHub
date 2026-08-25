@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+export const revalidate = 300 // Cache for 5 minutes
+
 interface OpenF1Session {
   session_key: number
   session_name: string

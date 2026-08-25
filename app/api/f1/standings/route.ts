@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+export const revalidate = 300 // Cache for 5 minutes
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const year = searchParams.get('year') || new Date().getFullYear().toString()

@@ -1,7 +1,80 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, FunctionDeclaration, SchemaType } from "@google/generative-ai";
+import { readFile } from "fs/promises";
+import path from "path";
 
 const MAX_PROMPT_LENGTH = 500;
+
+const getLiveStandingsDeclaration: FunctionDeclaration = {
+  name: "get_live_standings",
+  description: "Get the current live telemetry, standings, intervals, and tire data for the active race session. Useful for answering 'who is leading right now', 'what are the gaps', or 'what tires are they on'.",
+  parameters: {
+    type: SchemaType.OBJECT,
+    properties: {
+      series: {
+        type: SchemaType.STRING,
+        description: "The racing series (e.g. 'f1', 'f2')",
+      },
+    },
+    required: ["series"],
+  },
+};
+
+const getChampionshipStandingsDeclaration: FunctionDeclaration = {
+  name: "get_championship_standings",
+  description: "Get the overall championship points and standings for drivers and constructors.",
+  parameters: {
+    type: SchemaType.OBJECT,
+    properties: {
+      series: {
+        type: SchemaType.STRING,
+        description: "The racing series (e.g. 'f1')",
+      },
+    },
+    required: ["series"],
+  },
+};
+
+const getScheduleDeclaration: FunctionDeclaration = {
+  name: "get_schedule",
+  description: "Get the race calendar, schedule of upcoming sessions, and the status of the current or next round.",
+  parameters: {
+    type: SchemaType.OBJECT,
+    properties: {
+      series: {
+        type: SchemaType.STRING,
+        description: "The racing series (e.g. 'f1')",
+      },
+    },
+    required: ["series"],
+  },
+};
+
+const searchRulebookDeclaration: FunctionDeclaration = {
+  name: "search_rulebook",
+  description: "Search the official FIA sporting regulations and rulebook for the given series. Call this when the user asks about rules, penalties, race formats, safety cars, points systems, or flag meanings.",
+  parameters: {
+    type: SchemaType.OBJECT,
+    properties: {
+      series: {
+        type: SchemaType.STRING,
+        description: "The racing series (e.g. 'f1')",
+      },
+    },
+    required: ["series"],
+  },
+};
+
+const tools = [
+  {
+    functionDeclarations: [
+      getLiveStandingsDeclaration,
+      getChampionshipStandingsDeclaration,
+      getScheduleDeclaration,
+      searchRulebookDeclaration,
+    ],
+  },
+];
 
 export async function POST(request: NextRequest) {
   try {
@@ -33,63 +106,81 @@ export async function POST(request: NextRequest) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-3.6-flash",
+      tools: tools
+    });
 
-    // Step 1: Orchestrator Agent (Intent Classification)
-    const orchestratorPrompt = `
-You are a routing agent for a motorsports platform. Classify the user's intent into exactly ONE of these three categories:
-1. "telemetry" - questions about current standings, who is leading, gaps, positions, or live race data.
-2. "strategy" - questions about tire wear, when someone should pit, race pace, or predictive outcomes.
-3. "rules_history" - questions about general knowledge, past races, technical regulations, driver history, or anything else.
+    const chat = model.startChat({
+      systemInstruction: {
+        role: "system",
+        parts: [{
+          text: `You are the ${seriesName} Race Engineer AI. You have access to tools to fetch live telemetry, championship standings, and schedule data. 
+          Use them when needed to answer the user's question accurately. If the user asks a general racing question, you can answer from your own knowledge.
+          Keep responses concise, informative, and enthusiastic. Use racing terminology naturally. Keep responses under 150 words.`
+        }]
+      }
+    });
 
-Reply with ONLY the exact category name (telemetry, strategy, or rules_history).
-User query: "${userPrompt}"
-`;
-    const intentResult = await model.generateContent(orchestratorPrompt);
-    const intent = intentResult.response.text().trim().toLowerCase();
-
-    // Serialize live context
-    let raceContext = "Live Data Not Available.";
-    if (contextData) {
-      const topDrivers = contextData.championship?.driverStandings?.slice(0, 5) || [];
-      const cvDrivers = contextData.cvData || [];
-      const liveRace = contextData.liveRaceData || [];
-      raceContext = `
-Live Race Standings: ${JSON.stringify(liveRace)}
-CV Scan Standings: ${JSON.stringify(cvDrivers)}
-Championship Standings: ${JSON.stringify(topDrivers)}
-`;
+    let result = await chat.sendMessage(userPrompt);
+    let functionCall = result.response.functionCalls()?.[0];
+    
+    // Simple 1-iteration loop for function calling
+    if (functionCall) {
+      let apiResponse;
+      const { name, args } = functionCall;
+      const targetSeries = (args as any).series || series;
+      const origin = request.nextUrl.origin;
+      
+      try {
+        if (name === "get_live_standings") {
+          // Live standings are fetched client-side and sent via contextData
+          apiResponse = {
+            liveRaceData: contextData?.liveRaceData || "No live telemetry available right now",
+            cvData: contextData?.cvData || "No Computer Vision scan data available"
+          };
+        } else if (name === "get_championship_standings") {
+          // In production, we'd fetch this. For now, since the frontend passes it, we can use it to save a round trip.
+          if (contextData?.championship) {
+            apiResponse = contextData.championship;
+          } else {
+            const res = await fetch(`${origin}/api/${targetSeries}/standings`);
+            apiResponse = res.ok ? await res.json() : { error: "Failed to fetch standings" };
+          }
+        } else if (name === "get_schedule") {
+          const res = await fetch(`${origin}/api/${targetSeries}/schedule`);
+          apiResponse = res.ok ? await res.json() : { error: "Failed to fetch schedule" };
+        } else if (name === "search_rulebook") {
+          try {
+            const filePath = path.join(process.cwd(), 'data', 'fia_regulations_2024.md');
+            const rulesContent = await readFile(filePath, 'utf-8');
+            apiResponse = { rules: rulesContent };
+          } catch (e) {
+            apiResponse = { error: "Rulebook not found for this series" };
+          }
+        } else {
+           apiResponse = { error: "Unknown tool" };
+        }
+      } catch (e) {
+        apiResponse = { error: "Tool execution failed" };
+      }
+      
+      // Send tool response back to the model
+      result = await chat.sendMessage([{
+        functionResponse: {
+          name: name,
+          response: apiResponse
+        }
+      }]);
     }
-
-    // Step 2: Specialized Agent Execution
-    let systemPrompt = "";
-
-    if (intent.includes("telemetry")) {
-      systemPrompt = `You are the ${seriesName} Telemetry Agent. Your job is to answer questions strictly based on the live race data provided below.
-If the data is empty, say you are waiting for live telemetry to sync.
-Live Context: ${raceContext}`;
-    } else if (intent.includes("strategy")) {
-      systemPrompt = `You are the ${seriesName} Race Strategy Agent. Analyze the current race situation and tire/gap data to make informed strategic predictions (e.g. pit windows, undercut potential, tire degradation).
-Live Context: ${raceContext}`;
-    } else {
-      systemPrompt = `You are the ${seriesName} Rules & History Agent. Your job is to answer general knowledge questions about ${seriesName} regulations, past championships, and historical statistics. You do not need live data.`;
-    }
-
-    const finalPrompt = `
-${systemPrompt}
-Remember to be concise, informative, and enthusiastic. Use racing terminology naturally. Keep responses under 150 words.
-User question: ${userPrompt}
-Provide a helpful, engaging answer:`;
-
-    const result = await model.generateContent(finalPrompt);
+    
     const reply = result.response.text();
-
     return NextResponse.json({ reply });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error occurred";
     console.error("AI Chat error:", message);
     return NextResponse.json({
-      reply: "Sorry, I encountered an error processing your question. Please try again.",
+      reply: "Sorry, I encountered an error processing your question. Details: " + message,
     });
   }
 }
