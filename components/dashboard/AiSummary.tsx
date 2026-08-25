@@ -10,16 +10,13 @@ interface AiSummaryProps {
 
 export default function AiSummary({ series }: AiSummaryProps) {
   const [summary, setSummary] = useState<string>('')
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
+  const [hasFetched, setHasFetched] = useState(false)
   const seriesInfo = SERIES_MAP[series]
-
-  useEffect(() => {
-    fetchSummary()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [series])
 
   const fetchSummary = async () => {
     setLoading(true)
+    setHasFetched(true)
     try {
       const response = await fetch(`/api/ai/summary?series=${series}`)
       const data = await response.json()
@@ -111,6 +108,27 @@ export default function AiSummary({ series }: AiSummaryProps) {
           <div className="skeleton" style={{ height: '14px', width: '92%' }} />
           <div className="skeleton" style={{ height: '14px', width: '78%' }} />
         </div>
+      ) : !hasFetched ? (
+        <button 
+          onClick={fetchSummary}
+          className="hover-lift"
+          style={{
+            background: 'var(--accent-blue)',
+            color: '#fff',
+            border: 'none',
+            padding: '12px 20px',
+            borderRadius: 'var(--radius-md)',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}
+        >
+          <Zap size={16} />
+          Generate AI Briefing
+        </button>
       ) : (
         <div style={{
           fontSize: '15px',

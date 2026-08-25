@@ -70,6 +70,11 @@ export default function LiveStandings({ series, sessionKey, dataSource = "mock",
             posRes.json(), stintRes.json(), driverRes.json(), intervalRes.json()
           ]);
 
+          if (!Array.isArray(posData) || !Array.isArray(driverData)) {
+            console.warn("OpenF1 API Rate Limited or invalid data. Falling back to mock data.");
+            throw new Error("Invalid API Response");
+          }
+
           // Process positions (get latest for each driver)
           const latestPositions = new Map<number, number>();
           for (const p of posData) {
@@ -118,6 +123,13 @@ export default function LiveStandings({ series, sessionKey, dataSource = "mock",
           setLoading(false);
         } catch (err) {
           console.error("Error fetching live F1 data", err);
+          if (raceData.length === 0) {
+            // Fall back to mock data
+            const filtered = INITIAL_DATA.filter(d => d.drivers?.series_id === series || series === 'f1')
+            setRaceData(filtered)
+            if (onLiveStandingsUpdate) onLiveStandingsUpdate(filtered)
+          }
+          setLoading(false);
         } finally {
           isFetchingRef.current = false;
         }
