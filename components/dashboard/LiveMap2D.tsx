@@ -78,7 +78,15 @@ export default function LiveMap2D({ series, round = 1, sessionKey = null, circui
         if (series === 'f1' && sessionKey) {
           // Fetch exact circuit layout from a single fast lap trace
           const leaderNumber = driversList[0]?.number || 1
-          const pathRes = await fetch(`/api/f1/circuit_path/${sessionKey}?driver_number=${leaderNumber}`)
+          
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), 8000)
+          
+          const pathRes = await fetch(`/api/f1/circuit_path/${sessionKey}?driver_number=${leaderNumber}`, {
+            signal: controller.signal
+          })
+          clearTimeout(timeoutId)
+          
           const pathData = await pathRes.json()
 
           if (cancelled) return
