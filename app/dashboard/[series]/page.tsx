@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { SERIES_MAP } from '@/lib/data'
 import AiSummary from '@/components/dashboard/AiSummary'
 import MySupported from '@/components/dashboard/MySupported'
-import LiveStandings, { RaceData } from '@/components/dashboard/LiveStandings'
+import LiveStandings from '@/components/dashboard/LiveStandings'
 import LiveMap2D from '@/components/dashboard/LiveMap2D'
 import Chatbot from '@/components/dashboard/Chatbot'
 import StrategyPredictor from '@/components/dashboard/StrategyPredictor'
@@ -14,54 +14,32 @@ import WhereToWatch from '@/components/dashboard/WhereToWatch'
 import TeamHistory from '@/components/dashboard/TeamHistory'
 import FantasyGame from '@/components/dashboard/FantasyGame'
 import AlertSettings from '@/components/dashboard/AlertSettings'
-import BroadcastScanner, { CVData } from '@/components/dashboard/BroadcastScanner'
-import RoundNavigator, { Round } from '@/components/dashboard/RoundNavigator'
-import ChampionshipStandings, { DriverStanding, ConstructorStanding } from '@/components/dashboard/ChampionshipStandings'
+import BroadcastScanner from '@/components/dashboard/BroadcastScanner'
+import RoundNavigator from '@/components/dashboard/RoundNavigator'
+import ChampionshipStandings from '@/components/dashboard/ChampionshipStandings'
 import { ArrowLeft } from 'lucide-react'
+import { useSeriesData } from '@/lib/hooks/useSeriesData'
+import { RaceData, CVData, Round, DriverStanding, ConstructorStanding } from '@/lib/types'
 
 export default function SeriesDashboard() {
   const params = useParams()
   const series = params.series as string
   const seriesInfo = SERIES_MAP[series]
 
-  const [scheduleData, setScheduleData] = useState<{currentRound: number, rounds: Round[]} | null>(null)
-  const [standingsData, setStandingsData] = useState<{driverStandings: DriverStanding[], constructorStandings: ConstructorStanding[]} | null>(null)
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString())
-  const [selectedRound, setSelectedRound] = useState<number>(1)
-  const [selectedSessionKey, setSelectedSessionKey] = useState<number | null>(null)
+  const {
+    scheduleData,
+    standingsData,
+    selectedRound,
+    setSelectedRound,
+    selectedSessionKey,
+    setSelectedSessionKey,
+    selectedYear,
+    setSelectedYear
+  } = useSeriesData(series)
+
   const [isScanningActive, setIsScanningActive] = useState(false)
   const [cvData, setCvData] = useState<CVData[]>([])
   const [liveRaceData, setLiveRaceData] = useState<RaceData[]>([])
-
-  useEffect(() => {
-    if (series !== 'f1') return
-    
-    const fetchData = async () => {
-      try {
-        const [scheduleRes, standingsRes] = await Promise.all([
-          fetch(`/api/f1/schedule?year=${selectedYear}`),
-          fetch(`/api/f1/standings?year=${selectedYear}`)
-        ])
-        
-        const schedule = await scheduleRes.json()
-        const standings = await standingsRes.json()
-        
-        setScheduleData(schedule)
-        setStandingsData(standings)
-        setSelectedRound(schedule.currentRound)
-        
-        const currentRoundData = schedule.rounds.find((r: Round) => r.round === schedule.currentRound)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const raceSession = currentRoundData?.sessions.find((s: any) => s.name === 'Race') || currentRoundData?.sessions[0]
-        if (raceSession) setSelectedSessionKey(raceSession.key)
-      } catch (err) {
-        console.error('Error fetching F1 data:', err)
-      }
-    }
-    
-    fetchData()
-  }, [series, selectedYear])
-
 
   if (!seriesInfo) {
     return (

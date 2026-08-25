@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { supabase } from '@/lib/supabase'
 
 export const maxDuration = 60;
 export const revalidate = 60; // Cache for 1 minute for v1 API
@@ -10,15 +11,22 @@ export async function GET(
   const { series } = await params;
   const authHeader = request.headers.get('authorization')
   
-  // Basic API Key Validation (Mocked for now since we don't have active Supabase client wired in this route)
-  // In production, we would query the `api_keys` table.
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return NextResponse.json({ error: 'Unauthorized. Please provide an API key in the Authorization header: Bearer YOUR_API_KEY' }, { status: 401 })
   }
 
   const token = authHeader.split(' ')[1]
-  if (!token.startsWith('mh_live_') && token !== 'test_key') {
-    return NextResponse.json({ error: 'Invalid API Key' }, { status: 403 })
+  
+  // Validate API key against Supabase
+  const { data: keyData, error: keyError } = await supabase
+    .from('api_keys')
+    .select('*')
+    .eq('api_key', token)
+    .eq('is_active', true)
+    .single();
+
+  if (keyError || !keyData) {
+    return NextResponse.json({ error: 'Invalid or inactive API Key' }, { status: 403 })
   }
 
   // We reuse the internal route logic by making a local fetch, or we could extract it to a shared lib.

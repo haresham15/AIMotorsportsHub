@@ -3,23 +3,7 @@
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
 
-export interface RoundSession {
-  key: number
-  name: string
-  dateStart: string
-}
-
-export interface Round {
-  round: number
-  name: string
-  circuitName: string
-  country: string
-  date: string
-  time: string
-  status: 'upcoming' | 'live' | 'completed'
-  openF1MeetingKey?: number
-  sessions: RoundSession[]
-}
+import { Round } from '@/lib/types'
 
 interface Props {
   rounds: Round[]

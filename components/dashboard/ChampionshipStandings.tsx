@@ -4,26 +4,7 @@ import { useState } from 'react'
 import { Trophy } from 'lucide-react'
 import { getDriverColor } from '@/lib/data'
 
-export interface DriverStanding {
-  position: number
-  points: number
-  wins: number
-  driverId: string
-  driverNumber: string
-  code: string
-  firstName: string
-  lastName: string
-  constructorId: string
-  constructorName: string
-}
-
-export interface ConstructorStanding {
-  position: number
-  points: number
-  wins: number
-  constructorId: string
-  constructorName: string
-}
+import { DriverStanding, ConstructorStanding } from '@/lib/types'
 
 interface Props {
   drivers: DriverStanding[]

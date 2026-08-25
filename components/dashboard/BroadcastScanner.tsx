@@ -4,11 +4,7 @@ import { useState, useRef, useEffect, MouseEvent } from 'react'
 import { createWorker, Worker } from 'tesseract.js'
 import { ScanText, StopCircle, RefreshCw, X } from 'lucide-react'
 
-export interface CVData {
-  driver_id: string;
-  position: number;
-  gap_to_leader: string;
-}
+import { CVData } from '@/lib/types'
 
 interface BroadcastScannerProps {
   onScan: (data: CVData[]) => void
