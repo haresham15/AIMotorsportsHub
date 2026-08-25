@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const series = searchParams.get("series");
   const round = searchParams.get("round");
   const action = searchParams.get("action");
+
+  const supabase = await createClient();
 
   if (action === 'leaderboard') {
     // Get all-time leaderboard using Supabase RPC or aggregating
@@ -62,10 +64,18 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { userId, username, series, round, p1, p2, p3 } = body;
+    const supabase = await createClient();
+    const { data: { session } } = await supabase.auth.getSession();
 
-    if (!userId || !username || !series || round === undefined || !p1 || !p2 || !p3) {
+    if (!session || !session.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { username, series, round, p1, p2, p3 } = body;
+    const userId = session.user.id;
+
+    if (!username || !series || round === undefined || !p1 || !p2 || !p3) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 

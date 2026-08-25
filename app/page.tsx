@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { SERIES, MOCK_NOTIFICATIONS, type NotificationItem } from '@/lib/data'
 import { Bell, ChevronRight, Zap, Trophy, Clock, AlertTriangle } from 'lucide-react'
+import AuthButton from '@/components/AuthButton'
 
 export default function Home() {
   const [summaries, setSummaries] = useState<Record<string, string>>({})
@@ -72,6 +73,8 @@ export default function Home() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <AuthButton />
+            
             {/* Notification Bell */}
             <div style={{ position: 'relative' }}>
               <button

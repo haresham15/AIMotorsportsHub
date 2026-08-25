@@ -20,6 +20,7 @@ import ChampionshipStandings from '@/components/dashboard/ChampionshipStandings'
 import { ArrowLeft } from 'lucide-react'
 import { useSeriesData } from '@/lib/hooks/useSeriesData'
 import { RaceData, CVData, Round, DriverStanding, ConstructorStanding } from '@/lib/types'
+import AuthButton from '@/components/AuthButton'
 
 export default function SeriesDashboard() {
   const params = useParams()
@@ -117,6 +118,7 @@ export default function SeriesDashboard() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <AuthButton />
             <Link href="/" className="btn-ghost" style={{
               display: 'flex',
               alignItems: 'center',

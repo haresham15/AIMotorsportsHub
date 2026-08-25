@@ -3,53 +3,83 @@ import { RaceData } from '@/lib/types';
 
 export const revalidate = 10; // Cache the response for 10 seconds to avoid hitting OpenF1 limits
 
+// Define OpenF1 response interfaces
+interface OpenF1Position {
+  driver_number: number;
+  position: number;
+  date: string;
+}
+
+interface OpenF1Driver {
+  driver_number: number;
+  full_name: string;
+  team_name: string;
+}
+
+interface OpenF1Stint {
+  driver_number: number;
+  stint_number: number;
+  compound: string;
+}
+
+interface OpenF1Interval {
+  driver_number: number;
+  gap_to_leader: number;
+}
+
+async function safeFetch<T>(url: string): Promise<T[]> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      console.warn(`Failed to fetch ${url}: ${res.status} ${res.statusText}`);
+      return [];
+    }
+    return await res.json();
+  } catch (error) {
+    console.warn(`Error fetching ${url}:`, error);
+    return [];
+  }
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const sessionKey = searchParams.get('sessionKey') || 'latest';
 
   try {
     // We fetch positions, drivers, stints, intervals, and race control in parallel
-    const [posRes, driversRes, stintsRes, intervalsRes] = await Promise.all([
-      fetch(`https://api.openf1.org/v1/position?session_key=${sessionKey}`),
-      fetch(`https://api.openf1.org/v1/drivers?session_key=${sessionKey}`),
-      fetch(`https://api.openf1.org/v1/stints?session_key=${sessionKey}`),
-      fetch(`https://api.openf1.org/v1/intervals?session_key=${sessionKey}`)
-    ]);
-
-    if (!posRes.ok) throw new Error('Failed to fetch position data');
-
+    // Using safeFetch for secondary data to prevent total failure if one endpoint goes down
     const [positions, drivers, stints, intervals] = await Promise.all([
-      posRes.json(),
-      driversRes.ok ? driversRes.json() : [],
-      stintsRes.ok ? stintsRes.json() : [],
-      intervalsRes.ok ? intervalsRes.json() : []
+      fetch(`https://api.openf1.org/v1/position?session_key=${sessionKey}`).then(res => res.json()), // Critical
+      safeFetch<OpenF1Driver>(`https://api.openf1.org/v1/drivers?session_key=${sessionKey}`),
+      safeFetch<OpenF1Stint>(`https://api.openf1.org/v1/stints?session_key=${sessionKey}`),
+      safeFetch<OpenF1Interval>(`https://api.openf1.org/v1/intervals?session_key=${sessionKey}`)
     ]);
 
     // Group by driver to get latest position
-    const latestPositions = new Map<string, any>();
-    positions.forEach((p: any) => {
+    const latestPositions = new Map<number, OpenF1Position>();
+    positions.forEach((p: OpenF1Position) => {
       // OpenF1 returns an array of position records over time. We want the latest for each driver.
-      // Often the API returns them chronologically, so overwriting gets the latest.
       latestPositions.set(p.driver_number, p);
     });
 
     // Group intervals
-    const latestIntervals = new Map<string, any>();
-    intervals.forEach((i: any) => {
+    const latestIntervals = new Map<number, OpenF1Interval>();
+    intervals.forEach((i: OpenF1Interval) => {
       latestIntervals.set(i.driver_number, i);
     });
 
     // Get current stint per driver
-    const currentStints = new Map<string, any>();
-    stints.forEach((s: any) => {
-      if (!currentStints.has(s.driver_number) || s.stint_number > currentStints.get(s.driver_number).stint_number) {
+    const currentStints = new Map<number, OpenF1Stint>();
+    stints.forEach((s: OpenF1Stint) => {
+      const existing = currentStints.get(s.driver_number);
+      if (!existing || s.stint_number > existing.stint_number) {
         currentStints.set(s.driver_number, s);
       }
     });
 
     // Get driver details
-    const driverDetails = new Map<string, any>();
-    drivers.forEach((d: any) => {
+    const driverDetails = new Map<number, OpenF1Driver>();
+    drivers.forEach((d: OpenF1Driver) => {
       driverDetails.set(d.driver_number, d);
     });
 

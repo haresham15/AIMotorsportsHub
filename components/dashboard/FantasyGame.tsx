@@ -1,8 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { Trophy, CheckCircle, Share2, AlertCircle } from 'lucide-react'
 import { SERIES_DRIVERS } from '@/lib/data'
+import { createClient } from '@/lib/supabase/client'
+import { User as SupabaseUser } from '@supabase/supabase-js'
 
 interface FantasyGameProps {
   series: string
@@ -17,24 +20,42 @@ interface Prediction {
 }
 
 export default function FantasyGame({ series, round }: FantasyGameProps) {
-  const [username, setUsername] = useState('')
+  const [user, setUser] = useState<SupabaseUser | null>(null)
+  const [isAuthLoading, setIsAuthLoading] = useState(true)
   const [predictions, setPredictions] = useState<Prediction>({ p1: '', p2: '', p3: '' })
   const [submitted, setSubmitted] = useState(false)
   const [score, setScore] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
   const [leaderboard, setLeaderboard] = useState<{ username: string, totalScore: number }[]>([])
+  
+  const supabase = createClient()
 
   const drivers = SERIES_DRIVERS[series] || SERIES_DRIVERS['f1']
   const sortedDrivers = [...drivers].sort((a, b) => a.name.localeCompare(b.name))
 
   useEffect(() => {
-    // Check local storage for an existing username
-    const savedUser = localStorage.getItem('motorsport-hub-user')
-    if (savedUser) {
-      setUsername(savedUser)
-      checkExistingPrediction(savedUser)
-    }
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null)
+      setIsAuthLoading(false)
+      if (session?.user) {
+        checkExistingPrediction(session.user.id)
+      }
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user ?? null)
+        if (session?.user) {
+          checkExistingPrediction(session.user.id)
+        } else {
+          setSubmitted(false)
+        }
+      }
+    )
+
     fetchLeaderboard()
+
+    return () => subscription.unsubscribe()
   }, [series, round])
 
   const checkExistingPrediction = async (userId: string) => {
@@ -64,17 +85,17 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!username || !predictions.p1 || !predictions.p2 || !predictions.p3) return
+    if (!user || !predictions.p1 || !predictions.p2 || !predictions.p3) return
     
     setLoading(true)
-    localStorage.setItem('motorsport-hub-user', username)
+    const username = user.email?.split('@')[0] || 'Anonymous'
 
     try {
       await fetch('/api/fantasy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: username,
+          userId: user.id,
           username,
           series,
           round,
@@ -143,29 +164,36 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
         {/* Left Side: Prediction Form or Results */}
         <div>
-          {!submitted ? (
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>Username</label>
-                <input 
-                  type="text" 
-                  value={username}
-                  onChange={e => setUsername(e.target.value)}
-                  placeholder="Enter a username..."
-                  style={{
-                    width: '100%',
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '1px solid var(--border-subtle)',
-                    padding: '10px 12px',
-                    borderRadius: 'var(--radius-md)',
-                    color: 'var(--text-primary)',
-                    fontSize: '14px',
-                    fontFamily: 'var(--font-sans)',
-                  }}
-                  required
-                />
+          {isAuthLoading ? (
+            <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '14px' }}>
+              Loading game state...
+            </div>
+          ) : !user ? (
+            <div style={{ 
+              display: 'flex', flexDirection: 'column', alignItems: 'center', 
+              justifyContent: 'center', gap: '16px', height: '100%', 
+              textAlign: 'center', padding: '24px'
+            }}>
+              <div style={{
+                width: '64px', height: '64px', borderRadius: '50%',
+                background: 'rgba(255,255,255,0.05)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: 'var(--text-muted)'
+              }}>
+                <Trophy size={32} />
               </div>
-              
+              <div>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 8px 0' }}>Log In to Play</h3>
+                <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
+                  Create an account to submit your predictions and join the global leaderboard.
+                </p>
+              </div>
+              <Link href="/login" className="btn-primary" style={{ padding: '8px 24px', fontSize: '14px' }}>
+                Sign In
+              </Link>
+            </div>
+          ) : !submitted ? (
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {(['p1', 'p2', 'p3'] as const).map((pos, idx) => (
                   <div key={pos} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -205,7 +233,7 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
 
               <button 
                 type="submit"
-                disabled={loading || !username || !predictions.p1 || !predictions.p2 || !predictions.p3}
+                disabled={loading || !user || !predictions.p1 || !predictions.p2 || !predictions.p3}
                 className="btn-primary"
                 style={{ marginTop: '8px' }}
               >
@@ -279,13 +307,13 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', overflowY: 'auto', maxHeight: '250px' }}>
-              {leaderboard.map((user, idx) => (
-                <div key={user.username} style={{
+              {leaderboard.map((lbUser, idx) => (
+                <div key={lbUser.username} style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   padding: '8px 12px',
                   background: 'rgba(255,255,255,0.02)',
                   borderRadius: 'var(--radius-sm)',
-                  border: username === user.username ? '1px solid rgba(234,179,8,0.3)' : '1px solid transparent',
+                  border: (user?.email?.split('@')[0] || 'Anonymous') === lbUser.username ? '1px solid rgba(234,179,8,0.3)' : '1px solid transparent',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <span style={{ 
@@ -295,11 +323,11 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
                       #{idx + 1}
                     </span>
                     <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>
-                      {user.username}
+                      {lbUser.username}
                     </span>
                   </div>
                   <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                    {user.totalScore}
+                    {lbUser.totalScore}
                   </span>
                 </div>
               ))}

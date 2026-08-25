@@ -21,6 +21,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://ai-motorsports-hub.vercel.app'),
   title: "The Motorsport Hub | Your Racing Universe",
   description:
     "The ultimate personalized dashboard for motorsport fans. Live telemetry, AI insights, and comprehensive coverage across F1, F2, F3, Formula E, NASCAR, GT World Challenge, and Top Fuel Drag Racing.",
