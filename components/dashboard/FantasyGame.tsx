@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { Trophy, CheckCircle, Share2, AlertCircle } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Trophy, CheckCircle, Share2, AlertCircle, ChevronDown, Check } from 'lucide-react'
 import { SERIES_DRIVERS } from '@/lib/data'
 import { createClient } from '@/lib/supabase/client'
 import { User as SupabaseUser } from '@supabase/supabase-js'
@@ -17,6 +18,120 @@ interface Prediction {
   p2: string
   p3: string
   score?: number
+}
+
+interface CustomSelectProps {
+  value: string;
+  onChange: (value: string) => void;
+  options: any[];
+  placeholder: string;
+}
+
+function CustomSelect({ value, onChange, options, placeholder }: CustomSelectProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find(o => o.code === value);
+
+  return (
+    <div ref={ref} style={{ position: 'relative', flex: 1 }}>
+      <div 
+        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          background: 'rgba(255,255,255,0.05)',
+          border: '1px solid var(--border-subtle)',
+          padding: '10px 12px',
+          borderRadius: 'var(--radius-md)',
+          color: selectedOption ? 'var(--text-primary)' : 'var(--text-muted)',
+          fontSize: '14px',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          userSelect: 'none'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {selectedOption ? (
+            <>
+              {selectedOption.color && (
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: selectedOption.color }} />
+              )}
+              {selectedOption.name} ({selectedOption.team})
+            </>
+          ) : (
+            placeholder
+          )}
+        </div>
+        <ChevronDown size={16} color="var(--text-muted)" style={{ transition: 'transform 0.2s', transform: isOpen ? 'rotate(180deg)' : 'none' }} />
+      </div>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.15 }}
+            style={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              right: 0,
+              marginTop: '4px',
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-md)',
+              maxHeight: '220px',
+              overflowY: 'auto',
+              zIndex: 50,
+              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.8)',
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+          >
+            {options.map(option => (
+              <div
+                key={option.code}
+                onClick={() => { onChange(option.code); setIsOpen(false); }}
+                style={{
+                  padding: '10px 12px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  background: value === option.code ? 'rgba(255,255,255,0.05)' : 'transparent',
+                  color: 'var(--text-primary)',
+                  fontSize: '14px',
+                  transition: 'background 0.1s'
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = value === option.code ? 'rgba(255,255,255,0.05)' : 'transparent')}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {option.color && (
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: option.color }} />
+                  )}
+                  {option.name} <span style={{ color: 'var(--text-muted)' }}>({option.team})</span>
+                </div>
+                {value === option.code && <Check size={16} color="var(--text-primary)" />}
+              </div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
 }
 
 export default function FantasyGame({ series, round }: FantasyGameProps) {
@@ -213,27 +328,12 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
                     }}>
                       {idx + 1}
                     </div>
-                    <select
+                    <CustomSelect
                       value={predictions[pos]}
-                      onChange={e => setPredictions(prev => ({ ...prev, [pos]: e.target.value }))}
-                      style={{
-                        flex: 1,
-                        background: 'rgba(255,255,255,0.05)',
-                        border: '1px solid var(--border-subtle)',
-                        padding: '10px 12px',
-                        borderRadius: 'var(--radius-md)',
-                        color: 'var(--text-primary)',
-                        fontSize: '14px',
-                        cursor: 'pointer',
-                        outline: 'none',
-                      }}
-                      required
-                    >
-                      <option value="" disabled>Select Driver</option>
-                      {sortedDrivers.map(d => (
-                        <option key={d.code} value={d.code}>{d.name} ({d.team})</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setPredictions(prev => ({ ...prev, [pos]: val }))}
+                      options={sortedDrivers}
+                      placeholder="Select Driver"
+                    />
                   </div>
                 ))}
               </div>

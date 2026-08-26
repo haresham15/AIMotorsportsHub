@@ -368,3 +368,33 @@ CREATE POLICY "Users can insert own api keys" ON api_keys FOR INSERT WITH CHECK 
 
 DROP POLICY IF EXISTS "Users can delete own api keys" ON api_keys;
 CREATE POLICY "Users can delete own api keys" ON api_keys FOR DELETE USING (auth.uid() = user_id);
+
+-- ============================================================
+-- FANTASY PREDICTIONS
+-- ============================================================
+CREATE TABLE IF NOT EXISTS fantasy_predictions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  username TEXT NOT NULL,
+  series TEXT NOT NULL,
+  round INT NOT NULL,
+  p1 TEXT NOT NULL,
+  p2 TEXT NOT NULL,
+  p3 TEXT NOT NULL,
+  score INT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(user_id, series, round)
+);
+
+-- Fantasy Predictions RLS
+ALTER TABLE fantasy_predictions ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public read for fantasy predictions" ON fantasy_predictions;
+CREATE POLICY "Public read for fantasy predictions" ON fantasy_predictions FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Users can insert own fantasy predictions" ON fantasy_predictions;
+CREATE POLICY "Users can insert own fantasy predictions" ON fantasy_predictions FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can update own fantasy predictions" ON fantasy_predictions;
+CREATE POLICY "Users can update own fantasy predictions" ON fantasy_predictions FOR UPDATE USING (auth.uid() = user_id);
