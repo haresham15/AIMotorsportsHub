@@ -36,8 +36,12 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
   const [canvasSize, setCanvasSize] = useState({ w: 800, h: 450 })
   const cachedTrackCanvasRef = useRef<HTMLCanvasElement | null>(null)
 
-  /* keep ref in sync */
-  useEffect(() => { frameIdxRef.current = playback.frameIndex }, [playback.frameIndex])
+  /* keep ref in sync, but only override if it's a manual scrub/skip (>2 frames difference) */
+  useEffect(() => { 
+    if (Math.abs(frameIdxRef.current - playback.frameIndex) > 2) {
+      frameIdxRef.current = playback.frameIndex 
+    }
+  }, [playback.frameIndex])
 
   /* ── compute viewport transform (world → screen) ─────────────── */
   const getTransform = useCallback((w: number, h: number) => {
@@ -304,6 +308,7 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
     if (!ctx) return
 
     let running = true
+    let lastSyncTime = 0
 
     const tick = (timestamp: number) => {
       if (!running) return
@@ -315,7 +320,12 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
 
         if (newIdx !== frameIdxRef.current) {
           frameIdxRef.current = newIdx
-          onPlaybackChange({ frameIndex: newIdx })
+          // Throttle React state updates to ~10 FPS (every 100ms) to prevent main thread stutter
+          // while keeping the internal canvas rendering smoothly at 60 FPS.
+          if (timestamp - lastSyncTime > 100 || newIdx >= data.frames.length - 1) {
+            lastSyncTime = timestamp
+            onPlaybackChange({ frameIndex: newIdx })
+          }
         }
       }
 

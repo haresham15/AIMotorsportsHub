@@ -275,7 +275,7 @@ export default function LiveStandings({ series, sessionKey, dataSource = "mock",
                         color: 'var(--text-primary)',
                         whiteSpace: 'nowrap',
                       }}>
-                        {entry.drivers?.name || 'Unknown'}
+                        {entry.drivers?.name || `Car ${entry.driver_id}`}
                       </td>
                       <td style={{
                         padding: '10px 12px',
