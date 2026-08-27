@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import ApexisLogo from '@/components/ui/ApexisLogo'
+import { toast } from 'sonner'
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true)
@@ -38,7 +39,7 @@ export default function LoginPage() {
         if (error) throw error
         // If sign up is successful and email confirmation is disabled, user is logged in automatically
         // If email confirmation is enabled, they need to check email. For now we assume no confirmation required for prototype
-        alert("Account created successfully! You are now logged in.")
+        toast.success("Account created successfully! You are now logged in.")
         router.push('/')
         router.refresh()
       }

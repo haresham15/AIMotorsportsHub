@@ -7,6 +7,7 @@ import { Trophy, CheckCircle, Share2, AlertCircle, ChevronDown, Check } from 'lu
 import { SERIES_DRIVERS } from '@/lib/data'
 import { createClient } from '@/lib/supabase/client'
 import { User as SupabaseUser } from '@supabase/supabase-js'
+import { toast } from 'sonner'
 
 interface FantasyGameProps {
   series: string
@@ -225,7 +226,7 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
       fetchLeaderboard() // Refresh in case we added a new user
     } catch (e: any) {
       if (e.message) {
-        alert(e.message)
+        toast.error(e.message)
       }
       console.error(e)
     } finally {
@@ -241,8 +242,11 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
     if (navigator.share) {
       navigator.share({ title: 'Apexis Fantasy', text })
     } else {
-      navigator.clipboard.writeText(text)
-      alert("Results copied to clipboard!")
+      navigator.clipboard.writeText(text).then(() => {
+        toast.success("Results copied to clipboard!")
+      }).catch(err => {
+        toast.error("Failed to copy to clipboard")
+      })
     }
   }
 

@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { Bell, Send, Trash2, CheckCircle2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 export default function AlertSettings() {
   const [webhookUrl, setWebhookUrl] = useState('')
   const [savedUrl, setSavedUrl] = useState('')
   const [testing, setTesting] = useState(false)
-  const [status, setStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null)
 
   useEffect(() => {
     const saved = localStorage.getItem('motorsport-discord-webhook')
@@ -21,25 +21,24 @@ export default function AlertSettings() {
     if (!webhookUrl.trim()) {
       localStorage.removeItem('motorsport-discord-webhook')
       setSavedUrl('')
-      setStatus({ type: 'success', message: 'Webhook removed.' })
+      toast.success('Webhook removed.')
       return
     }
     
     // Basic validation
     if (!webhookUrl.startsWith('https://discord.com/api/webhooks/')) {
-      setStatus({ type: 'error', message: 'Invalid Discord webhook URL.' })
+      toast.error('Invalid Discord webhook URL.')
       return
     }
 
     localStorage.setItem('motorsport-discord-webhook', webhookUrl)
     setSavedUrl(webhookUrl)
-    setStatus({ type: 'success', message: 'Webhook saved successfully!' })
+    toast.success('Webhook saved successfully!')
   }
 
   const handleTest = async () => {
     if (!savedUrl) return
     setTesting(true)
-    setStatus(null)
 
     try {
       const res = await fetch('/api/alerts/discord', {
@@ -55,12 +54,12 @@ export default function AlertSettings() {
       })
 
       if (res.ok) {
-        setStatus({ type: 'success', message: 'Test alert sent! Check your Discord channel.' })
+        toast.success('Test alert sent! Check your Discord channel.')
       } else {
         throw new Error('Failed to send')
       }
     } catch (e) {
-      setStatus({ type: 'error', message: 'Failed to send test alert. Check the URL.' })
+      toast.error('Failed to send test alert. Check the URL.')
     } finally {
       setTesting(false)
     }
@@ -156,18 +155,7 @@ export default function AlertSettings() {
           </div>
         </div>
 
-        {status && (
-          <div style={{ 
-            fontSize: '12px', 
-            fontWeight: 500,
-            color: status.type === 'success' ? '#4ade80' : '#f87171',
-            background: status.type === 'success' ? 'rgba(74,222,128,0.1)' : 'rgba(248,113,113,0.1)',
-            padding: '8px 12px',
-            borderRadius: 'var(--radius-sm)'
-          }}>
-            {status.message}
-          </div>
-        )}
+
 
         {savedUrl && (
           <button 
