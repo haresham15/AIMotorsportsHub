@@ -177,6 +177,7 @@ export function generateReplayData(
   seriesId: string,
   track: TrackGeometry,
   drivers: DriverInfo[],
+  sessionType: string = 'Race'
 ): ReplayData {
   const config = SERIES_CONFIGS[seriesId] || SERIES_CONFIGS.f1;
   const rng = new SeededRNG(seriesId.length * 1000 + track.referenceLine.length);
@@ -196,7 +197,7 @@ export function generateReplayData(
         seriesId, seriesName: seriesId.toUpperCase(),
         eventName: track.name, circuitName: track.name,
         country: track.country, year: new Date().getFullYear(),
-        round: 1, sessionType: 'Race',
+        round: 1, sessionType: sessionType,
       },
     };
   }
@@ -214,9 +215,17 @@ export function generateReplayData(
   const baseSpeedWorld = lapDistWorld / config.lapTimeSeconds * config.baseSpeedFactor;
 
   // ── Dynamic lap count: use series config, then track data, then fallback ──
-  // Previously hardcoded to Math.min(track.totalLaps, 15) — this was the
-  // root cause of the 15-lap / 22-minute bug.
-  const totalLaps = config.defaultLaps ?? track.totalLaps ?? 50;
+  let totalLaps = config.defaultLaps ?? track.totalLaps ?? 50;
+  
+  // Adjust lap count based on session type
+  const sTypeLower = sessionType.toLowerCase();
+  if (sTypeLower.includes('sprint')) {
+    totalLaps = Math.max(1, Math.ceil(totalLaps / 3));
+  } else if (sTypeLower.includes('qualifying')) {
+    totalLaps = 3; // Out lap, push lap, in lap
+  } else if (sTypeLower.includes('practice')) {
+    totalLaps = 5; // A short practice stint
+  }
 
   // ── Frame budget: downsample FPS for very long races to stay under
   // MAX_FRAMES, rather than truncating the number of laps.

@@ -152,12 +152,15 @@ export default function SeriesDashboard() {
         }}>
           {(() => {
             const currentRoundData = scheduleData?.rounds.find((r) => r.round === selectedRound)
+            const currentSession = currentRoundData?.sessions.find((s) => s.key === selectedSessionKey)
+            const sessionType = currentSession?.name || 'Race'
             
             return (
               <LiveMap2D 
                 series={series} 
                 round={selectedRound} 
                 sessionKey={selectedSessionKey} 
+                sessionType={sessionType}
                 circuitName={currentRoundData?.circuitName}
                 country={currentRoundData?.country}
                 driverStandings={standingsData?.driverStandings}

@@ -13,7 +13,7 @@ import { Loader, Radio, AlertTriangle } from 'lucide-react'
 // Helper to run simulation — prefers Web Worker for off-main-thread
 // generation, but falls back to synchronous if Workers are unavailable
 // (e.g., SSR, strict CSP, or certain browser extensions).
-const generateReplayDataAsync = async (series: string, track: TrackGeometry, driversList: DriverInfo[]): Promise<ReplayData> => {
+const generateReplayDataAsync = async (series: string, track: TrackGeometry, driversList: DriverInfo[], sessionType?: string): Promise<ReplayData> => {
   try {
     return await new Promise((resolve, reject) => {
       const worker = new Worker(new URL('../../workers/simulator.worker.ts', import.meta.url))
@@ -26,13 +26,13 @@ const generateReplayDataAsync = async (series: string, track: TrackGeometry, dri
         reject(err)
         worker.terminate()
       }
-      worker.postMessage({ series, track, driversList })
+      worker.postMessage({ series, track, driversList, sessionType })
     })
   } catch {
     // Fallback: run synchronously on main thread if Worker fails
     console.warn('[LiveMap2D] Web Worker unavailable, running simulation synchronously')
     const { generateReplayData } = await import('@/lib/raceSimulator')
-    return generateReplayData(series, track, driversList)
+    return generateReplayData(series, track, driversList, sessionType)
   }
 }
 
@@ -49,9 +49,10 @@ interface LiveMap2DProps {
     driverNumber: string;
     constructorName: string;
   }>
+  sessionType?: string
 }
 
-export default function LiveMap2D({ series, round = 1, sessionKey = null, circuitName, country, driverStandings }: LiveMap2DProps) {
+export default function LiveMap2D({ series, round = 1, sessionKey = null, sessionType = 'Race', circuitName, country, driverStandings }: LiveMap2DProps) {
   const [replayData, setReplayData] = useState<ReplayData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -138,7 +139,7 @@ export default function LiveMap2D({ series, round = 1, sessionKey = null, circui
               outerEdge: []
             }
 
-            const simData = await generateReplayDataAsync(series, track, driversList)
+            const simData = await generateReplayDataAsync(series, track, driversList, sessionType)
             
             if (cancelled) return
             setReplayData(simData)
@@ -157,7 +158,7 @@ export default function LiveMap2D({ series, round = 1, sessionKey = null, circui
         if (json.source === 'simulation' || !json.frames) {
           console.log(`[LiveMap2D] No API data for ${series}, using fallback simulation`)
           const track = getTrackForCircuit(circuitName, series)
-          const simData = await generateReplayDataAsync(series, track, driversList)
+          const simData = await generateReplayDataAsync(series, track, driversList, sessionType)
           if (cancelled) return
           setReplayData(simData)
           setDataSource('simulation')
@@ -179,7 +180,7 @@ export default function LiveMap2D({ series, round = 1, sessionKey = null, circui
           color: getDriverColor(series, d.code) || '#ffffff'
         })) : (SERIES_DRIVERS[series] || SERIES_DRIVERS['f1'])
 
-        const simData = await generateReplayDataAsync(series, track, fallbackDrivers)
+        const simData = await generateReplayDataAsync(series, track, fallbackDrivers, sessionType)
         if (cancelled) return
         setReplayData(simData)
         setDataSource('simulation')
