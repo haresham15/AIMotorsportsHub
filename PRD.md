@@ -22,11 +22,11 @@ Motorsport fans who follow multiple disciplines (e.g., F1, NASCAR, Formula E) cu
 - **Main Dashboard**: Overview of all series, high-level AI news summaries, and global navigation.
 - **Sport-Specific Dashboards**:
   - *My Supported*: Quick view of followed drivers' current standings.
-  - *Live Race Results*: Real-time standings, gaps, intervals, and tire compound data.
+  - *Live Race Results*: Real-time standings, gaps, intervals, and tire compound data. Can be optionally synced live via an in-browser Computer Vision broadcast scanner.
   - *Where to Watch*: Links to official broadcasters and streaming platforms.
 
 ### 4.3 Data Visualization
-- **Live 2D Race Map**: Visual representation of driver positions on a circuit, utilizing real track geometry or mock telemetry simulations to recreate the race flow in a browser canvas.
+- **Live 2D Race Map**: Visual representation of driver positions on a circuit. Utilizes real track geometry via OpenF1 or simulated math geometry, powered by a multi-threaded Web Worker architecture to handle up to 75,000 frames without blocking the UI thread.
 - **Driver Telemetry Panel**: Clickable drivers on the map/leaderboard to view specific metrics.
 
 ### 4.4 AI Integrations
@@ -43,14 +43,16 @@ Motorsport fans who follow multiple disciplines (e.g., F1, NASCAR, Formula E) cu
 ## 6. Technical Architecture
 
 ### 6.1 Tech Stack
-- **Frontend**: Next.js 16 (App Router, Turbopack), React 19, TypeScript, Tailwind CSS.
-- **Backend / APIs**: Next.js Route Handlers (`app/api/`) and Python Serverless Functions (FastAPI) deployed on Vercel.
-- **Database & Auth**: Supabase (PostgreSQL). Leverages Supabase Realtime for pushing live telemetry to clients.
+- **Frontend**: Next.js 14 (App Router, Turbopack), React 19, TypeScript, Tailwind CSS.
+- **Backend / APIs**: Next.js Route Handlers (`app/api/`) deployed on Vercel.
+- **Database & Auth**: Supabase (PostgreSQL) (Future/Optional integration).
+- **Computer Vision**: Tesseract.js (running locally in Web Workers).
+- **Machine Learning**: TensorFlow.js.
 - **AI Provider**: Google Gemini API.
 
 ### 6.2 Data Flow & Sources
-- **Live Data Ingestion**: Python scripts (`generate_mock_data.py`) or OpenF1 integrations to push telemetry to the Supabase PostgreSQL database.
-- **Realtime Sync**: Supabase Realtime broadcasts row-level changes (e.g., driver position updates) to the Next.js frontend via websockets.
+- **Live Data Ingestion**: Real-time standings can be fetched via standard APIs (e.g., Ergast, OpenF1), or directly extracted from YouTube/TV broadcasts locally on the client using Tesseract.js.
+- **Simulation**: Missing live telemetry is seamlessly filled in by an algorithmic race simulator that runs inside a Web Worker.
 - **AI Processing**: Next.js API endpoints interface with the Gemini API to fetch and stream generated summaries and chat responses back to the user interface.
 
 ## 7. User Flow

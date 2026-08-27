@@ -52,7 +52,10 @@ This process usually takes about 1-2 minutes.
 
 Once the deployment is complete, Vercel will provide you with a live URL (e.g., `https://aimotorsportshub.vercel.app`).
 
-Click on the URL to view your live, public-facing portfolio project. The Computer Vision features (Tesseract.js OCR) and Track Replay Engine will run directly and efficiently inside the client's browser via Web Workers, while the Multi-Agent AI will securely call your Gemini API key via the Vercel serverless functions.
+Click on the URL to view your live, public-facing portfolio project. 
+
+> [!TIP]
+> **Client-Side Heavy Lifting:** The Computer Vision features (Tesseract.js OCR) and the new Multi-Threaded Track Replay Engine run directly and efficiently inside the client's browser via Web Workers. This ensures that the heavy simulation and OCR processing is completely offloaded from Vercel's serverless functions, keeping your deployment fast, scalable, and well within the free-tier limits. The Multi-Agent AI securely calls your Gemini API key via the Vercel serverless functions.
 
 ## Troubleshooting
 
