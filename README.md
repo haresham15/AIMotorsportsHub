@@ -9,7 +9,7 @@ A centralized, personalized web platform for motorsport fans to track their favo
 - **Machine Learning Strategy Predictor**: TensorFlow.js integration predicting tire degradation with real-time time-loss estimates for staying out on aging tires.
 - **Computer Vision Standings Extractor**: In-browser OCR using `tesseract.js` to automatically extract live standings directly from TV broadcasts (runs entirely client-side).
 - **Multi-Threaded Live Race Simulation**: 2D race map visualization powered by a custom Web Worker engine. Incorporates true track geometries (via OpenF1), session-specific dynamic lap logic (Sprint, Qualifying, Practice, Race), and dynamic framerate buffering for endurance events.
-- **Public Portfolio Demo**: Clean, accessible interface with no login required for core features.
+- **Public Portfolio Demo (Guest Access)**: Core functionality is available to guests without an account, while a fully functioning Supabase Auth integration handles optional personalized features.
 
 ## Tech Stack
 

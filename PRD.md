@@ -14,8 +14,9 @@ Motorsport fans who follow multiple disciplines (e.g., F1, NASCAR, Formula E) cu
 ## 4. Key Features (MVP)
 
 ### 4.1 Authentication & Personalization
+- **Guest Access**: Core features (Live Race Map, ML Strategy Predictor, CV Sync) are fully accessible to guest users without requiring an account or login.
 - **User Authentication**: Secure signup/login using Supabase Auth (Email/Password, OAuth).
-- **Personalized Dashboard**: Users can "follow" their favorite drivers and teams across different racing series.
+- **Personalized Dashboard**: Logged-in users can "follow" their favorite drivers and teams across different racing series.
 
 ### 4.2 Core Application & Dashboards
 - **Multi-Series Support**: Dedicated sections for F1, F2, F3, FE, NASCAR, and GTWC.
