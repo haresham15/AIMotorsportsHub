@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - **Time Display Formatting**: Upgraded time formatting to display `HH:MM:SS` when race durations exceed 60 minutes.
 
 ### Added
+- **Session-Specific Lap Counts**: Replay simulator now receives the `sessionType` and dynamically adjusts lap counts (e.g., Sprint sessions now accurately simulate ~33% race distance).
 - **Dynamic Frame Budgeting**: Added automatic FPS downsampling (up to ~75,000 max frames) to keep memory usage under control during long endurance races without truncating lap counts.
 - **New Playback Speed**: Added a 32x playback speed option to efficiently scrub through long NASCAR and GT endurance races.
 - **Web Worker Fallback**: Added a synchronous generation fallback for the race simulator in environments where Web Workers are restricted or fail to initialize.
