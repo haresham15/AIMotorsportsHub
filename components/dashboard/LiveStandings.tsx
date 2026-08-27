@@ -157,31 +157,13 @@ export default function LiveStandings({ series, sessionKey, dataSource = "mock",
   }
 
   return (
-    <div style={{ padding: '0 8px' }}>
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: '20px',
-      }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-        }}>
-          <div style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: 'var(--radius-sm)',
-            background: 'rgba(16,185,129,0.12)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#34d399',
-          }}>
+    <div className="px-2">
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-emerald-500/12 flex items-center justify-center text-emerald-400">
             <BarChart3 size={16} />
           </div>
-          <h2 style={{ fontSize: '16px', fontWeight: 700 }}>Live Timing</h2>
+          <h2 className="text-base font-bold">Live Timing</h2>
         </div>
 
         {raceData.length > 0 && (
@@ -200,34 +182,18 @@ export default function LiveStandings({ series, sessionKey, dataSource = "mock",
       </div>
 
       {loading ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div className="flex flex-col gap-1.5">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="skeleton" style={{
-              height: '44px',
-              borderRadius: 'var(--radius-sm)',
-            }} />
+            <div key={i} className="skeleton h-11 rounded-[var(--radius-sm)]" />
           ))}
         </div>
       ) : (
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{
-            width: '100%',
-            textAlign: 'left',
-            borderCollapse: 'collapse',
-            tableLayout: 'auto',
-          }}>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse table-auto">
             <thead>
-              <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+              <tr className="border-b border-[var(--border-subtle)]">
                 {['Pos', 'Driver', 'Gap', 'Last Lap', 'Tire'].map((header) => (
-                  <th key={header} style={{
-                    padding: '0 12px 12px',
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.08em',
-                    color: 'var(--text-muted)',
-                    whiteSpace: 'nowrap',
-                  }}>
+                  <th key={header} className="pb-3 px-3 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--text-muted)] whitespace-nowrap">
                     {header}
                   </th>
                 ))}
@@ -236,13 +202,7 @@ export default function LiveStandings({ series, sessionKey, dataSource = "mock",
             <tbody>
               {raceData.length === 0 ? (
                 <tr>
-                  <td colSpan={5} style={{
-                    padding: '40px 12px',
-                    textAlign: 'center',
-                    color: 'var(--text-muted)',
-                    fontSize: '13px',
-                    fontStyle: 'italic',
-                  }}>
+                  <td colSpan={5} className="py-10 px-3 text-center text-[var(--text-muted)] text-[13px] italic">
                     Waiting for race session data...
                   </td>
                 </tr>
@@ -250,62 +210,30 @@ export default function LiveStandings({ series, sessionKey, dataSource = "mock",
                 raceData.map((entry) => {
                   const tireColor = getTireColor(entry.tire_compound)
                   return (
-                    <tr key={entry.driver_id} style={{
-                      borderBottom: '1px solid rgba(255,255,255,0.03)',
-                      transition: 'background 0.2s',
-                      cursor: 'default',
-                    }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                    >
-                      <td style={{ padding: '10px 12px' }}>
-                        <span style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontWeight: 800,
-                          fontSize: '14px',
-                          color: entry.position <= 3 ? '#fbbf24' : 'var(--text-primary)',
-                        }}>
+                    <tr key={entry.driver_id} className="border-b border-white/5 transition-colors duration-200 hover:bg-white/5">
+                      <td className="p-3">
+                        <span className={`font-mono font-extrabold text-[14px] ${entry.position <= 3 ? 'text-[#fbbf24]' : 'text-[var(--text-primary)]'}`}>
                           {entry.position}
                         </span>
                       </td>
-                      <td style={{
-                        padding: '10px 12px',
-                        fontWeight: 600,
-                        fontSize: '14px',
-                        color: 'var(--text-primary)',
-                        whiteSpace: 'nowrap',
-                      }}>
+                      <td className="p-3 font-semibold text-[14px] text-[var(--text-primary)] whitespace-nowrap">
                         {entry.drivers?.name || `Car ${entry.driver_id}`}
                       </td>
-                      <td style={{
-                        padding: '10px 12px',
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: '12px',
-                        color: 'var(--text-muted)',
-                      }}>
+                      <td className="p-3 font-mono text-[12px] text-[var(--text-muted)]">
                         {entry.gap_to_leader}
                       </td>
-                      <td style={{
-                        padding: '10px 12px',
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: '12px',
-                        color: 'var(--text-muted)',
-                      }}>
+                      <td className="p-3 font-mono text-[12px] text-[var(--text-muted)]">
                         {entry.last_lap}
                       </td>
-                      <td style={{ padding: '10px 12px' }}>
-                        <span style={{
-                          display: 'inline-block',
-                          padding: '2px 8px',
-                          borderRadius: 'var(--radius-full)',
-                          background: tireColor.bg,
-                          color: tireColor.text,
-                          border: `1px solid ${tireColor.border}`,
-                          fontSize: '10px',
-                          fontWeight: 700,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.04em',
-                        }}>
+                      <td className="p-3">
+                        <span 
+                          className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-[0.04em]"
+                          style={{
+                            background: tireColor.bg,
+                            color: tireColor.text,
+                            border: `1px solid ${tireColor.border}`
+                          }}
+                        >
                           {entry.tire_compound}
                         </span>
                       </td>

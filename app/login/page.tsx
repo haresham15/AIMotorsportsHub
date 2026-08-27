@@ -51,35 +51,15 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div className="min-h-screen flex flex-col">
       {/* ===== NAVBAR ===== */}
-      <nav className="glass-nav" style={{ padding: '0 24px' }}>
-        <div style={{
-          maxWidth: '1280px',
-          margin: '0 auto',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          height: '64px',
-        }}>
-          <Link href="/" style={{
-            fontSize: '20px',
-            fontWeight: 800,
-            textDecoration: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            color: 'var(--text-primary)'
-          }}>
+      <nav className="glass-nav px-6">
+        <div className="max-w-[1280px] mx-auto flex justify-between items-center h-16">
+          <Link href="/" className="text-xl font-extrabold flex items-center gap-2 text-[var(--text-primary)] no-underline">
             <ApexisLogo width={24} height={24} />
             Apexis
           </Link>
-          <Link href="/" className="btn-ghost" style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            textDecoration: 'none',
-          }}>
+          <Link href="/" className="btn-ghost flex items-center gap-1.5 no-underline">
             <ArrowLeft size={14} />
             <span>Back to Apexis</span>
           </Link>
@@ -87,49 +67,28 @@ export default function LoginPage() {
       </nav>
 
       {/* ===== LOGIN FORM ===== */}
-      <main style={{ 
-        flex: 1, 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        padding: '24px' 
-      }}>
-        <div className="card glass animate-fade-in-up" style={{
-          width: '100%',
-          maxWidth: '400px',
-          padding: '32px',
-          borderRadius: 'var(--radius-xl)',
-          background: 'var(--bg-card)',
-          border: '1px solid var(--border-subtle)',
-        }}>
-          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-            <h1 style={{ fontSize: '24px', fontWeight: 800, marginBottom: '8px' }}>
+      <main className="flex-1 flex items-center justify-center p-6">
+        <div className="card glass animate-fade-in-up w-full max-w-[400px] p-8 rounded-[var(--radius-xl)] bg-[var(--bg-card)] border border-[var(--border-subtle)]">
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-extrabold mb-2">
               {isLogin ? 'Welcome Back' : 'Create an Account'}
             </h1>
-            <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
+            <p className="text-sm text-[var(--text-muted)]">
               {isLogin 
                 ? 'Sign in to access Fantasy Predictions and more.' 
                 : 'Join Apexis to start playing Fantasy Predictions.'}
             </p>
           </div>
 
-          <form onSubmit={handleAuth} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <form onSubmit={handleAuth} className="flex flex-col gap-5">
             {error && (
-              <div style={{
-                background: 'rgba(239, 68, 68, 0.1)',
-                border: '1px solid rgba(239, 68, 68, 0.2)',
-                color: '#ef4444',
-                padding: '12px',
-                borderRadius: 'var(--radius-md)',
-                fontSize: '13px',
-                textAlign: 'center'
-              }}>
+              <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-3 rounded-[var(--radius-md)] text-[13px] text-center">
                 {error}
               </div>
             )}
 
             <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px' }}>
+              <label className="block text-[13px] font-semibold text-[var(--text-secondary)] mb-2">
                 Email Address
               </label>
               <input 
@@ -137,23 +96,13 @@ export default function LoginPage() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                style={{
-                  width: '100%',
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '1px solid var(--border-subtle)',
-                  padding: '12px',
-                  borderRadius: 'var(--radius-md)',
-                  color: 'var(--text-primary)',
-                  fontSize: '15px',
-                  fontFamily: 'var(--font-sans)',
-                  outline: 'none',
-                }}
+                className="w-full bg-white/5 border border-[var(--border-subtle)] p-3 rounded-[var(--radius-md)] text-[var(--text-primary)] text-[15px] font-sans outline-none focus:border-[var(--accent-blue)] transition-colors"
                 required
               />
             </div>
             
             <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px' }}>
+              <label className="block text-[13px] font-semibold text-[var(--text-secondary)] mb-2">
                 Password
               </label>
               <input 
@@ -161,58 +110,26 @@ export default function LoginPage() {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="••••••••"
-                style={{
-                  width: '100%',
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '1px solid var(--border-subtle)',
-                  padding: '12px',
-                  borderRadius: 'var(--radius-md)',
-                  color: 'var(--text-primary)',
-                  fontSize: '15px',
-                  fontFamily: 'var(--font-sans)',
-                  outline: 'none',
-                }}
+                className="w-full bg-white/5 border border-[var(--border-subtle)] p-3 rounded-[var(--radius-md)] text-[var(--text-primary)] text-[15px] font-sans outline-none focus:border-[var(--accent-blue)] transition-colors"
                 required
               />
             </div>
 
             <button 
               type="submit" 
-              className="btn-primary" 
+              className="btn-primary w-full p-3 mt-2 flex items-center justify-center gap-2 text-[15px]" 
               disabled={loading}
-              style={{
-                width: '100%',
-                padding: '12px',
-                marginTop: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                fontSize: '15px'
-              }}
             >
               {loading && <Loader2 size={16} className="animate-spin" />}
               {isLogin ? 'Sign In' : 'Create Account'}
             </button>
           </form>
 
-          <div style={{ 
-            marginTop: '24px', 
-            textAlign: 'center', 
-            fontSize: '13px', 
-            color: 'var(--text-muted)' 
-          }}>
+          <div className="mt-6 text-center text-[13px] text-[var(--text-muted)]">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
             <button 
               onClick={() => setIsLogin(!isLogin)}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--accent-blue)',
-                fontWeight: 600,
-                cursor: 'pointer',
-                padding: 0,
-              }}
+              className="bg-transparent border-none text-[var(--accent-blue)] font-semibold cursor-pointer p-0 hover:underline"
             >
               {isLogin ? 'Sign up' : 'Sign in'}
             </button>

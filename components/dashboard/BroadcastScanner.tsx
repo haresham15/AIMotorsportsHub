@@ -195,46 +195,33 @@ export default function BroadcastScanner({ onScan, onClose }: BroadcastScannerPr
   }
 
   return (
-    <div className="glass" style={{
-      padding: '20px',
-      borderRadius: 'var(--radius-xl)',
-      position: 'relative',
-      overflow: 'hidden'
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <ScanText size={20} color="#fbbf24" />
+    <div className="glass p-5 rounded-[var(--radius-xl)] relative overflow-hidden">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="m-0 flex items-center gap-2 text-lg">
+          <ScanText size={20} className="text-amber-400" />
           Broadcast Scanner
         </h3>
-        <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+        <button onClick={onClose} className="bg-transparent border-none text-[var(--text-muted)] cursor-pointer hover:text-[var(--text-primary)] transition-colors">
           <X size={20} />
         </button>
       </div>
 
-      <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '16px' }}>
+      <p className="text-[var(--text-muted)] text-[13px] mb-4">
         Screen share a race broadcast and draw a box over the leaderboard to sync live standings via Computer Vision.
       </p>
 
       {!isCapturing ? (
         <button 
           onClick={startCapture}
-          className="btn-primary" 
-          style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '8px' }}
+          className="btn-primary w-full flex justify-center gap-2" 
         >
           <ScanText size={16} /> Start Screen Share
         </button>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div className="flex flex-col gap-4">
           
           <div 
-            style={{ 
-              position: 'relative', 
-              width: '100%', 
-              background: '#000', 
-              borderRadius: 'var(--radius-md)', 
-              overflow: 'hidden',
-              cursor: 'crosshair'
-            }}
+            className="relative w-full bg-black rounded-[var(--radius-md)] overflow-hidden cursor-crosshair"
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
@@ -242,52 +229,51 @@ export default function BroadcastScanner({ onScan, onClose }: BroadcastScannerPr
           >
             <video 
               ref={videoRef} 
-              style={{ width: '100%', display: 'block', pointerEvents: 'none' }} 
+              className="w-full block pointer-events-none" 
               muted 
               playsInline 
             />
             
             {cropBox && (
-              <div style={{
-                position: 'absolute',
-                border: '2px dashed #fbbf24',
-                background: 'rgba(251, 191, 36, 0.2)',
-                left: cropBox.x,
-                top: cropBox.y,
-                width: cropBox.w,
-                height: cropBox.h,
-                pointerEvents: 'none'
-              }} />
+              <div 
+                className="absolute border-2 border-dashed border-amber-400 bg-amber-400/20 pointer-events-none"
+                style={{
+                  left: cropBox.x,
+                  top: cropBox.y,
+                  width: cropBox.w,
+                  height: cropBox.h,
+                }} 
+              />
             )}
             
             {!cropBox && !isDrawing && (
-              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-                <span style={{ background: 'rgba(0,0,0,0.6)', padding: '6px 12px', borderRadius: '4px', color: '#fff', fontSize: '12px' }}>
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <span className="bg-black/60 px-3 py-1.5 rounded text-white text-xs">
                   Click and drag to highlight leaderboard
                 </span>
               </div>
             )}
           </div>
 
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div className="flex gap-2.5">
             {cropBox && !isScanning && (
-              <button onClick={startScanning} className="btn-primary" style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: '8px', background: '#fbbf24', color: '#000' }}>
+              <button onClick={startScanning} className="btn-primary flex-1 flex justify-center gap-2 bg-amber-400 text-black hover:bg-amber-500 border-none">
                 <RefreshCw size={16} /> Start Scanning
               </button>
             )}
             {isScanning && (
-              <button onClick={stopScanning} className="btn-primary" style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: '8px', background: '#ef4444' }}>
+              <button onClick={stopScanning} className="btn-primary flex-1 flex justify-center gap-2 bg-red-500 hover:bg-red-600 border-none">
                 <StopCircle size={16} /> Stop Scanning
               </button>
             )}
-            <button onClick={stopCapture} className="btn-ghost" style={{ flex: 1 }}>
+            <button onClick={stopCapture} className="btn-ghost flex-1">
               Stop Video
             </button>
           </div>
           
           {isScanning && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#34d399', justifyContent: 'center' }}>
-              <div className="live-dot" style={{ background: '#34d399', boxShadow: '0 0 8px #34d399' }} />
+            <div className="flex items-center gap-2 text-xs text-emerald-400 justify-center">
+              <div className="live-dot bg-emerald-400 shadow-[0_0_8px_#34d399]" />
               Scanning broadcast frame every 5s...
             </div>
           )}

@@ -20,37 +20,19 @@ export default async function EmbedStandingsPage({ params }: EmbedProps) {
   const { series } = await params
 
   return (
-    <div style={{
-      width: '100%',
-      height: '100vh',
-      margin: 0,
-      padding: '8px',
-      overflow: 'hidden',
-      backgroundColor: 'transparent', // Allow host site background to show through if iframe is transparent
-    }}>
-      <div style={{ height: 'calc(100% - 24px)' }}>
+    <div className="w-full h-screen m-0 p-2 overflow-hidden bg-transparent">
+      <div className="h-[calc(100%-24px)]">
         <LiveStandings 
           series={series} 
           dataSource={series === 'f1' ? 'live' : 'mock'} 
         />
       </div>
-      <div style={{
-        textAlign: 'center',
-        paddingTop: '8px',
-        fontSize: '11px',
-        color: 'var(--text-muted)'
-      }}>
+      <div className="text-center pt-2 text-[11px] text-[var(--text-muted)]">
         <a 
           href={`/dashboard/${series}`}
           target="_blank" 
           rel="noopener noreferrer"
-          style={{
-            color: 'var(--accent)',
-            textDecoration: 'none',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '4px'
-          }}
+          className="text-[var(--accent)] no-underline inline-flex items-center gap-1"
         >
           Powered by Apexis &rarr;
         </a>

@@ -18,165 +18,78 @@ export default function TeamHistory({ series }: TeamHistoryProps) {
   }
 
   return (
-    <div className="glass" style={{
-      borderRadius: 'var(--radius-xl)',
-      padding: '24px',
-    }}>
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px',
-        marginBottom: '20px',
-      }}>
-        <div style={{
-          width: '32px',
-          height: '32px',
-          borderRadius: 'var(--radius-sm)',
-          background: 'rgba(245,158,11,0.12)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#fbbf24',
-        }}>
+    <div className="glass p-6 rounded-[var(--radius-xl)]">
+      <div className="flex items-center gap-2.5 mb-5">
+        <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-amber-500/12 flex items-center justify-center text-amber-500">
           <Trophy size={16} />
         </div>
         <div>
-          <h2 style={{ fontSize: '16px', fontWeight: 700 }}>Team Heritage</h2>
-          <p style={{
-            fontSize: '11px',
-            color: 'var(--text-muted)',
-            fontWeight: 500,
-          }}>
+          <h2 className="text-base font-bold m-0">Team Heritage</h2>
+          <p className="text-[11px] text-[var(--text-muted)] font-medium m-0">
             Legendary teams in {seriesInfo?.name || series}
           </p>
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <div className="flex flex-col gap-2">
         {teams.map((team) => {
           const isExpanded = expandedTeam === team.name
 
           return (
-            <div key={team.name} style={{
-              background: isExpanded
-                ? 'rgba(255,255,255,0.05)'
-                : 'rgba(255,255,255,0.02)',
-              border: `1px solid ${isExpanded ? 'var(--border-hover)' : 'var(--border-subtle)'}`,
-              borderRadius: 'var(--radius-lg)',
-              overflow: 'hidden',
-              transition: 'all 0.3s ease',
-            }}>
+            <div 
+              key={team.name} 
+              className={`rounded-[var(--radius-lg)] overflow-hidden transition-all duration-300 ease-in-out border ${
+                isExpanded 
+                  ? 'bg-white/5 border-[var(--border-hover)]' 
+                  : 'bg-white/[0.02] border-[var(--border-subtle)]'
+              }`}
+            >
               {/* Team Header — Clickable */}
               <button
                 onClick={() => setExpandedTeam(isExpanded ? null : team.name)}
-                style={{
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '16px',
-                  background: 'none',
-                  border: 'none',
-                  color: 'inherit',
-                  cursor: 'pointer',
-                  fontFamily: 'var(--font-sans)',
-                  textAlign: 'left',
-                }}
+                className="w-full flex items-center justify-between p-4 bg-transparent border-none text-inherit cursor-pointer font-sans text-left"
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: 'var(--radius-sm)',
-                    background: seriesInfo?.gradient || 'linear-gradient(135deg, #3b82f6, #60a5fa)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '16px',
-                    fontWeight: 800,
-                    color: 'white',
-                    flexShrink: 0,
-                  }}>
+                <div className="flex items-center gap-3">
+                  <div 
+                    className="w-10 h-10 rounded-[var(--radius-sm)] flex items-center justify-center text-base font-extrabold text-white shrink-0"
+                    style={{ background: seriesInfo?.gradient || 'linear-gradient(135deg, #3b82f6, #60a5fa)' }}
+                  >
                     {team.name.charAt(0)}
                   </div>
                   <div>
-                    <div style={{
-                      fontSize: '14px',
-                      fontWeight: 700,
-                      color: 'var(--text-primary)',
-                    }}>
+                    <div className="text-sm font-bold text-[var(--text-primary)]">
                       {team.name}
                     </div>
-                    <div style={{
-                      fontSize: '11px',
-                      color: 'var(--text-muted)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      marginTop: '2px',
-                    }}>
+                    <div className="text-[11px] text-[var(--text-muted)] flex items-center gap-2 mt-0.5">
                       <span>{team.country}</span>
-                      <span style={{ opacity: 0.3 }}>•</span>
+                      <span className="opacity-30">•</span>
                       <span>Est. {team.founded}</span>
                     </div>
                   </div>
                 </div>
 
-                <div style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+                <div className="text-[var(--text-muted)] shrink-0">
                   {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                 </div>
               </button>
 
               {/* Expanded Content */}
               {isExpanded && (
-                <div className="animate-fade-in" style={{
-                  padding: '0 16px 16px',
-                  borderTop: '1px solid var(--border-subtle)',
-                }}>
-                  <p style={{
-                    fontSize: '13px',
-                    color: 'var(--text-secondary)',
-                    lineHeight: 1.7,
-                    margin: '16px 0',
-                  }}>
+                <div className="animate-fade-in px-4 pb-4 border-t border-[var(--border-subtle)]">
+                  <p className="text-[13px] text-[var(--text-secondary)] leading-relaxed my-4">
                     {team.description}
                   </p>
 
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '6px',
-                  }}>
-                    <div style={{
-                      fontSize: '10px',
-                      fontWeight: 700,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.08em',
-                      color: 'var(--text-muted)',
-                      marginBottom: '4px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                    }}>
+                  <div className="flex flex-col gap-1.5">
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] mb-1 flex items-center gap-1.5">
                       <Medal size={10} /> Key Achievements
                     </div>
                     {team.achievements.map((ach, i) => (
-                      <div key={i} style={{
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        gap: '8px',
-                        fontSize: '12px',
-                        color: 'var(--text-secondary)',
-                        lineHeight: 1.5,
-                      }}>
-                        <div style={{
-                          width: '4px',
-                          height: '4px',
-                          borderRadius: '50%',
-                          background: seriesInfo?.color || 'var(--accent-blue)',
-                          marginTop: '6px',
-                          flexShrink: 0,
-                        }} />
+                      <div key={i} className="flex items-start gap-2 text-xs text-[var(--text-secondary)] leading-relaxed">
+                        <div 
+                          className="w-1 h-1 rounded-full mt-1.5 shrink-0"
+                          style={{ background: seriesInfo?.color || 'var(--accent-blue)' }} 
+                        />
                         {ach}
                       </div>
                     ))}

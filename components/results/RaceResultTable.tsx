@@ -42,31 +42,16 @@ interface RaceResultTableProps {
 
 export default function RaceResultTable({ series, results }: RaceResultTableProps) {
   return (
-    <div className="glass" style={{
-      borderRadius: 'var(--radius-xl)',
-      padding: '24px',
-      overflowX: 'auto',
-    }}>
-      <table style={{
-        width: '100%',
-        minWidth: '800px',
-        borderCollapse: 'separate',
-        borderSpacing: '0 8px',
-      }}>
+    <div className="glass p-6 rounded-[var(--radius-xl)] overflow-x-auto">
+      <table className="w-full min-w-[800px] border-separate border-spacing-y-2">
         <thead>
-          <tr style={{
-            color: 'var(--text-muted)',
-            fontSize: '11px',
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-            textAlign: 'left',
-          }}>
-            <th style={{ padding: '0 16px 8px' }}>Pos</th>
-            <th style={{ padding: '0 16px 8px' }}>Driver</th>
-            <th style={{ padding: '0 16px 8px' }}>Team</th>
-            <th style={{ padding: '0 16px 8px' }}>Grid</th>
-            <th style={{ padding: '0 16px 8px' }}>Time/Status</th>
-            <th style={{ padding: '0 16px 8px' }}>Pts</th>
+          <tr className="text-[var(--text-muted)] text-[11px] uppercase tracking-wider text-left">
+            <th className="px-4 pb-2 font-medium">Pos</th>
+            <th className="px-4 pb-2 font-medium">Driver</th>
+            <th className="px-4 pb-2 font-medium">Team</th>
+            <th className="px-4 pb-2 font-medium">Grid</th>
+            <th className="px-4 pb-2 font-medium">Time/Status</th>
+            <th className="px-4 pb-2 font-medium">Pts</th>
           </tr>
         </thead>
         <tbody>
@@ -74,84 +59,58 @@ export default function RaceResultTable({ series, results }: RaceResultTableProp
             const driverColor = getDriverColor(series, result.Driver.code) || 'var(--text-muted)'
             
             return (
-              <tr key={result.position} style={{
-                background: 'rgba(255,255,255,0.02)',
-                transition: 'background 0.2s',
-              }}>
-                <td style={{
-                  padding: '16px',
-                  borderRadius: 'var(--radius-md) 0 0 var(--radius-md)',
-                  fontWeight: 800,
-                  fontSize: '18px',
-                  fontFamily: 'var(--font-mono)',
-                  color: result.position === '1' ? '#fbbf24' : 
-                         result.position === '2' ? '#e5e7eb' : 
-                         result.position === '3' ? '#b45309' : 'var(--text-primary)',
-                }}>
+              <tr key={result.position} className="bg-white/5 transition-colors hover:bg-white/10">
+                <td className={`p-4 rounded-l-[var(--radius-md)] font-extrabold text-lg font-mono ${
+                  result.position === '1' ? 'text-[#fbbf24]' : 
+                  result.position === '2' ? 'text-gray-200' : 
+                  result.position === '3' ? 'text-[#b45309]' : 'text-[var(--text-primary)]'
+                }`}>
                   {result.position}
                 </td>
-                <td style={{ padding: '16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{
-                      width: '4px',
-                      height: '24px',
-                      background: driverColor,
-                      borderRadius: '2px',
-                    }} />
+                <td className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div 
+                      className="w-1 h-6 rounded-sm"
+                      style={{ background: driverColor }}
+                    />
                     <div>
-                      <div style={{ fontSize: '15px', fontWeight: 600 }}>
-                        {result.Driver.givenName} <span style={{ textTransform: 'uppercase' }}>{result.Driver.familyName}</span>
+                      <div className="text-[15px] font-semibold">
+                        {result.Driver.givenName} <span className="uppercase">{result.Driver.familyName}</span>
                       </div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                      <div className="text-[11px] text-[var(--text-muted)] mt-0.5">
                         {result.Driver.code} {result.Driver.permanentNumber ? `• #${result.Driver.permanentNumber}` : ''} • {result.Driver.nationality}
                       </div>
                     </div>
                   </div>
                 </td>
-                <td style={{ padding: '16px' }}>
-                  <div style={{ fontSize: '14px', fontWeight: 500 }}>{result.Constructor.name}</div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{result.Constructor.nationality}</div>
+                <td className="p-4">
+                  <div className="text-sm font-medium">{result.Constructor.name}</div>
+                  <div className="text-[11px] text-[var(--text-muted)]">{result.Constructor.nationality}</div>
                 </td>
-                <td style={{ padding: '16px' }}>
-                  <div style={{ fontSize: '14px', fontWeight: 500, fontFamily: 'var(--font-mono)' }}>
+                <td className="p-4">
+                  <div className="text-sm font-medium font-mono">
                     P{result.grid}
                   </div>
                   {parseInt(result.grid) > parseInt(result.position) && parseInt(result.grid) > 0 && (
-                    <div style={{ fontSize: '11px', color: '#4ade80', marginTop: '2px', fontWeight: 600 }}>
+                    <div className="text-[11px] text-green-400 mt-0.5 font-semibold">
                       ▲ {parseInt(result.grid) - parseInt(result.position)}
                     </div>
                   )}
                   {parseInt(result.grid) < parseInt(result.position) && parseInt(result.grid) > 0 && (
-                    <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '2px', fontWeight: 600 }}>
+                    <div className="text-[11px] text-red-500 mt-0.5 font-semibold">
                       ▼ {parseInt(result.position) - parseInt(result.grid)}
                     </div>
                   )}
                 </td>
-                <td style={{ padding: '16px', fontSize: '14px', fontFamily: 'var(--font-mono)' }}>
+                <td className="p-4 text-sm font-mono">
                   {result.Time ? result.Time.time : result.status}
                   {result.FastestLap?.rank === '1' && (
-                    <div style={{ 
-                      fontSize: '10px', 
-                      color: '#a855f7', 
-                      marginTop: '4px',
-                      fontWeight: 700,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                    }}>
-                      <span style={{ fontSize: '12px' }}>⏱️</span> Fastest Lap
+                    <div className="text-[10px] text-purple-500 mt-1 font-bold uppercase tracking-wider flex items-center gap-1">
+                      <span className="text-xs">⏱️</span> Fastest Lap
                     </div>
                   )}
                 </td>
-                <td style={{ 
-                  padding: '16px', 
-                  borderRadius: '0 var(--radius-md) var(--radius-md) 0',
-                  fontWeight: 700,
-                  fontSize: '16px',
-                  color: parseInt(result.points) > 0 ? '#4ade80' : 'var(--text-muted)'
-                }}>
+                <td className={`p-4 rounded-r-[var(--radius-md)] font-bold text-base ${parseInt(result.points) > 0 ? 'text-green-400' : 'text-[var(--text-muted)]'}`}>
                   {result.points}
                 </td>
               </tr>

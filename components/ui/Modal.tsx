@@ -35,15 +35,7 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = '50
   return (
     <AnimatePresence>
       {isOpen && (
-        <div style={{
-          position: 'fixed',
-          top: 0, left: 0, right: 0, bottom: 0,
-          zIndex: 9999,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '24px'
-        }}>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-6">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -51,13 +43,7 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = '50
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={onClose}
-            style={{
-              position: 'absolute',
-              top: 0, left: 0, right: 0, bottom: 0,
-              background: 'rgba(0, 0, 0, 0.6)',
-              backdropFilter: 'blur(8px)',
-              cursor: 'pointer'
-            }}
+            className="absolute inset-0 bg-black/60 backdrop-blur-[8px] cursor-pointer"
           />
 
           {/* Modal Card */}
@@ -66,69 +52,27 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = '50
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="card"
-            style={{
-              position: 'relative',
-              width: '100%',
-              maxWidth: maxWidth,
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-xl)',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-              overflow: 'hidden',
-              display: 'flex',
-              flexDirection: 'column',
-              maxHeight: '90vh'
-            }}
+            className="card relative w-full bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-[var(--radius-xl)] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+            style={{ maxWidth }}
             onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
           >
             {/* Header */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: title ? 'space-between' : 'flex-end',
-              padding: '20px 24px',
-              borderBottom: title ? '1px solid var(--border-subtle)' : 'none'
-            }}>
+            <div className={`flex items-center px-6 py-5 ${title ? 'justify-between border-b border-[var(--border-subtle)]' : 'justify-end'}`}>
               {title && (
-                <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>
+                <h2 className="text-lg font-bold m-0 text-[var(--text-primary)]">
                   {title}
                 </h2>
               )}
               <button 
                 onClick={onClose}
-                style={{
-                  background: 'rgba(255,255,255,0.05)',
-                  border: 'none',
-                  borderRadius: '50%',
-                  width: '32px',
-                  height: '32px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  color: 'var(--text-secondary)',
-                  transition: 'background 0.2s, color 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'
-                  e.currentTarget.style.color = '#ef4444'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
-                  e.currentTarget.style.color = 'var(--text-secondary)'
-                }}
+                className="bg-white/5 border-none rounded-full w-8 h-8 flex items-center justify-center cursor-pointer text-[var(--text-secondary)] transition-colors duration-200 hover:bg-red-500/10 hover:text-red-500"
               >
                 <X size={16} />
               </button>
             </div>
 
             {/* Content Body */}
-            <div style={{
-              padding: '24px',
-              overflowY: 'auto',
-              flex: 1
-            }}>
+            <div className="p-6 overflow-y-auto flex-1">
               {children}
             </div>
           </motion.div>

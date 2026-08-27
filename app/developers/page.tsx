@@ -27,34 +27,34 @@ export default function DevelopersPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
+    <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)]">
       {/* Simple Header */}
-      <header style={{ padding: '24px 48px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Link href="/" style={{ fontSize: '20px', fontWeight: 800, color: 'var(--accent)', textDecoration: 'none' }}>
+      <header className="py-6 px-12 border-b border-white/5 flex justify-between items-center">
+        <Link href="/" className="text-xl font-extrabold text-[var(--accent)] no-underline">
           APEXIS
         </Link>
-        <div style={{ display: 'flex', gap: '24px' }}>
-          <Link href="/dashboard/f1" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Dashboard</Link>
-          <span style={{ color: 'white', fontWeight: 600 }}>Developers</span>
+        <div className="flex gap-6">
+          <Link href="/dashboard/f1" className="text-[var(--text-secondary)] no-underline">Dashboard</Link>
+          <span className="text-white font-semibold">Developers</span>
         </div>
       </header>
 
-      <main style={{ maxWidth: '800px', margin: '60px auto', padding: '0 24px' }}>
-        <h1 style={{ fontSize: '36px', marginBottom: '16px' }}>Developer API (v1)</h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '18px', lineHeight: 1.6, marginBottom: '48px' }}>
+      <main className="max-w-[800px] my-16 mx-auto px-6">
+        <h1 className="text-4xl mb-4">Developer API (v1)</h1>
+        <p className="text-[var(--text-secondary)] text-lg leading-relaxed mb-12">
           Build your own racing applications using our unified API. Get real-time telemetry, 
           championship standings, and race schedules across 7 different motorsport series with a single API key.
         </p>
 
-        <div className="glass" style={{ padding: '32px', borderRadius: 'var(--radius-xl)', marginBottom: '48px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+        <div className="glass p-8 rounded-[var(--radius-xl)] mb-12">
+          <div className="flex items-center gap-3 mb-6">
             <Key size={24} color="var(--accent)" />
-            <h2 style={{ fontSize: '24px', margin: 0 }}>Your API Key</h2>
+            <h2 className="text-2xl m-0">Your API Key</h2>
           </div>
 
           {!apiKey ? (
-            <div style={{ textAlign: 'center', padding: '40px 0' }}>
-              <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>
+            <div className="text-center py-10">
+              <p className="text-[var(--text-muted)] mb-6">
                 You haven't generated an API key yet.
               </p>
               <button onClick={generateKey} className="btn-primary" disabled={loading}>
@@ -63,32 +63,16 @@ export default function DevelopersPage() {
             </div>
           ) : (
             <div>
-              <p style={{ color: 'var(--text-muted)', marginBottom: '12px', fontSize: '14px' }}>
+              <p className="text-[var(--text-muted)] mb-3 text-sm">
                 Keep this key secret. Do not expose it in client-side code.
               </p>
-              <div style={{ 
-                display: 'flex', 
-                background: 'rgba(0,0,0,0.5)', 
-                border: '1px solid rgba(255,255,255,0.1)', 
-                borderRadius: 'var(--radius-md)',
-                overflow: 'hidden'
-              }}>
-                <div style={{ flex: 1, padding: '16px', fontFamily: 'var(--font-mono)', letterSpacing: '1px' }}>
+              <div className="flex bg-black/50 border border-white/10 rounded-[var(--radius-md)] overflow-hidden">
+                <div className="flex-1 p-4 font-mono tracking-widest">
                   {apiKey}
                 </div>
                 <button 
                   onClick={copyToClipboard}
-                  style={{ 
-                    padding: '0 24px', 
-                    background: 'rgba(255,255,255,0.05)', 
-                    border: 'none', 
-                    borderLeft: '1px solid rgba(255,255,255,0.1)',
-                    color: 'white',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px'
-                  }}
+                  className="px-6 bg-white/5 border-none border-l border-white/10 text-white cursor-pointer flex items-center gap-2"
                 >
                   {copied ? <Check size={18} color="#34d399" /> : <Copy size={18} />}
                   {copied ? 'Copied' : 'Copy'}
@@ -98,22 +82,13 @@ export default function DevelopersPage() {
           )}
         </div>
 
-        <h2 style={{ fontSize: '24px', marginBottom: '24px' }}>Quick Start</h2>
-        <div className="glass" style={{ padding: '24px', borderRadius: 'var(--radius-lg)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', color: 'var(--text-secondary)' }}>
+        <h2 className="text-2xl mb-6">Quick Start</h2>
+        <div className="glass p-6 rounded-[var(--radius-lg)]">
+          <div className="flex items-center gap-3 mb-4 text-[var(--text-secondary)]">
             <Terminal size={20} />
-            <span style={{ fontWeight: 600 }}>Get F1 Championship Standings</span>
+            <span className="font-semibold">Get F1 Championship Standings</span>
           </div>
-          <pre style={{ 
-            background: '#000', 
-            padding: '24px', 
-            borderRadius: 'var(--radius-md)', 
-            overflowX: 'auto',
-            fontFamily: 'var(--font-mono)',
-            fontSize: '14px',
-            lineHeight: 1.5,
-            color: '#a5b4fc'
-          }}>
+          <pre className="bg-black p-6 rounded-[var(--radius-md)] overflow-x-auto font-mono text-sm leading-relaxed text-indigo-300">
 {`curl -X GET "https://api.apexis.com/api/v1/f1/standings" \\
   -H "Authorization: Bearer YOUR_API_KEY"`}
           </pre>

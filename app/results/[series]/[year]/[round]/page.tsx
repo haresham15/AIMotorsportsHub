@@ -96,63 +96,26 @@ export default async function RaceResultPage({ params }: PageProps) {
   const results = race.Results
 
   return (
-    <div style={{ minHeight: '100vh', position: 'relative' }} className={`series-${series}`}>
+    <div className={`min-h-screen relative series-${series}`}>
       {/* ===== NAVBAR ===== */}
-      <nav className="glass-nav" style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 50,
-        padding: '0 24px',
-      }}>
-        <div style={{
-          maxWidth: '1280px',
-          margin: '0 auto',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          height: '64px',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Link href="/" className="gradient-text" style={{
-              fontSize: '18px',
-              fontWeight: 800,
-              textDecoration: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-            }}>
+      <nav className="glass-nav sticky top-0 z-50 px-6">
+        <div className="max-w-[1280px] mx-auto flex justify-between items-center h-16">
+          <div className="flex items-center gap-3">
+            <Link href="/" className="gradient-text text-lg font-extrabold no-underline flex items-center gap-2">
               <ApexisLogo width={20} height={20} />
               <span className="hide-mobile">Apexis</span>
             </Link>
-            <span style={{
-              color: 'var(--text-muted)',
-              fontSize: '20px',
-              fontWeight: 200,
-            }}>/</span>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-            }}>
-              <span style={{ fontSize: '18px' }}>{seriesInfo.icon}</span>
-              <span style={{
-                fontSize: '16px',
-                fontWeight: 600,
-                color: 'var(--text-primary)',
-                letterSpacing: '-0.01em',
-              }}>
+            <span className="text-[var(--text-muted)] text-xl font-extralight">/</span>
+            <div className="flex items-center gap-2">
+              <span className="text-lg">{seriesInfo.icon}</span>
+              <span className="text-base font-semibold text-[var(--text-primary)] tracking-[-0.01em]">
                 {seriesInfo.name}
               </span>
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Link href={`/dashboard/${series}`} className="btn-ghost" style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              textDecoration: 'none',
-            }}>
+          <div className="flex items-center gap-2.5">
+            <Link href={`/dashboard/${series}`} className="btn-ghost flex items-center gap-1.5 no-underline">
               <ArrowLeft size={14} />
               <span className="hide-mobile">Back to Dashboard</span>
             </Link>
@@ -161,47 +124,30 @@ export default async function RaceResultPage({ params }: PageProps) {
       </nav>
 
       {/* Series color accent bar */}
-      <div style={{
-        height: '2px',
-        background: seriesInfo.gradient,
-        opacity: 0.5,
-      }} />
+      <div 
+        className="h-[2px] opacity-50"
+        style={{ background: seriesInfo.gradient }} 
+      />
 
-      <main style={{ maxWidth: '1000px', margin: '0 auto', padding: '40px 24px 80px' }}>
+      <main className="max-w-[1000px] mx-auto px-6 pt-10 pb-20">
         <div className="animate-fade-in-up">
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            marginBottom: '32px'
-          }}>
+          <div className="flex justify-between items-start mb-8">
             <div>
-              <h1 style={{ 
-                fontSize: '36px', 
-                fontWeight: 800, 
-                marginBottom: '12px',
-                lineHeight: 1.1
-              }}>
+              <h1 className="text-4xl font-extrabold mb-3 leading-[1.1]">
                 {race.raceName}
               </h1>
-              <div style={{ 
-                display: 'flex', 
-                gap: '16px', 
-                color: 'var(--text-muted)',
-                fontSize: '14px',
-                fontWeight: 500
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div className="flex gap-4 text-[var(--text-muted)] text-sm font-medium">
+                <div className="flex items-center gap-1.5">
                   <Calendar size={16} />
                   {new Date(race.date).toLocaleDateString(undefined, { 
                     year: 'numeric', month: 'long', day: 'numeric' 
                   })}
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div className="flex items-center gap-1.5">
                   <MapPin size={16} />
                   {race.Circuit.circuitName}, {race.Circuit.Location.country}
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div className="flex items-center gap-1.5">
                   <Flag size={16} />
                   Round {race.round}
                 </div>
@@ -210,31 +156,16 @@ export default async function RaceResultPage({ params }: PageProps) {
             
             {/* Podium Overview */}
             {results.length >= 3 && (
-              <div className="glass hide-mobile" style={{
-                padding: '16px 24px',
-                borderRadius: 'var(--radius-lg)',
-                display: 'flex',
-                gap: '24px',
-              }}>
+              <div className="glass hide-mobile px-6 py-4 rounded-[var(--radius-lg)] flex gap-6">
                 {[1, 0, 2].map((podiumIndex) => {
                   const r = results[podiumIndex]
                   const isWinner = podiumIndex === 0
                   return (
-                    <div key={r.position} style={{ 
-                      display: 'flex', 
-                      flexDirection: 'column', 
-                      alignItems: 'center',
-                      opacity: isWinner ? 1 : 0.8,
-                      transform: isWinner ? 'translateY(-8px)' : 'none',
-                    }}>
-                      <div style={{ 
-                        fontSize: isWinner ? '24px' : '18px',
-                        fontWeight: 800,
-                        color: isWinner ? '#fbbf24' : podiumIndex === 1 ? '#e5e7eb' : '#b45309'
-                      }}>
+                    <div key={r.position} className={`flex flex-col items-center transition-transform ${isWinner ? 'opacity-100 -translate-y-2' : 'opacity-80'}`}>
+                      <div className={`font-extrabold ${isWinner ? 'text-2xl text-[#fbbf24]' : podiumIndex === 1 ? 'text-lg text-gray-200' : 'text-lg text-[#b45309]'}`}>
                         P{r.position}
                       </div>
-                      <div style={{ fontSize: '14px', fontWeight: 600, marginTop: '4px' }}>
+                      <div className="text-sm font-semibold mt-1">
                         {r.Driver.code}
                       </div>
                     </div>

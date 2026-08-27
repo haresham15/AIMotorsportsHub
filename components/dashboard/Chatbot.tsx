@@ -72,20 +72,7 @@ export default function Chatbot({ series, contextData }: ChatbotProps) {
     return (
       <button 
         onClick={() => setIsOpen(true)}
-        className="glass-hover"
-        style={{
-          width: '64px',
-          height: '64px',
-          borderRadius: '50%',
-          background: 'var(--bg-card)',
-          border: '1px solid var(--border-subtle)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          color: 'var(--text-primary)',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-        }}
+        className="glass-hover w-16 h-16 rounded-full bg-[var(--bg-card)] border border-[var(--border-subtle)] flex items-center justify-center cursor-pointer text-[var(--text-primary)] shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
       >
         <MessageCircle size={28} />
       </button>
@@ -93,148 +80,49 @@ export default function Chatbot({ series, contextData }: ChatbotProps) {
   }
 
   return (
-    <div className="card" style={{
-      width: '380px',
-      background: 'var(--bg-card)',
-      border: '1px solid var(--border-subtle)',
-      borderRadius: 'var(--radius-xl)',
-      padding: '24px',
-      display: 'flex',
-      flexDirection: 'column',
-      height: '520px',
-      position: 'relative',
-      overflow: 'hidden',
-      boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
-    }}>
+    <div className="card w-[380px] h-[520px] bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-[var(--radius-xl)] p-6 flex flex-col relative overflow-hidden shadow-[0_24px_64px_rgba(0,0,0,0.5)]">
       {/* Header */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: '16px',
-        flexShrink: 0,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: 'var(--radius-sm)',
-            background: 'rgba(59,130,246,0.12)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#60a5fa',
-          }}>
+      <div className="flex items-center justify-between mb-4 shrink-0">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-blue-500/12 flex items-center justify-center text-blue-400">
             <Bot size={16} />
           </div>
           <div>
-            <h2 style={{ fontSize: '16px', fontWeight: 700 }}>Race Engineer AI</h2>
-            <p style={{
-              fontSize: '11px',
-              color: 'var(--text-muted)',
-              fontWeight: 500,
-            }}>
+            <h2 className="text-base font-bold m-0">Race Engineer AI</h2>
+            <p className="text-[11px] text-[var(--text-muted)] font-medium m-0">
               {seriesInfo?.name || series.toUpperCase()} Expert
             </p>
           </div>
         </div>
         <button 
           onClick={() => setIsOpen(false)}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: 'var(--text-muted)',
-            cursor: 'pointer',
-            padding: '4px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
+          className="bg-transparent border-none text-[var(--text-muted)] cursor-pointer p-1 flex items-center justify-center hover:text-[var(--text-primary)] transition-colors"
         >
           <X size={20} />
         </button>
       </div>
 
       {/* Messages */}
-      <div style={{
-        flex: 1,
-        overflowY: 'auto',
-        marginBottom: '12px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '12px',
-        paddingRight: '4px',
-      }}>
+      <div className="flex-1 overflow-y-auto mb-3 flex flex-col gap-3 pr-1">
         {messages.length === 0 ? (
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flex: 1,
-            gap: '16px',
-            textAlign: 'center',
-            padding: '20px',
-          }}>
-            <div style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: 'var(--radius-lg)',
-              background: 'rgba(59,130,246,0.08)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              <Sparkles size={24} style={{ color: '#60a5fa' }} />
+          <div className="flex flex-col items-center justify-center flex-1 gap-4 text-center p-5">
+            <div className="w-12 h-12 rounded-[var(--radius-lg)] bg-blue-500/10 flex items-center justify-center">
+              <Sparkles size={24} className="text-blue-400" />
             </div>
             <div>
-              <p style={{
-                fontSize: '14px',
-                fontWeight: 600,
-                color: 'var(--text-primary)',
-                marginBottom: '4px',
-              }}>
+              <p className="text-[14px] font-semibold text-[var(--text-primary)] mb-1 m-0">
                 Race Control Online
               </p>
-              <p style={{
-                fontSize: '12px',
-                color: 'var(--text-muted)',
-                lineHeight: 1.5,
-              }}>
+              <p className="text-[12px] text-[var(--text-muted)] leading-relaxed m-0">
                 Ask me about {seriesInfo?.name || series.toUpperCase()} stats, regulations, or history
               </p>
             </div>
-            <div style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              justifyContent: 'center',
-              gap: '6px',
-              marginTop: '8px',
-            }}>
+            <div className="flex flex-wrap justify-center gap-1.5 mt-2">
               {suggestedQuestions.map((q) => (
                 <button
                   key={q}
                   onClick={() => setInput(q)}
-                  style={{
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: 'var(--radius-full)',
-                    padding: '6px 14px',
-                    fontSize: '11px',
-                    color: 'var(--text-secondary)',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    fontWeight: 500,
-                    fontFamily: 'var(--font-sans)',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
-                    e.currentTarget.style.borderColor = 'var(--border-hover)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
-                    e.currentTarget.style.borderColor = 'var(--border-subtle)'
-                  }}
+                  className="bg-white/5 border border-[var(--border-subtle)] rounded-full px-3.5 py-1.5 text-[11px] text-[var(--text-secondary)] cursor-pointer transition-all duration-200 font-medium font-sans hover:bg-white/10 hover:border-[var(--border-hover)]"
                 >
                   {q}
                 </button>
@@ -245,35 +133,16 @@ export default function Chatbot({ series, contextData }: ChatbotProps) {
           messages.map((msg, idx) => (
             <div
               key={idx}
-              className="animate-fade-in"
-              style={{
-                display: 'flex',
-                justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
-              }}
+              className={`animate-fade-in flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              <div style={{
-                maxWidth: '85%',
-                borderRadius: 'var(--radius-lg)',
-                padding: '12px 16px',
-                ...(msg.role === 'user'
-                  ? {
-                    background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
-                    color: 'white',
-                    borderBottomRightRadius: '4px',
-                  }
-                  : {
-                    background: 'rgba(255,255,255,0.05)',
-                    color: 'var(--text-secondary)',
-                    borderBottomLeftRadius: '4px',
-                    border: '1px solid var(--border-subtle)',
-                  }),
-              }}>
-                <p style={{
-                  fontSize: '13px',
-                  whiteSpace: 'pre-wrap',
-                  lineHeight: 1.6,
-                  margin: 0,
-                }}>
+              <div 
+                className={`max-w-[85%] rounded-[var(--radius-lg)] px-4 py-3 ${
+                  msg.role === 'user'
+                    ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-br-sm'
+                    : 'bg-white/5 text-[var(--text-secondary)] rounded-bl-sm border border-[var(--border-subtle)]'
+                }`}
+              >
+                <p className="text-[13px] whitespace-pre-wrap leading-relaxed m-0">
                   {msg.content}
                 </p>
               </div>
@@ -282,25 +151,14 @@ export default function Chatbot({ series, contextData }: ChatbotProps) {
         )}
 
         {loading && (
-          <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-            <div style={{
-              background: 'rgba(255,255,255,0.05)',
-              borderRadius: 'var(--radius-lg)',
-              borderBottomLeftRadius: '4px',
-              padding: '12px 20px',
-              display: 'flex',
-              gap: '6px',
-              alignItems: 'center',
-              border: '1px solid var(--border-subtle)',
-            }}>
+          <div className="flex justify-start">
+            <div className="bg-white/5 rounded-[var(--radius-lg)] rounded-bl-sm px-5 py-3 flex gap-1.5 items-center border border-[var(--border-subtle)]">
               {[0, 1, 2].map((i) => (
-                <div key={i} style={{
-                  width: '7px',
-                  height: '7px',
-                  background: '#60a5fa',
-                  borderRadius: '50%',
-                  animation: `pulseGlow 1s ease-in-out ${i * 0.15}s infinite`,
-                }} />
+                <div 
+                  key={i} 
+                  className="w-[7px] h-[7px] bg-blue-400 rounded-full"
+                  style={{ animation: `pulseGlow 1s ease-in-out ${i * 0.15}s infinite` }}
+                />
               ))}
             </div>
           </div>
@@ -309,49 +167,23 @@ export default function Chatbot({ series, contextData }: ChatbotProps) {
       </div>
 
       {/* Input */}
-      <form onSubmit={handleSend} style={{
-        display: 'flex',
-        gap: '8px',
-        background: 'rgba(0,0,0,0.2)',
-        padding: '8px',
-        borderRadius: 'var(--radius-lg)',
-        border: '1px solid var(--border-subtle)',
-        flexShrink: 0,
-      }}>
+      <form onSubmit={handleSend} className="flex gap-2 bg-black/20 p-2 rounded-[var(--radius-lg)] border border-[var(--border-subtle)] shrink-0">
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask Race Control..."
           disabled={loading}
-          style={{
-            flex: 1,
-            background: 'transparent',
-            border: 'none',
-            color: 'var(--text-primary)',
-            padding: '8px 12px',
-            fontSize: '13px',
-            outline: 'none',
-            fontFamily: 'var(--font-sans)',
-          }}
+          className="flex-1 bg-transparent border-none text-[var(--text-primary)] px-3 py-2 text-[13px] outline-none font-sans"
         />
         <button
           type="submit"
           disabled={loading || !input.trim()}
-          style={{
-            background: !input.trim() || loading
-              ? 'rgba(255,255,255,0.05)'
-              : 'linear-gradient(135deg, #3b82f6, #2563eb)',
-            border: 'none',
-            borderRadius: 'var(--radius-md)',
-            padding: '8px 14px',
-            color: !input.trim() || loading ? 'var(--text-muted)' : 'white',
-            cursor: !input.trim() || loading ? 'not-allowed' : 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'all 0.2s',
-          }}
+          className={`border-none rounded-[var(--radius-md)] px-3.5 py-2 flex items-center justify-center transition-all duration-200 ${
+            !input.trim() || loading
+              ? 'bg-white/5 text-[var(--text-muted)] cursor-not-allowed'
+              : 'bg-gradient-to-br from-blue-500 to-blue-600 text-white cursor-pointer'
+          }`}
         >
           <Send size={16} />
         </button>

@@ -66,88 +66,46 @@ export default function AlertSettings() {
   }
 
   return (
-    <div className="card" style={{
-      background: 'var(--bg-card)',
-      border: '1px solid var(--border-subtle)',
-      borderRadius: 'var(--radius-xl)',
-      padding: '24px',
-    }}>
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px',
-        marginBottom: '20px',
-      }}>
-        <div style={{
-          width: '32px',
-          height: '32px',
-          borderRadius: 'var(--radius-sm)',
-          background: 'rgba(99,102,241,0.12)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#818cf8',
-        }}>
+    <div className="card bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-[var(--radius-xl)] p-6">
+      <div className="flex items-center gap-2.5 mb-5">
+        <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-indigo-500/12 flex items-center justify-center text-indigo-400">
           <Bell size={16} />
         </div>
         <div>
-          <h2 style={{ fontSize: '16px', fontWeight: 700 }}>Outbound Alerts</h2>
-          <p style={{
-            fontSize: '11px',
-            color: 'var(--text-muted)',
-            fontWeight: 500,
-          }}>
+          <h2 className="text-base font-bold m-0">Outbound Alerts</h2>
+          <p className="text-[11px] text-[var(--text-muted)] font-medium m-0">
             Configure Discord Notifications
           </p>
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
+      <div className="flex flex-col gap-4">
+        <p className="text-[13px] text-[var(--text-secondary)] leading-relaxed m-0">
           Receive live proactive alerts for race events, safety car deployments, and session changes directly to your Discord server.
         </p>
 
         <div>
-          <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>
+          <label className="block text-xs font-semibold text-[var(--text-muted)] mb-2">
             Discord Webhook URL
           </label>
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div className="flex gap-2">
             <input 
               type="password" 
               value={webhookUrl}
               onChange={e => setWebhookUrl(e.target.value)}
               placeholder="https://discord.com/api/webhooks/..."
-              style={{
-                flex: 1,
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid var(--border-subtle)',
-                padding: '10px 12px',
-                borderRadius: 'var(--radius-md)',
-                color: 'var(--text-primary)',
-                fontSize: '14px',
-                fontFamily: 'var(--font-sans)',
-              }}
+              className="flex-1 bg-white/5 border border-[var(--border-subtle)] px-3 py-2.5 rounded-[var(--radius-md)] text-[var(--text-primary)] text-[14px] font-sans focus:outline-none focus:border-indigo-500 transition-colors"
             />
             <button 
               onClick={handleSave}
-              className="btn-primary"
-              style={{ padding: '0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}
+              className="btn-primary px-4 flex items-center gap-2"
             >
               {savedUrl && webhookUrl === savedUrl ? <CheckCircle2 size={16} /> : 'Save'}
             </button>
             {savedUrl && (
               <button 
                 onClick={() => { setWebhookUrl(''); handleSave(); }}
-                style={{
-                  background: 'rgba(239,68,68,0.1)',
-                  border: '1px solid rgba(239,68,68,0.2)',
-                  color: '#ef4444',
-                  padding: '0 16px',
-                  borderRadius: 'var(--radius-md)',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                }}
+                className="bg-red-500/10 border border-red-500/20 text-red-500 px-4 rounded-[var(--radius-md)] cursor-pointer flex items-center transition-colors hover:bg-red-500/20"
               >
                 <Trash2 size={16} />
               </button>
@@ -161,21 +119,7 @@ export default function AlertSettings() {
           <button 
             onClick={handleTest}
             disabled={testing}
-            style={{
-              background: 'rgba(99,102,241,0.1)',
-              border: '1px solid rgba(99,102,241,0.2)',
-              color: '#818cf8',
-              padding: '10px',
-              borderRadius: 'var(--radius-md)',
-              cursor: testing ? 'not-allowed' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              fontSize: '13px',
-              fontWeight: 600,
-              transition: 'background 0.2s'
-            }}
+            className={`bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 p-2.5 rounded-[var(--radius-md)] flex items-center justify-center gap-2 text-[13px] font-semibold transition-colors ${testing ? 'cursor-not-allowed opacity-70' : 'cursor-pointer hover:bg-indigo-500/20'}`}
           >
             <Send size={14} />
             {testing ? 'Sending...' : 'Send Test Alert'}

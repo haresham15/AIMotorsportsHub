@@ -45,28 +45,16 @@ function CustomSelect({ value, onChange, options, placeholder }: CustomSelectPro
   const selectedOption = options.find(o => o.code === value);
 
   return (
-    <div ref={ref} style={{ position: 'relative', flex: 1 }}>
+    <div ref={ref} className="relative flex-1">
       <div 
         onClick={() => setIsOpen(!isOpen)}
-        style={{
-          background: 'rgba(255,255,255,0.05)',
-          border: '1px solid var(--border-subtle)',
-          padding: '10px 12px',
-          borderRadius: 'var(--radius-md)',
-          color: selectedOption ? 'var(--text-primary)' : 'var(--text-muted)',
-          fontSize: '14px',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          userSelect: 'none'
-        }}
+        className={`bg-white/5 border border-[var(--border-subtle)] px-3 py-2.5 rounded-[var(--radius-md)] text-[14px] cursor-pointer flex items-center justify-between select-none ${selectedOption ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}`}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="flex items-center gap-2">
           {selectedOption ? (
             <>
               {selectedOption.color && (
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: selectedOption.color }} />
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: selectedOption.color }} />
               )}
               {selectedOption.name} ({selectedOption.team})
             </>
@@ -74,7 +62,7 @@ function CustomSelect({ value, onChange, options, placeholder }: CustomSelectPro
             placeholder
           )}
         </div>
-        <ChevronDown size={16} color="var(--text-muted)" style={{ transition: 'transform 0.2s', transform: isOpen ? 'rotate(180deg)' : 'none' }} />
+        <ChevronDown size={16} color="var(--text-muted)" className="transition-transform duration-200" style={{ transform: isOpen ? 'rotate(180deg)' : 'none' }} />
       </div>
 
       <AnimatePresence>
@@ -84,46 +72,19 @@ function CustomSelect({ value, onChange, options, placeholder }: CustomSelectPro
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.15 }}
-            style={{
-              position: 'absolute',
-              top: '100%',
-              left: 0,
-              right: 0,
-              marginTop: '4px',
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-md)',
-              maxHeight: '220px',
-              overflowY: 'auto',
-              zIndex: 50,
-              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.8)',
-              display: 'flex',
-              flexDirection: 'column'
-            }}
+            className="absolute top-full left-0 right-0 mt-1 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-[var(--radius-md)] max-h-[220px] overflow-y-auto z-50 shadow-[0_10px_25px_-5px_rgba(0,0,0,0.8)] flex flex-col"
           >
             {options.map(option => (
               <div
                 key={option.code}
                 onClick={() => { onChange(option.code); setIsOpen(false); }}
-                style={{
-                  padding: '10px 12px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  background: value === option.code ? 'rgba(255,255,255,0.05)' : 'transparent',
-                  color: 'var(--text-primary)',
-                  fontSize: '14px',
-                  transition: 'background 0.1s'
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = value === option.code ? 'rgba(255,255,255,0.05)' : 'transparent')}
+                className={`px-3 py-2.5 cursor-pointer flex items-center justify-between text-[14px] transition-colors duration-100 text-[var(--text-primary)] ${value === option.code ? 'bg-white/5' : 'bg-transparent hover:bg-white/5'}`}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div className="flex items-center gap-2">
                   {option.color && (
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: option.color }} />
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: option.color }} />
                   )}
-                  {option.name} <span style={{ color: 'var(--text-muted)' }}>({option.team})</span>
+                  {option.name} <span className="text-[var(--text-muted)]">({option.team})</span>
                 </div>
                 {value === option.code && <Check size={16} color="var(--text-primary)" />}
               </div>
@@ -251,85 +212,49 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
   }
 
   return (
-    <div className="card" style={{
-      background: 'var(--bg-card)',
-      border: '1px solid var(--border-subtle)',
-      borderRadius: 'var(--radius-xl)',
-      padding: '24px',
-    }}>
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px',
-        marginBottom: '20px',
-      }}>
-        <div style={{
-          width: '32px',
-          height: '32px',
-          borderRadius: 'var(--radius-sm)',
-          background: 'rgba(234,179,8,0.12)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#eab308',
-        }}>
+    <div className="card bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-[var(--radius-xl)] p-6">
+      <div className="flex items-center gap-2.5 mb-5">
+        <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-yellow-500/12 flex items-center justify-center text-yellow-500">
           <Trophy size={16} />
         </div>
         <div>
-          <h2 style={{ fontSize: '16px', fontWeight: 700 }}>Fantasy Predictions</h2>
-          <p style={{
-            fontSize: '11px',
-            color: 'var(--text-muted)',
-            fontWeight: 500,
-          }}>
+          <h2 className="text-base font-bold">Fantasy Predictions</h2>
+          <p className="text-[11px] text-[var(--text-muted)] font-medium">
             Round {round} Podium
           </p>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
+      <div className="grid grid-cols-2 gap-8">
         {/* Left Side: Prediction Form or Results */}
         <div>
           {isAuthLoading ? (
-            <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '14px' }}>
+            <div className="p-6 text-center text-[var(--text-muted)] text-[14px]">
               Loading game state...
             </div>
           ) : !user ? (
-            <div style={{ 
-              display: 'flex', flexDirection: 'column', alignItems: 'center', 
-              justifyContent: 'center', gap: '16px', height: '100%', 
-              textAlign: 'center', padding: '24px'
-            }}>
-              <div style={{
-                width: '64px', height: '64px', borderRadius: '50%',
-                background: 'rgba(255,255,255,0.05)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'var(--text-muted)'
-              }}>
+            <div className="flex flex-col items-center justify-center gap-4 h-full text-center p-6">
+              <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-[var(--text-muted)]">
                 <Trophy size={32} />
               </div>
               <div>
-                <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 8px 0' }}>Log In to Play</h3>
-                <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
+                <h3 className="text-base font-bold m-0 mb-2">Log In to Play</h3>
+                <p className="text-[13px] text-[var(--text-muted)] m-0">
                   Create an account to submit your predictions and join the global leaderboard.
                 </p>
               </div>
-              <Link href="/login" className="btn-primary" style={{ padding: '8px 24px', fontSize: '14px' }}>
+              <Link href="/login" className="btn-primary px-6 py-2 text-[14px]">
                 Sign In
               </Link>
             </div>
           ) : !submitted ? (
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+              <div className="flex flex-col gap-3">
                 {(['p1', 'p2', 'p3'] as const).map((pos, idx) => (
-                  <div key={pos} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ 
-                      width: '28px', height: '28px', borderRadius: '50%', 
-                      background: idx === 0 ? '#fbbf24' : idx === 1 ? '#94a3b8' : '#b45309',
-                      color: idx === 0 ? '#000' : '#fff',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontWeight: 800, fontSize: '12px', flexShrink: 0
-                    }}>
+                  <div key={pos} className="flex items-center gap-3">
+                    <div 
+                      className={`w-7 h-7 rounded-full flex items-center justify-center font-extrabold text-xs shrink-0 ${idx === 0 ? 'bg-[#fbbf24] text-black' : idx === 1 ? 'bg-[#94a3b8] text-white' : 'bg-[#b45309] text-white'}`}
+                    >
                       {idx + 1}
                     </div>
                     <CustomSelect
@@ -345,56 +270,42 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
               <button 
                 type="submit"
                 disabled={loading || !user || !predictions.p1 || !predictions.p2 || !predictions.p3}
-                className="btn-primary"
-                style={{ marginTop: '8px' }}
+                className="btn-primary mt-2"
               >
                 {loading ? 'Saving...' : 'Lock Predictions'}
               </button>
             </form>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', height: '100%', textAlign: 'center' }}>
-              <div style={{
-                width: '64px', height: '64px', borderRadius: '50%',
-                background: score !== null ? 'rgba(34,197,94,0.1)' : 'rgba(59,130,246,0.1)',
-                color: score !== null ? '#4ade80' : '#60a5fa',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
+            <div className="flex flex-col items-center justify-center gap-4 h-full text-center">
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center ${score !== null ? 'bg-green-500/10 text-green-400' : 'bg-blue-500/10 text-blue-400'}`}>
                 {score !== null ? <Trophy size={32} /> : <CheckCircle size={32} />}
               </div>
               
               <div>
-                <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 8px 0' }}>
+                <h3 className="text-lg font-bold m-0 mb-2">
                   {score !== null ? `You Scored ${score} pts!` : 'Predictions Locked!'}
                 </h3>
-                <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
+                <p className="text-[13px] text-[var(--text-muted)] m-0">
                   {score !== null ? 'Final results have been calculated.' : 'Waiting for the race to finish...'}
                 </p>
               </div>
 
-              <div style={{ display: 'flex', gap: '12px', margin: '16px 0' }}>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '24px', marginBottom: '4px' }}>🥇</div>
-                  <div style={{ fontSize: '12px', fontWeight: 600 }}>{predictions.p1}</div>
+              <div className="flex gap-3 my-4">
+                <div className="text-center">
+                  <div className="text-2xl mb-1">🥇</div>
+                  <div className="text-xs font-semibold">{predictions.p1}</div>
                 </div>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '24px', marginBottom: '4px' }}>🥈</div>
-                  <div style={{ fontSize: '12px', fontWeight: 600 }}>{predictions.p2}</div>
+                <div className="text-center">
+                  <div className="text-2xl mb-1">🥈</div>
+                  <div className="text-xs font-semibold">{predictions.p2}</div>
                 </div>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '24px', marginBottom: '4px' }}>🥉</div>
-                  <div style={{ fontSize: '12px', fontWeight: 600 }}>{predictions.p3}</div>
+                <div className="text-center">
+                  <div className="text-2xl mb-1">🥉</div>
+                  <div className="text-xs font-semibold">{predictions.p3}</div>
                 </div>
               </div>
 
-              <button onClick={handleShare} className="hover-lift" style={{
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid var(--border-subtle)',
-                color: 'var(--text-primary)',
-                padding: '8px 16px',
-                borderRadius: 'var(--radius-full)',
-                display: 'flex', alignItems: 'center', gap: '8px',
-                fontSize: '12px', fontWeight: 600, cursor: 'pointer',
-              }}>
+              <button onClick={handleShare} className="hover-lift bg-white/5 border border-[var(--border-subtle)] text-[var(--text-primary)] px-4 py-2 rounded-full flex items-center gap-2 text-xs font-semibold cursor-pointer">
                 <Share2 size={14} />
                 Share Results
               </button>
@@ -403,41 +314,29 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
         </div>
 
         {/* Right Side: Global Leaderboard */}
-        <div style={{
-          borderLeft: '1px solid var(--border-subtle)',
-          paddingLeft: '32px',
-        }}>
-          <h3 style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', marginBottom: '16px' }}>
+        <div className="border-l border-[var(--border-subtle)] pl-8">
+          <h3 className="text-xs font-bold uppercase tracking-[0.05em] text-[var(--text-muted)] mb-4">
             Global Leaderboard
           </h3>
           
           {leaderboard.length === 0 ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '13px' }}>
+            <div className="flex items-center gap-2 text-[var(--text-muted)] text-[13px]">
               <AlertCircle size={14} />
               No scores yet. Be the first!
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', overflowY: 'auto', maxHeight: '250px' }}>
+            <div className="flex flex-col gap-3 overflow-y-auto max-h-[250px]">
               {leaderboard.map((lbUser, idx) => (
-                <div key={lbUser.userId} style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '8px 12px',
-                  background: 'rgba(255,255,255,0.02)',
-                  borderRadius: 'var(--radius-sm)',
-                  border: user?.id === lbUser.userId ? '1px solid rgba(234,179,8,0.3)' : '1px solid transparent',
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span style={{ 
-                      fontSize: '12px', fontWeight: 800, 
-                      color: idx === 0 ? '#fbbf24' : idx === 1 ? '#94a3b8' : idx === 2 ? '#b45309' : 'var(--text-muted)' 
-                    }}>
+                <div key={lbUser.userId} className={`flex items-center justify-between py-2 px-3 bg-white/5 rounded-[var(--radius-sm)] border ${user?.id === lbUser.userId ? 'border-yellow-500/30' : 'border-transparent'}`}>
+                  <div className="flex items-center gap-3">
+                    <span className={`text-xs font-extrabold ${idx === 0 ? 'text-[#fbbf24]' : idx === 1 ? 'text-[#94a3b8]' : idx === 2 ? 'text-[#b45309]' : 'text-[var(--text-muted)]'}`}>
                       #{idx + 1}
                     </span>
-                    <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>
+                    <span className="text-[13px] font-medium text-[var(--text-primary)]">
                       {lbUser.username}
                     </span>
                   </div>
-                  <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  <span className="text-[14px] font-bold text-[var(--text-primary)]">
                     {lbUser.totalScore}
                   </span>
                 </div>

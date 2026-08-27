@@ -45,16 +45,9 @@ export default function SeriesDashboard() {
 
   if (!seriesInfo) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'column',
-        gap: '16px',
-      }}>
-        <div style={{ fontSize: '48px' }}>🚫</div>
-        <div style={{ color: 'var(--text-primary)', fontSize: '20px', fontWeight: 600 }}>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+        <div className="text-5xl">🚫</div>
+        <div className="text-[var(--text-primary)] text-xl font-semibold">
           Series not found
         </div>
         <Link href="/" className="btn-primary">
@@ -65,67 +58,27 @@ export default function SeriesDashboard() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', position: 'relative' }}
-      className={`series-${series}`}
-    >
+    <div className={`min-h-screen relative series-${series}`}>
       {/* ===== NAVBAR ===== */}
-      <nav className="glass-nav" style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 50,
-        padding: '0 24px',
-      }}>
-        <div style={{
-          maxWidth: '1280px',
-          margin: '0 auto',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          height: '64px',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Link href="/" style={{
-              fontSize: '18px',
-              fontWeight: 800,
-              textDecoration: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              color: 'var(--text-primary)'
-            }}>
+      <nav className="glass-nav sticky top-0 z-50 px-6">
+        <div className="max-w-[1280px] mx-auto flex justify-between items-center h-16">
+          <div className="flex items-center gap-3">
+            <Link href="/" className="text-lg font-extrabold no-underline flex items-center gap-2 text-[var(--text-primary)]">
               <ApexisLogo width={20} height={20} />
               <span className="hide-mobile">Apexis</span>
             </Link>
-            <span style={{
-              color: 'var(--text-muted)',
-              fontSize: '20px',
-              fontWeight: 200,
-            }}>/</span>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-            }}>
-              <span style={{ fontSize: '18px' }}>{seriesInfo.icon}</span>
-              <span style={{
-                fontSize: '16px',
-                fontWeight: 600,
-                color: 'var(--text-primary)',
-                letterSpacing: '-0.01em',
-              }}>
+            <span className="text-[var(--text-muted)] text-xl font-extralight">/</span>
+            <div className="flex items-center gap-2">
+              <span className="text-lg">{seriesInfo.icon}</span>
+              <span className="text-base font-semibold text-[var(--text-primary)] tracking-[-0.01em]">
                 {seriesInfo.name}
               </span>
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div className="flex items-center gap-2.5">
             <AuthButton />
-            <Link href="/" className="btn-ghost" style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              textDecoration: 'none',
-            }}>
+            <Link href="/" className="btn-ghost flex items-center gap-1.5 no-underline">
               <ArrowLeft size={14} />
               <span className="hide-mobile">Back</span>
             </Link>
@@ -134,22 +87,14 @@ export default function SeriesDashboard() {
       </nav>
 
       {/* Series color accent bar */}
-      <div style={{
-        height: '2px',
-        background: seriesInfo.gradient,
-        opacity: 0.5,
-      }} />
+      <div 
+        className="h-[2px] opacity-50"
+        style={{ background: seriesInfo.gradient }} 
+      />
 
-      <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '32px 24px 80px' }}>
+      <main className="max-w-[1280px] mx-auto px-6 pt-8 pb-20">
         {/* ===== HERO MAP ===== */}
-        <div className="animate-fade-in-up delay-100" style={{ 
-          width: '100%', 
-          background: 'var(--bg-card)',
-          border: '1px solid var(--border-subtle)',
-          borderRadius: 'var(--radius-xl)',
-          overflow: 'hidden',
-          marginBottom: '32px',
-        }}>
+        <div className="animate-fade-in-up delay-100 w-full bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-[var(--radius-xl)] overflow-hidden mb-8">
           {(() => {
             const currentRoundData = scheduleData?.rounds.find((r) => r.round === selectedRound)
             const currentSession = currentRoundData?.sessions.find((s) => s.key === selectedSessionKey)
@@ -170,7 +115,7 @@ export default function SeriesDashboard() {
         </div>
 
         {/* ===== AI SUMMARY & NAVIGATION ===== */}
-        <div className="animate-fade-in-up" style={{ marginBottom: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <div className="animate-fade-in-up flex flex-col gap-6 mb-8">
           <AiSummary series={series} />
           
           {series === 'f1' && scheduleData && (
@@ -187,27 +132,17 @@ export default function SeriesDashboard() {
         </div>
 
         {/* ===== MAIN CONTENT GRID ===== */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1fr)',
-          gap: '40px',
-        }}>
+        <div className="grid grid-cols-1 gap-10">
           
           {/* Missing Live Data Banner (Non-F1) */}
           {series !== 'f1' && !isScanningActive && (
             <div className="animate-fade-in-up delay-100">
-              <div className="card glass-hover" style={{ 
-                padding: '16px 24px', 
-                borderRadius: 'var(--radius-xl)', 
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                background: 'var(--bg-card)',
-                border: '1px solid var(--border-subtle)'
-              }}>
+              <div className="card glass-hover px-6 py-4 rounded-[var(--radius-xl)] flex justify-between items-center bg-[var(--bg-card)] border border-[var(--border-subtle)]">
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 600 }}>Missing Live Data?</h3>
-                  <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)' }}>Use Computer Vision to extract standings directly from a race broadcast.</p>
+                  <h3 className="m-0 text-sm font-semibold">Missing Live Data?</h3>
+                  <p className="m-0 text-xs text-[var(--text-muted)]">Use Computer Vision to extract standings directly from a race broadcast.</p>
                 </div>
-                <button onClick={() => setIsScanningActive(true)} className="btn-primary" style={{ padding: '8px 16px', fontSize: '12px' }}>
+                <button onClick={() => setIsScanningActive(true)} className="btn-primary px-4 py-2 text-xs">
                   Sync via Broadcast
                 </button>
               </div>
@@ -242,18 +177,11 @@ export default function SeriesDashboard() {
           </div>
 
           {/* Secondary Information Grid */}
-          <div className="animate-fade-in-up delay-200" style={{ marginBottom: '24px' }}>
+          <div className="animate-fade-in-up delay-200 mb-6">
             <FantasyGame series={series} round={selectedRound} />
           </div>
 
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-            gap: '24px',
-            marginTop: '16px',
-            paddingTop: '40px',
-            borderTop: '1px solid var(--border-subtle)'
-          }}>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-6 mt-4 pt-10 border-t border-[var(--border-subtle)]">
             <div className="animate-fade-in-up delay-200">
               <MySupported series={series} />
             </div>
@@ -275,12 +203,7 @@ export default function SeriesDashboard() {
       </main>
 
       {/* ===== FLOATING CHATBOT WIDGET ===== */}
-      <div style={{
-        position: 'fixed',
-        bottom: '24px',
-        right: '24px',
-        zIndex: 100,
-      }}>
+      <div className="fixed bottom-6 right-6 z-[100]">
         <Chatbot series={series} contextData={{ standingsData, cvData, liveRaceData }} />
       </div>
     </div>
