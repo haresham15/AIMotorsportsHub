@@ -54,10 +54,18 @@ export default function ReplayLeaderboard({ data, frame, selectedDrivers, onSele
             // in km/h converted to m/s as a proxy for catch-up rate.
             // Falls back to leader speed to avoid division by zero.
             : (() => {
+                const leaderLap = sorted[0]?.[1]?.lap || 1;
+                if (leaderLap - d.lap >= 1) {
+                  const lapsBehind = leaderLap - d.lap;
+                  return `+${lapsBehind} LAP${lapsBehind > 1 ? 'S' : ''}`;
+                }
+
                 const distDelta = leaderDist - d.dist;
-                // Use driver speed (km/h → m/s), with leader speed as fallback
-                const speedMs = (d.speed > 0 ? d.speed : (sorted[0]?.[1]?.speed || 200)) / 3.6;
-                const gapSeconds = distDelta / Math.max(1, speedMs);
+                // Use a fixed average speed (e.g. 200 km/h = ~55.5 m/s) for time gap
+                // conversion to keep the gap strictly proportional to distance and
+                // perfectly stable across braking zones.
+                const avgSpeedMs = 200 / 3.6;
+                const gapSeconds = distDelta / avgSpeedMs;
                 return `+${Math.max(0, gapSeconds).toFixed(1)}s`;
               })()
 

@@ -105,20 +105,37 @@ export default function LiveStandings({ series, sessionKey, dataSource = "mock",
 
       intervalId = setInterval(() => {
         setRaceData(currentData => {
-          const mapped = currentData.map(d => {
-            if (d.position === 1) return d;
-            let currentGap = parseFloat(d.gap_to_leader.replace('+', ''))
-            if (isNaN(currentGap)) currentGap = 0;
-            const change = (Math.random() * 0.4 - 0.2)
-            const newGap = Math.max(0, currentGap + change).toFixed(3)
+          const withAbsolute = currentData.map(d => {
+            let gap = 0
+            if (d.gap_to_leader !== 'Interval' && d.gap_to_leader !== 'LEADER') {
+               gap = parseFloat(d.gap_to_leader.replace('+', '')) || 0
+            }
+            const change = (Math.random() * 0.4 - 0.15) // slight bias to spread out
+            return { ...d, _absoluteTime: gap + change }
+          })
+
+          withAbsolute.sort((a, b) => a._absoluteTime - b._absoluteTime)
+          const leaderTime = withAbsolute[0]._absoluteTime
+
+          const mapped = withAbsolute.map((d, index) => {
+            const position = index + 1
+            let newGapStr = 'Interval'
             
+            if (position > 1) {
+              const newGap = Math.max(0, d._absoluteTime - leaderTime).toFixed(3)
+              newGapStr = `+${newGap}`
+            }
+
             const lapMs = 90000 + (Math.random() * 2000 - 1000)
             const mins = Math.floor(lapMs / 60000)
             const secs = ((lapMs % 60000) / 1000).toFixed(3)
             const newLap = `${mins}:${secs.padStart(6, '0')}`
 
-            return { ...d, gap_to_leader: `+${newGap}`, last_lap: newLap }
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { _absoluteTime, ...rest } = d
+            return { ...rest, position, gap_to_leader: newGapStr, last_lap: newLap } as RaceData
           })
+
           if (onLiveStandingsUpdate) onLiveStandingsUpdate(mapped)
           return mapped
         })
