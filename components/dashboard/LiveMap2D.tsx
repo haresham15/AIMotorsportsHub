@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo, useCallback } from 'react'
-import type { ReplayData, PlaybackState, RaceFrame, Point2D } from '@/lib/replayTypes'
+import type { ReplayData, PlaybackState, RaceFrame, Point2D, TrackGeometry, DriverInfo } from '@/lib/replayTypes'
 import { getTrackForCircuit } from '@/lib/trackData'
 import { getDriverColor, SERIES_DRIVERS } from '@/lib/data'
 import RaceReplayCanvas from './RaceReplayCanvas'
@@ -10,21 +10,30 @@ import ReplayLeaderboard from './ReplayLeaderboard'
 import DriverTelemetryPanel from './DriverTelemetryPanel'
 import { Loader, Radio, AlertTriangle } from 'lucide-react'
 
-// Helper to run simulation in Web Worker
-const generateReplayDataAsync = (series: string, track: any, driversList: any[]): Promise<ReplayData> => {
-  return new Promise((resolve, reject) => {
-    const worker = new Worker(new URL('../../workers/simulator.worker.ts', import.meta.url))
-    worker.onmessage = (e) => {
-      if (e.data.type === 'SUCCESS') resolve(e.data.data)
-      else reject(new Error(e.data.error))
-      worker.terminate()
-    }
-    worker.onerror = (err) => {
-      reject(err)
-      worker.terminate()
-    }
-    worker.postMessage({ series, track, driversList })
-  })
+// Helper to run simulation — prefers Web Worker for off-main-thread
+// generation, but falls back to synchronous if Workers are unavailable
+// (e.g., SSR, strict CSP, or certain browser extensions).
+const generateReplayDataAsync = async (series: string, track: TrackGeometry, driversList: DriverInfo[]): Promise<ReplayData> => {
+  try {
+    return await new Promise((resolve, reject) => {
+      const worker = new Worker(new URL('../../workers/simulator.worker.ts', import.meta.url))
+      worker.onmessage = (e) => {
+        if (e.data.type === 'SUCCESS') resolve(e.data.data)
+        else reject(new Error(e.data.error))
+        worker.terminate()
+      }
+      worker.onerror = (err) => {
+        reject(err)
+        worker.terminate()
+      }
+      worker.postMessage({ series, track, driversList })
+    })
+  } catch {
+    // Fallback: run synchronously on main thread if Worker fails
+    console.warn('[LiveMap2D] Web Worker unavailable, running simulation synchronously')
+    const { generateReplayData } = await import('@/lib/raceSimulator')
+    return generateReplayData(series, track, driversList)
+  }
 }
 
 interface LiveMap2DProps {
@@ -191,6 +200,14 @@ export default function LiveMap2D({ series, round = 1, sessionKey = null, circui
   const handleDriverSelect = useCallback((codes: string[]) => {
     setPlayback(prev => ({ ...prev, selectedDrivers: codes }))
   }, [])
+
+  // Reset frame index when replay data changes (e.g., switching circuits/sessions)
+  // to prevent the scrubber from being stuck at a stale position.
+  useEffect(() => {
+    if (replayData) {
+      setPlayback(prev => ({ ...prev, frameIndex: 0, isPlaying: false }))
+    }
+  }, [replayData])
 
   // ── Current frame ──────────────────────────────────────────────
   const currentFrame: RaceFrame | null = useMemo(() => {

@@ -50,7 +50,16 @@ export default function ReplayLeaderboard({ data, frame, selectedDrivers, onSele
           const isSelected = selectedDrivers.includes(code)
           const gap = d.position === 1
             ? 'LEADER'
-            : `+${((leaderDist - d.dist) / 10).toFixed(1)}s`
+            // Time gap = distance delta / speed. Uses the driver's own speed
+            // in km/h converted to m/s as a proxy for catch-up rate.
+            // Falls back to leader speed to avoid division by zero.
+            : (() => {
+                const distDelta = leaderDist - d.dist;
+                // Use driver speed (km/h → m/s), with leader speed as fallback
+                const speedMs = (d.speed > 0 ? d.speed : (sorted[0]?.[1]?.speed || 200)) / 3.6;
+                const gapSeconds = distDelta / Math.max(1, speedMs);
+                return `+${Math.max(0, gapSeconds).toFixed(1)}s`;
+              })()
 
           return (
             <div

@@ -155,7 +155,7 @@ export interface PlaybackState {
 }
 
 /** Available playback speeds */
-export const PLAYBACK_SPEEDS = [0.5, 1, 2, 4, 8, 16] as const;
+export const PLAYBACK_SPEEDS = [0.5, 1, 2, 4, 8, 16, 32] as const;
 
 /** Frame rate constant (matches f1-race-replay's FPS = 25) */
 export const REPLAY_FPS = 25;

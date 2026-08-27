@@ -281,10 +281,15 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
     const lapStr = `LAP ${frame.lap}/${data.totalLaps}`
     ctx.fillText(lapStr, 16, h - 16)
 
-    const mins = Math.floor(frame.t / 60)
-    const secs = Math.floor(frame.t % 60)
+    const totalSec = frame.t
+    const hrs = Math.floor(totalSec / 3600)
+    const mins = Math.floor((totalSec % 3600) / 60)
+    const secs = Math.floor(totalSec % 60)
+    const timeStr = hrs > 0
+      ? `${hrs}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
+      : `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
     ctx.fillStyle = '#94a3b8'; ctx.font = '12px "JetBrains Mono", monospace'
-    ctx.fillText(`${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`, 16, h - 36)
+    ctx.fillText(timeStr, 16, h - 36)
 
     /* speed indicator */
     ctx.fillStyle = '#64748b'; ctx.font = '11px Inter'; ctx.textAlign = 'right'

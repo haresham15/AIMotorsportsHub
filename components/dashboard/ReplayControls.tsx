@@ -18,8 +18,11 @@ export default function ReplayControls({ playback, data, onChange }: Props) {
   const totalTime = data.frames[totalFrames - 1]?.t ?? 0
 
   const fmtTime = (s: number) => {
-    const m = Math.floor(s / 60)
+    const h = Math.floor(s / 3600)
+    const m = Math.floor((s % 3600) / 60)
     const sec = Math.floor(s % 60)
+    // Show hours only when the race exceeds 60 minutes
+    if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`
     return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`
   }
 

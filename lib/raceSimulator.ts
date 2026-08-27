@@ -44,13 +44,19 @@ interface SeriesConfig {
   speedVariation: number;     // random speed variation between drivers
   lapTimeSeconds: number;     // approximate lap time
   pitStopDurationS: number;   // pit stop duration in seconds
-  pitStopLaps: number[];      // laps at which pit stops typically occur
+  pitStopLaps: number[];      // laps at which pit stops typically occur (at full race distance)
   tyreCompounds: string[];    // available tyre compounds
   hasDRS: boolean;
   hasSafetyCar: boolean;
   driverCount: number;
   gridSpreadFactor: number;   // how spread out cars are at start (0-1)
+  defaultLaps: number | null; // series-specific lap count override (null = use track.totalLaps)
 }
+
+// Maximum frames to generate before downsampling FPS.
+// ~75,000 frames ≈ 50 min at 25 FPS — keeps memory usage reasonable
+// while allowing full race lengths for all series.
+const MAX_FRAMES = 75_000;
 
 const SERIES_CONFIGS: Record<string, SeriesConfig> = {
   f1: {
@@ -64,6 +70,7 @@ const SERIES_CONFIGS: Record<string, SeriesConfig> = {
     hasSafetyCar: true,
     driverCount: 20,
     gridSpreadFactor: 0.02,
+    defaultLaps: null, // use track.totalLaps (varies 50-78 by circuit)
   },
   f2: {
     baseSpeedFactor: 0.92,
@@ -76,6 +83,7 @@ const SERIES_CONFIGS: Record<string, SeriesConfig> = {
     hasSafetyCar: true,
     driverCount: 22,
     gridSpreadFactor: 0.025,
+    defaultLaps: null, // use track.totalLaps
   },
   f3: {
     baseSpeedFactor: 0.85,
@@ -88,6 +96,7 @@ const SERIES_CONFIGS: Record<string, SeriesConfig> = {
     hasSafetyCar: true,
     driverCount: 30,
     gridSpreadFactor: 0.03,
+    defaultLaps: null, // use track.totalLaps
   },
   'formula-e': {
     baseSpeedFactor: 0.78,
@@ -100,6 +109,7 @@ const SERIES_CONFIGS: Record<string, SeriesConfig> = {
     hasSafetyCar: true,
     driverCount: 22,
     gridSpreadFactor: 0.02,
+    defaultLaps: 36, // standard E-Prix length
   },
   nascar: {
     baseSpeedFactor: 0.95,
@@ -112,6 +122,7 @@ const SERIES_CONFIGS: Record<string, SeriesConfig> = {
     hasSafetyCar: true,
     driverCount: 40,
     gridSpreadFactor: 0.008,
+    defaultLaps: 200, // typical Cup Series race
   },
   'gt-world-challenge': {
     baseSpeedFactor: 0.88,
@@ -124,6 +135,7 @@ const SERIES_CONFIGS: Record<string, SeriesConfig> = {
     hasSafetyCar: true,
     driverCount: 20,
     gridSpreadFactor: 0.02,
+    defaultLaps: 24, // endurance format
   },
   'top-fuel': {
     baseSpeedFactor: 2.5,
@@ -136,6 +148,7 @@ const SERIES_CONFIGS: Record<string, SeriesConfig> = {
     hasSafetyCar: false,
     driverCount: 2,
     gridSpreadFactor: 0.0,
+    defaultLaps: 1, // single quarter-mile pass
   },
 };
 
@@ -168,19 +181,51 @@ export function generateReplayData(
   const config = SERIES_CONFIGS[seriesId] || SERIES_CONFIGS.f1;
   const rng = new SeededRNG(seriesId.length * 1000 + track.referenceLine.length);
 
+  // ── Guard: degenerate track data ────────────────────────────────
+  if (!track.referenceLine || track.referenceLine.length < 2) {
+    // Return a minimal empty replay so the UI can render an error state
+    // instead of crashing on bad geometry.
+    return {
+      frames: [],
+      trackGeometry: track,
+      drivers: drivers.slice(0, config.driverCount),
+      driverColors: {},
+      trackStatuses: [],
+      totalLaps: 0,
+      sessionInfo: {
+        seriesId, seriesName: seriesId.toUpperCase(),
+        eventName: track.name, circuitName: track.name,
+        country: track.country, year: new Date().getFullYear(),
+        round: 1, sessionType: 'Race',
+      },
+    };
+  }
+
   const cumDists = computeCumulativeDistances(track.referenceLine);
   const trackLength = cumDists[cumDists.length - 1]; // total track perimeter in world units
 
-  // Scale factor: world units per metre (approximate)
-  const worldUnitsPerMetre = trackLength / (track.lengthKm * 1000);
+  // Scale factor: world units per metre (approximate).
+  // Guard against zero-length tracks to prevent Infinity/NaN propagation.
+  const trackLengthMetres = Math.max(1, (track.lengthKm || 1) * 1000);
+  const worldUnitsPerMetre = trackLength / trackLengthMetres;
   const lapDistWorld = trackLength;
 
   // Base speed in world units per second
   const baseSpeedWorld = lapDistWorld / config.lapTimeSeconds * config.baseSpeedFactor;
 
-  // Determine actual lap count (cap for performance)
-  const totalLaps = Math.min(track.totalLaps, seriesId === 'top-fuel' ? 1 : 15);
-  const totalFrames = totalLaps * config.lapTimeSeconds * REPLAY_FPS;
+  // ── Dynamic lap count: use series config, then track data, then fallback ──
+  // Previously hardcoded to Math.min(track.totalLaps, 15) — this was the
+  // root cause of the 15-lap / 22-minute bug.
+  const totalLaps = config.defaultLaps ?? track.totalLaps ?? 50;
+
+  // ── Frame budget: downsample FPS for very long races to stay under
+  // MAX_FRAMES, rather than truncating the number of laps.
+  const rawFrameCount = totalLaps * config.lapTimeSeconds * REPLAY_FPS;
+  const effectiveFPS = rawFrameCount > MAX_FRAMES
+    ? Math.max(5, Math.floor(MAX_FRAMES / (totalLaps * config.lapTimeSeconds)))
+    : REPLAY_FPS;
+  const totalFrames = totalLaps * config.lapTimeSeconds * effectiveFPS;
+  const dt = 1 / effectiveFPS;
 
   // Initialize driver states
   const activeDrivers = drivers.slice(0, config.driverCount);
@@ -193,13 +238,18 @@ export function generateReplayData(
     const startOffset = idx * config.gridSpreadFactor * lapDistWorld;
     const tyre = config.tyreCompounds[rng.int(0, config.tyreCompounds.length - 1)];
 
-    // Determine next pit stop lap
+    // Determine next pit stop lap.
+    // pitStopLaps in SeriesConfig are specified at full race distance,
+    // so we proportionally scale them to the actual totalLaps.
     let nextPitLap = Infinity;
     if (config.pitStopLaps.length > 0) {
       const pitIdx = idx % config.pitStopLaps.length;
-      nextPitLap = config.pitStopLaps[pitIdx] + rng.int(-2, 2);
-      // Scale pit laps to our reduced lap count
-      nextPitLap = Math.min(Math.round(nextPitLap * totalLaps / track.totalLaps), totalLaps - 1);
+      const basePitLap = config.pitStopLaps[pitIdx] + rng.int(-2, 2);
+      // Scale relative to a reference full-race distance.
+      // Use the max of configured pit laps as the reference to avoid
+      // collapsing all pits to lap 1-2 when totalLaps is small.
+      const refDistance = Math.max(track.totalLaps || totalLaps, ...config.pitStopLaps) + 10;
+      nextPitLap = Math.min(Math.round(basePitLap * totalLaps / refDistance), totalLaps - 1);
       nextPitLap = Math.max(2, nextPitLap);
     }
 
@@ -242,19 +292,21 @@ export function generateReplayData(
   };
 
   const frames: RaceFrame[] = [];
-  const dt = 1 / REPLAY_FPS;
   const trackStatuses: TrackStatusPeriod[] = [];
   let scActive = false;
   let scStartTime = -1;
   let scEndTime = -1;
 
   // ── Frame generation loop ───────────────────────────────────────
+  let allFinished = false;
   for (let fi = 0; fi < totalFrames; fi++) {
+    // Early termination: stop generating frames once every driver has finished
+    if (allFinished) break;
+
     const t = fi * dt;
 
     // Determine if safety car is active
     const leaderLap = Math.max(...driverStates.filter(d => !d.retired).map(d => d.lap));
-    const inSCWindow = leaderLap >= scDeployLap && t < (scStartTime + scDuration);
 
     if (leaderLap >= scDeployLap && !scActive && scStartTime < 0) {
       scActive = true;
@@ -293,7 +345,11 @@ export function generateReplayData(
         const lapProgress = (ds.dist % lapDistWorld) / lapDistWorld;
         if (lapProgress > 0.85 && lapProgress < 0.95) {
           ds.inPit = true;
-          ds.pitTimer = config.pitStopDurationS / REPLAY_FPS * rng.range(0.9, 1.1);
+          // FIX: pitTimer is decremented by `dt` each frame, so it should be
+          // set to the actual pit stop duration in seconds (with some variance).
+          // Previously this was `pitStopDurationS / REPLAY_FPS` which made
+          // pit stops ~0.04s instead of ~25s.
+          ds.pitTimer = config.pitStopDurationS * rng.range(0.9, 1.1);
           continue;
         }
       }
@@ -306,9 +362,9 @@ export function generateReplayData(
         speed *= 0.6;
       }
 
-      // Tyre degradation effect
-      const degradation = 1 - (ds.tyreLife * 0.002);
-      speed *= Math.max(0.9, degradation);
+      // Tyre degradation effect (clamped to prevent negative/zero speed)
+      const degradation = Math.max(0.85, 1 - (ds.tyreLife * 0.002));
+      speed *= degradation;
 
       // Random variation per frame (simulates track features / overtaking)
       speed *= rng.range(0.97, 1.03);
@@ -321,8 +377,9 @@ export function generateReplayData(
         speed = ds.baseSpeed * accCurve * accCurve;
       }
 
-      ds.currentSpeed = speed;
-      ds.dist += speed * dt;
+      // Clamp speed to prevent NaN/Infinity from propagating to canvas
+      ds.currentSpeed = Number.isFinite(speed) ? speed : ds.baseSpeed;
+      ds.dist += ds.currentSpeed * dt;
 
       // Update lap count
       const newLap = Math.floor(ds.dist / lapDistWorld) + 1;
@@ -359,6 +416,9 @@ export function generateReplayData(
     activeDriversSorted.forEach((ds, idx) => {
       ds.position = idx + 1;
     });
+
+    // Check if every driver has finished
+    allFinished = driverStates.every(ds => ds.retired);
 
     // Build frame
     const driversRecord: Record<string, DriverFrameState> = {};
