@@ -94,8 +94,8 @@ export default function SeriesDashboard() {
 
       <main className="max-w-[1280px] mx-auto px-6 pt-8 pb-20">
         
-        {/* Roadmap Indicator for Non-F1 Series */}
-        {series !== 'f1' && (
+        {/* Roadmap Indicator for Non-Live Series */}
+        {series !== 'f1' && !series.startsWith('nascar-') && (
           <div className="animate-fade-in-up w-full bg-[var(--graphite-900)] border border-[var(--amber-dim)] rounded-[var(--radius-lg)] p-4 mb-6 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-[rgba(255,176,32,0.1)] flex items-center justify-center text-[var(--amber)]">
@@ -134,7 +134,7 @@ export default function SeriesDashboard() {
         <div className="animate-fade-in-up flex flex-col gap-6 mb-8">
           <AiSummary series={series} />
           
-          {series === 'f1' && scheduleData && (
+          {(series === 'f1' || series.startsWith('nascar-')) && scheduleData && (
             <RoundNavigator 
               rounds={scheduleData.rounds}
               selectedRound={selectedRound}

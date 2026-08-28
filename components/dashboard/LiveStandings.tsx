@@ -149,6 +149,46 @@ export default function LiveStandings({ series, sessionKey, dataSource = "mock",
       }, 3000)
     }
 
+    if (dataSource === 'live' && series.startsWith('nascar-')) {
+      const fetchLiveNascarData = async () => {
+        if (isFetchingRef.current) return;
+        isFetchingRef.current = true;
+        try {
+          const response = await fetch('/api/nascar/live');
+          if (!response.ok) {
+            console.warn("NASCAR Live Feed failed. Falling back to mock data.");
+            if (!hasLiveData.current) {
+              const filtered = INITIAL_DATA.filter(d => d.drivers?.series_id === 'nascar')
+              setRaceData(filtered)
+              if (onLiveStandingsUpdate) onLiveStandingsUpdate(filtered)
+            }
+            setLoading(false);
+            return;
+          }
+
+          const { standings }: { standings: RaceData[] } = await response.json();
+
+          const top20 = standings.slice(0, 20);
+          setRaceData(top20);
+          if (onLiveStandingsUpdate) onLiveStandingsUpdate(top20);
+          setLoading(false);
+          hasLiveData.current = true;
+        } catch (err) {
+          if (!hasLiveData.current) {
+            const filtered = INITIAL_DATA.filter(d => d.drivers?.series_id === 'nascar')
+            setRaceData(filtered)
+            if (onLiveStandingsUpdate) onLiveStandingsUpdate(filtered)
+          }
+          setLoading(false);
+        } finally {
+          isFetchingRef.current = false;
+        }
+      };
+
+      fetchLiveNascarData();
+      intervalId = setInterval(fetchLiveNascarData, 10000); // Poll every 10 seconds
+    }
+
     return () => clearInterval(intervalId)
   }, [series, dataSource, externalData, sessionKey, onLiveStandingsUpdate])
 
@@ -199,7 +239,7 @@ export default function LiveStandings({ series, sessionKey, dataSource = "mock",
           <table className="w-full text-left border-collapse table-auto">
             <thead>
               <tr className="border-b border-[var(--border-subtle)]">
-                {['Pos', 'Driver', 'Gap', 'Last Lap', 'Tire'].map((header) => (
+                {['Pos', 'Driver', 'Gap', 'Last Lap', series.startsWith('nascar-') ? 'Mfg' : 'Tire'].map((header) => (
                   <th key={header} className="pb-3 px-3 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--text-muted)] whitespace-nowrap">
                     {header}
                   </th>
@@ -233,16 +273,22 @@ export default function LiveStandings({ series, sessionKey, dataSource = "mock",
                         {entry.last_lap}
                       </td>
                       <td className="p-3">
-                        <span 
-                          className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-[0.04em]"
-                          style={{
-                            background: tireColor.bg,
-                            color: tireColor.text,
-                            border: `1px solid ${tireColor.border}`
-                          }}
-                        >
-                          {entry.tire_compound}
-                        </span>
+                        {series.startsWith('nascar-') && entry.manufacturer ? (
+                           <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-[0.04em] bg-white/10 text-white border border-white/20">
+                             {entry.manufacturer}
+                           </span>
+                        ) : (
+                          <span 
+                            className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-[0.04em]"
+                            style={{
+                              background: tireColor.bg,
+                              color: tireColor.text,
+                              border: `1px solid ${tireColor.border}`
+                            }}
+                          >
+                            {entry.tire_compound}
+                          </span>
+                        )}
                       </td>
                     </tr>
                   )

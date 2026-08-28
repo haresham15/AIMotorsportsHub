@@ -10,6 +10,7 @@ export interface RaceData {
   gap_to_leader: string
   last_lap: string
   tire_compound: string
+  manufacturer?: string
   drivers?: {
     name: string
     series_id?: string
@@ -52,5 +53,6 @@ export interface Round {
   time: string
   status: 'upcoming' | 'live' | 'completed'
   openF1MeetingKey?: number
+  nascarRaceId?: number
   sessions: RoundSession[]
 }

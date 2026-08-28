@@ -75,9 +75,47 @@ export const SERIES: SeriesInfo[] = [
   },
 ];
 
+// Sub-series that don't appear on the homepage but are valid dashboard routes
+const NASCAR_SUB_SERIES: SeriesInfo[] = [
+  {
+    id: "nascar-cup",
+    name: "NASCAR Cup Series",
+    shortName: "CUP",
+    color: "#f59e0b",
+    gradient: "linear-gradient(135deg, #f59e0b, #fbbf24)",
+    icon: "🏆",
+    description: "The premier stock car racing series",
+  },
+  {
+    id: "nascar-xfinity",
+    name: "NASCAR Xfinity Series",
+    shortName: "XFN",
+    color: "#3b82f6",
+    gradient: "linear-gradient(135deg, #3b82f6, #60a5fa)",
+    icon: "🏁",
+    description: "The proving ground for future Cup stars",
+  },
+  {
+    id: "nascar-trucks",
+    name: "NASCAR Craftsman Truck Series",
+    shortName: "TRKS",
+    color: "#10b981",
+    gradient: "linear-gradient(135deg, #10b981, #34d399)",
+    icon: "🚛",
+    description: "Short-track mayhem with full-size trucks",
+  },
+];
+
 export const SERIES_MAP: Record<string, SeriesInfo> = Object.fromEntries(
-  SERIES.map((s) => [s.id, s])
+  [...SERIES, ...NASCAR_SUB_SERIES].map((s) => [s.id, s])
 );
+
+// NASCAR CDN series IDs: maps our internal route ID to NASCAR's integer
+export const NASCAR_CDN_SERIES_ID: Record<string, number> = {
+  'nascar-cup': 1,
+  'nascar-xfinity': 2,
+  'nascar-trucks': 3,
+};
 
 // ========== WATCH LINKS ==========
 export const WATCH_LINKS: Record<
@@ -199,6 +237,11 @@ export const WATCH_LINKS: Record<
     },
   ],
 };
+
+// Alias NASCAR sub-series to the same watch links
+WATCH_LINKS['nascar-cup'] = WATCH_LINKS['nascar'];
+WATCH_LINKS['nascar-xfinity'] = WATCH_LINKS['nascar'];
+WATCH_LINKS['nascar-trucks'] = WATCH_LINKS['nascar'];
 
 // ========== TEAM HISTORY ==========
 export interface TeamHistoryEntry {
@@ -399,6 +442,11 @@ export const TEAM_HISTORY: Record<string, TeamHistoryEntry[]> = {
     },
   ],
 };
+
+// Alias NASCAR sub-series to the same team history
+TEAM_HISTORY['nascar-cup'] = TEAM_HISTORY['nascar'];
+TEAM_HISTORY['nascar-xfinity'] = TEAM_HISTORY['nascar'];
+TEAM_HISTORY['nascar-trucks'] = TEAM_HISTORY['nascar'];
 
 // ========== MOCK NOTIFICATIONS ==========
 export interface NotificationItem {
@@ -604,6 +652,12 @@ export const SERIES_DRIVERS: Record<string, DriverInfo[]> = {
     { code: 'ANT', name: 'Antron Brown', number: 2, team: 'AB Motorsports', color: '#FF4500' },
   ],
 };
+
+// Alias NASCAR sub-series to share the Cup driver roster as a fallback for simulation
+// The live CDN feed will provide the actual drivers dynamically
+SERIES_DRIVERS['nascar-cup'] = SERIES_DRIVERS['nascar'];
+SERIES_DRIVERS['nascar-xfinity'] = SERIES_DRIVERS['nascar'];
+SERIES_DRIVERS['nascar-trucks'] = SERIES_DRIVERS['nascar'];
 
 export function getDriverColor(series: string, code: string): string | undefined {
   const drivers = SERIES_DRIVERS[series];
