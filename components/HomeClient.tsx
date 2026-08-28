@@ -61,43 +61,43 @@ export default function HomeClient({ summaries }: { summaries: Record<string, st
         .hero h1 em { font-style: normal; color: var(--amber); }
         .btn-primary-amber { background: var(--amber); color: #1a1200; font-weight: 700; font-size: 15px; padding: 14px 30px; border-radius: 6px; font-family: var(--font-sans); transition: transform .15s, box-shadow .15s; }
         .btn-primary-amber:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(255,176,32,0.25); }
-        .ticker-band { border-top: 1px solid var(--graphite-700); border-bottom: 1px solid var(--graphite-700); background: repeating-linear-gradient(180deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px), var(--graphite-900); overflow: hidden; position: relative; z-index: 1; }
+        .ticker-band { border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); background: repeating-linear-gradient(180deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px), var(--bg-card); overflow: hidden; position: relative; z-index: 1; margin-bottom: var(--sp-7); }
         .ticker-band::before { content: 'LIVE TIMING'; position: absolute; left: 0; top: 0; bottom: 0; z-index: 2; display: flex; align-items: center; padding: 0 16px; font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: #0a0a0a; background: var(--amber); }
-        .ticker-track { display: flex; white-space: nowrap; animation: scroll-left 42s linear infinite; padding-left: 140px; }
+        .ticker-track { display: flex; white-space: nowrap; animation: scroll-left 42s linear infinite; padding-left: 200px; }
         @keyframes scroll-left { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-        .ticker-item { font-family: var(--font-mono); font-size: 13px; color: var(--text-secondary); padding: 14px 32px; border-right: 1px solid var(--graphite-700); display: flex; align-items: center; gap: 10px; }
+        .ticker-item { font-family: var(--font-mono); font-size: 13px; color: var(--text-secondary); padding: 14px 32px; border-right: 1px solid var(--border-subtle); display: flex; align-items: center; gap: 10px; }
         .ticker-item .flag { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
         @media (prefers-reduced-motion: reduce) { .ticker-track { animation: none; } }
         .eyebrow { font-family: var(--font-mono); font-size: 12px; color: var(--amber); font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: var(--sp-3); }
         .section-head h2 { font-family: var(--font-disp); font-weight: 800; font-size: clamp(30px,4vw,44px); letter-spacing: -0.005em; text-transform: uppercase; max-width: 640px; }
-        .how-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: var(--sp-5); margin-top: var(--sp-7); border-top: 1px solid var(--graphite-700); }
-        .how-step { padding: var(--sp-6) var(--sp-2) 0; border-right: 1px solid var(--graphite-700); }
+        .how-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: var(--sp-5); margin-top: var(--sp-7); border-top: 1px solid var(--border-subtle); }
+        .how-step { padding: var(--sp-6) var(--sp-2) 0; border-right: 1px solid var(--border-subtle); }
         .how-step:last-child { border-right: none; }
         .how-num { font-family: var(--font-mono); font-size: 13px; color: var(--text-muted); font-weight: 600; margin-bottom: var(--sp-4); }
         .how-step h3 { font-family: var(--font-disp); font-size: 24px; font-weight: 700; text-transform: uppercase; margin-bottom: var(--sp-3); }
-        .series-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 1px; background: var(--graphite-700); border: 1px solid var(--graphite-700); margin-top: var(--sp-7); }
-        .series-card { background: var(--graphite-900); padding: var(--sp-6); display: flex; flex-direction: column; gap: var(--sp-5); position: relative; border-left: 3px solid var(--s-color); transition: background .15s; }
-        .series-card:hover { background: var(--graphite-850); }
+        .series-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 1px; background: var(--border-subtle); border: 1px solid var(--border-subtle); margin-top: var(--sp-7); }
+        .series-card { background: var(--bg-card); padding: var(--sp-6); display: flex; flex-direction: column; gap: var(--sp-5); position: relative; border-left: 3px solid var(--s-color); transition: background .15s; }
+        .series-card:hover { background: var(--bg-card-hover); }
         .series-mark { font-family: var(--font-disp); font-size: 34px; font-weight: 800; letter-spacing: 0.01em; color: var(--s-color); }
-        .series-stats { display: flex; gap: var(--sp-5); font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); border-top: 1px solid var(--graphite-700); padding-top: var(--sp-4); }
+        .series-stats { display: flex; gap: var(--sp-5); font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); border-top: 1px solid var(--border-subtle); padding-top: var(--sp-4); }
         .series-stats .stat b { display: block; color: var(--text-primary); font-size: 14px; font-weight: 600; }
         .series-stats .stat span { color: var(--text-muted); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
         .series-enter { font-size: 13px; font-weight: 600; color: var(--s-color); display: flex; align-items: center; gap: 6px; margin-top: auto; }
         .series-card.featured { grid-column: 1 / -1; flex-direction: row; align-items: center; gap: var(--sp-7); padding: var(--sp-7); }
         .series-card.featured .series-enter { margin-top: 0; margin-left: auto; flex-shrink: 0; }
         .series-card.featured .series-mark { font-size: 64px; }
-        .history { background: var(--graphite-900); border-top: 1px solid var(--graphite-700); border-bottom: 1px solid var(--graphite-700); }
-        .tl-row { display: grid; grid-template-columns: 110px 1fr 2fr; gap: var(--sp-5); padding: var(--sp-5) 0; border-top: 1px solid var(--graphite-700); align-items: baseline; }
-        .tl-row:last-child { border-bottom: 1px solid var(--graphite-700); }
+        .history { background: var(--bg-card); border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); }
+        .tl-row { display: grid; grid-template-columns: 110px 1fr 2fr; gap: var(--sp-5); padding: var(--sp-5) 0; border-top: 1px solid var(--border-subtle); align-items: baseline; }
+        .tl-row:last-child { border-bottom: 1px solid var(--border-subtle); }
         .tl-year { font-family: var(--font-mono); font-size: 22px; font-weight: 700; color: var(--amber); }
         .tl-event { font-family: var(--font-disp); font-size: 19px; font-weight: 700; text-transform: uppercase; color: var(--text-primary); }
         .foot-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: var(--sp-6); padding-bottom: var(--sp-7); }
         .foot-col h4 { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: var(--sp-4); }
-        .foot-bottom { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--sp-3); border-top: 1px solid var(--graphite-700); padding-top: var(--sp-5); font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); }
-        @media (max-width: 760px) { .series-grid { grid-template-columns: 1fr; } .series-card.featured { grid-column: span 1; flex-direction: column; align-items: flex-start; } .how-grid { grid-template-columns: 1fr; } .how-step { border-right: none; border-bottom: 1px solid var(--graphite-700); padding-bottom: var(--sp-6); } .tl-row { grid-template-columns: 1fr; gap: 6px; } .foot-grid { grid-template-columns: 1fr 1fr; } }
+        .foot-bottom { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--sp-3); border-top: 1px solid var(--border-subtle); padding-top: var(--sp-5); font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); }
+        @media (max-width: 760px) { .series-grid { grid-template-columns: 1fr; } .series-card.featured { grid-column: span 1; flex-direction: column; align-items: flex-start; } .how-grid { grid-template-columns: 1fr; } .how-step { border-right: none; border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--sp-6); } .tl-row { grid-template-columns: 1fr; gap: 6px; } .foot-grid { grid-template-columns: 1fr 1fr; } }
       `}} />
 
-      <nav className="sticky top-0 z-[100] bg-[rgba(11,13,16,0.85)] backdrop-blur-[10px] border-b border-[var(--graphite-700)]">
+      <nav className="sticky top-0 z-[100] bg-[rgba(11,13,16,0.85)] backdrop-blur-[10px] border-b border-[var(--border-subtle)]">
         <div className="max-w-[1180px] mx-auto px-[var(--sp-5)] flex items-center justify-between h-[68px]">
           <div className="logo"><span className="dot"></span>APEXIS</div>
           <div className="flex items-center gap-[var(--sp-6)] text-[14px] text-[var(--text-secondary)] font-medium">
@@ -125,7 +125,7 @@ export default function HomeClient({ summaries }: { summaries: Record<string, st
 
           <div className="flex flex-wrap gap-[var(--sp-4)] mt-[var(--sp-7)]">
             <a href="#series" className="btn-primary-amber">Enter the paddock &rarr;</a>
-            <a href="#how" className="border border-[var(--graphite-600)] px-[26px] py-[14px] rounded-[6px] text-[15px] font-semibold text-[var(--text-secondary)] transition-colors hover:border-[var(--text-secondary)] hover:text-[var(--text-primary)]">See how it works</a>
+            <a href="#how" className="border border-[var(--border-subtle)] px-[26px] py-[14px] rounded-[6px] text-[15px] font-semibold text-[var(--text-secondary)] transition-colors hover:border-[var(--text-secondary)] hover:text-[var(--text-primary)]">See how it works</a>
           </div>
         </div>
       </header>
@@ -191,7 +191,7 @@ export default function HomeClient({ summaries }: { summaries: Record<string, st
                   className={`series-card no-underline ${isFeatured ? 'featured' : ''}`}
                   style={{ '--s-color': sport.color } as React.CSSProperties}
                 >
-                  <div className={isFeatured ? "flex-1" : ""}>
+                  <div className="flex-1 max-w-[600px]">
                     <div className="flex items-baseline justify-between gap-[var(--sp-4)]">
                       <div>
                         <div className="series-mark">{sport.id === 'gt-world-challenge' ? 'GTC' : sport.id === 'top-fuel' ? 'NHRA' : sport.id === 'formula-e' ? 'FE' : sport.id.toUpperCase()}</div>
