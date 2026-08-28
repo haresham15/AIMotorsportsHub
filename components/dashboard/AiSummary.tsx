@@ -29,12 +29,7 @@ export default function AiSummary({ series }: AiSummaryProps) {
   }
 
   return (
-    <div className="glass" style={{
-      borderRadius: 'var(--radius-xl)',
-      padding: '32px',
-      position: 'relative',
-      overflow: 'hidden',
-    }}>
+    <div className="card glass rounded-[var(--radius-xl)] p-8 relative overflow-hidden">
       {/* Top accent */}
       <div style={{
         position: 'absolute',
@@ -63,80 +58,39 @@ export default function AiSummary({ series }: AiSummaryProps) {
         AI
       </div>
 
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px',
-        marginBottom: '20px',
-      }}>
-        <div style={{
-          width: '32px',
-          height: '32px',
-          borderRadius: 'var(--radius-sm)',
-          background: 'rgba(59,130,246,0.12)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#60a5fa',
-        }}>
+      <div className="flex items-center gap-2.5 mb-5">
+        <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-blue-500/12 flex items-center justify-center text-blue-400">
           <Zap size={16} />
         </div>
         <div>
-          <h2 style={{
-            fontSize: '18px',
-            fontWeight: 700,
-            letterSpacing: '-0.01em',
-          }}>
+          <h2 className="font-[family-name:var(--font-disp)] uppercase text-2xl font-extrabold tracking-[-0.01em]">
             AI Briefing
           </h2>
-          <p style={{
-            fontSize: '11px',
-            color: 'var(--text-muted)',
-            fontWeight: 500,
-          }}>
+          <p className="text-[11px] text-[var(--text-muted)] font-medium">
             Powered by Gemini
           </p>
         </div>
       </div>
 
       {loading ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <div className="skeleton" style={{ height: '14px', width: '100%' }} />
-          <div className="skeleton" style={{ height: '14px', width: '95%' }} />
-          <div className="skeleton" style={{ height: '14px', width: '87%' }} />
-          <div style={{ marginTop: '8px' }} />
-          <div className="skeleton" style={{ height: '14px', width: '92%' }} />
-          <div className="skeleton" style={{ height: '14px', width: '78%' }} />
+        <div className="flex flex-col gap-2.5">
+          <div className="skeleton h-[14px] w-full" />
+          <div className="skeleton h-[14px] w-[95%]" />
+          <div className="skeleton h-[14px] w-[87%]" />
+          <div className="mt-2" />
+          <div className="skeleton h-[14px] w-[92%]" />
+          <div className="skeleton h-[14px] w-[78%]" />
         </div>
       ) : !hasFetched ? (
         <button 
           onClick={fetchSummary}
-          className="hover-lift"
-          style={{
-            background: 'var(--accent-blue)',
-            color: '#fff',
-            border: 'none',
-            padding: '12px 20px',
-            borderRadius: 'var(--radius-md)',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}
+          className="hover-lift bg-[var(--accent-blue)] text-white border-none px-5 py-3 rounded-[var(--radius-md)] cursor-pointer text-sm font-semibold flex items-center gap-2"
         >
           <Zap size={16} />
           Generate AI Briefing
         </button>
       ) : (
-        <div style={{
-          fontSize: '15px',
-          color: 'var(--text-secondary)',
-          lineHeight: 1.8,
-          fontWeight: 400,
-          whiteSpace: 'pre-wrap',
-        }}>
+        <div className="text-[15px] text-[var(--text-secondary)] leading-relaxed font-normal whitespace-pre-wrap">
           {summary}
         </div>
       )}

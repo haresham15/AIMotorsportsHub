@@ -80,7 +80,7 @@ export default function Chatbot({ series, contextData }: ChatbotProps) {
   }
 
   return (
-    <div className="card w-[380px] h-[520px] bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-[var(--radius-xl)] p-6 flex flex-col relative overflow-hidden shadow-[0_24px_64px_rgba(0,0,0,0.5)]">
+    <div className="card glass w-[380px] h-[520px] rounded-[var(--radius-xl)] p-6 flex flex-col relative overflow-hidden shadow-[0_24px_64px_rgba(0,0,0,0.5)]">
       {/* Header */}
       <div className="flex items-center justify-between mb-4 shrink-0">
         <div className="flex items-center gap-2.5">
@@ -88,7 +88,7 @@ export default function Chatbot({ series, contextData }: ChatbotProps) {
             <Bot size={16} />
           </div>
           <div>
-            <h2 className="text-base font-bold m-0">Race Engineer AI</h2>
+            <h2 className="font-[family-name:var(--font-disp)] uppercase text-2xl font-extrabold tracking-[-0.01em] m-0">Race Engineer AI</h2>
             <p className="text-[11px] text-[var(--text-muted)] font-medium m-0">
               {seriesInfo?.name || series.toUpperCase()} Expert
             </p>

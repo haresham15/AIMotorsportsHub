@@ -18,13 +18,13 @@ export default function TeamHistory({ series }: TeamHistoryProps) {
   }
 
   return (
-    <div className="glass p-6 rounded-[var(--radius-xl)]">
+    <div className="card glass p-6 rounded-[var(--radius-xl)]">
       <div className="flex items-center gap-2.5 mb-5">
         <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-amber-500/12 flex items-center justify-center text-amber-500">
           <Trophy size={16} />
         </div>
         <div>
-          <h2 className="text-base font-bold m-0">Team Heritage</h2>
+          <h2 className="font-[family-name:var(--font-disp)] uppercase text-2xl font-extrabold tracking-[-0.01em] m-0">Team Heritage</h2>
           <p className="text-[11px] text-[var(--text-muted)] font-medium m-0">
             Legendary teams in {seriesInfo?.name || series}
           </p>

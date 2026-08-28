@@ -46,21 +46,12 @@ export default function RoundNavigator({
     <div className="round-nav">
       <div className="round-nav__header">
         {/* Year Selector */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Calendar size={14} className="text-muted" />
+        <div className="flex items-center gap-2">
+          <Calendar size={14} className="text-[var(--text-muted)]" />
           <select 
             value={year}
             onChange={(e) => onYearChange(e.target.value)}
-            style={{
-              background: 'rgba(255,255,255,0.05)',
-              border: '1px solid var(--border-subtle)',
-              color: 'var(--text-primary)',
-              borderRadius: '6px',
-              padding: '4px 8px',
-              fontSize: '12px',
-              fontWeight: 600,
-              cursor: 'pointer'
-            }}
+            className="bg-white/5 border border-[var(--border-subtle)] text-[var(--text-primary)] rounded-md px-2 py-1 text-xs font-semibold cursor-pointer outline-none focus:border-[var(--accent-blue)]"
           >
             <option value="2025">2025 Season</option>
             <option value="2024">2024 Season</option>
@@ -99,13 +90,13 @@ export default function RoundNavigator({
           </button>
         </div>
 
-        <div style={{ width: '120px' }}></div> {/* Spacer for balance */}
+        <div className="w-[120px]"></div> {/* Spacer for balance */}
       </div>
 
       {/* Session Tabs */}
       {current?.sessions && current.sessions.length > 0 ? (
-        <div className="round-nav__sessions" style={{ position: 'relative' }}>
-          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto' }}>
+        <div className="round-nav__sessions relative">
+          <div className="flex gap-2 overflow-x-auto">
             {current.sessions.map(s => (
               <button
                 key={s.key}
@@ -119,18 +110,7 @@ export default function RoundNavigator({
           {current.status === 'completed' && (
             <a 
               href={`/results/f1/${year}/${current.round}`}
-              className="btn-ghost"
-              style={{
-                position: 'absolute',
-                right: 0,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                fontSize: '12px',
-                textDecoration: 'none',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px'
-              }}
+              className="btn-ghost absolute right-0 top-1/2 -translate-y-1/2 text-xs no-underline flex items-center gap-1"
             >
               View Full Results
               <ChevronRight size={14} />
@@ -138,7 +118,7 @@ export default function RoundNavigator({
           )}
         </div>
       ) : (
-        <div style={{ textAlign: 'center', fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px' }}>
+        <div className="text-center text-[11px] text-[var(--text-muted)] mt-2">
           No session telemetry available for this round yet.
         </div>
       )}

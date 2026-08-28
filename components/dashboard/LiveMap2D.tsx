@@ -8,7 +8,8 @@ import RaceReplayCanvas from './RaceReplayCanvas'
 import ReplayControls from './ReplayControls'
 import ReplayLeaderboard from './ReplayLeaderboard'
 import DriverTelemetryPanel from './DriverTelemetryPanel'
-import { Loader, Radio, AlertTriangle } from 'lucide-react'
+import { Radio, AlertTriangle } from 'lucide-react'
+import Loader from '@/components/ui/Loader'
 
 // Helper to run simulation — prefers Web Worker for off-main-thread
 // generation, but falls back to synchronous if Workers are unavailable
@@ -222,12 +223,8 @@ export default function LiveMap2D({ series, round = 1, sessionKey = null, sessio
   // ── Loading state ──────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="replay-wrapper">
-        <div className="replay-loading">
-          <Loader size={32} className="replay-loading__spinner" />
-          <span className="replay-loading__text">Initializing Race Replay…</span>
-          <span className="replay-loading__sub">Loading real circuit telemetry…</span>
-        </div>
+      <div className="replay-wrapper flex items-center justify-center min-h-[400px]">
+        <Loader text="Initializing Race Replay…" subtext="Loading real circuit telemetry…" />
       </div>
     )
   }

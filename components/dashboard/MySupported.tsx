@@ -23,53 +23,19 @@ export default function MySupported({ series }: MySupportedProps) {
   const followed: FollowedDriver[] = []
 
   return (
-    <div className="glass" style={{
-      borderRadius: 'var(--radius-xl)',
-      padding: '24px',
-    }}>
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: '16px',
-      }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-        }}>
-          <div style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: 'var(--radius-sm)',
-            background: 'rgba(251,191,36,0.12)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#fbbf24',
-          }}>
+    <div className="card glass rounded-[var(--radius-xl)] p-6">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-amber-400/12 flex items-center justify-center text-amber-400">
             <Star size={16} />
           </div>
-          <h2 style={{ fontSize: '16px', fontWeight: 700 }}>My Supported</h2>
+          <h2 className="font-[family-name:var(--font-disp)] uppercase text-2xl font-extrabold tracking-[-0.01em]">My Supported</h2>
         </div>
       </div>
 
-      <div style={{
-        textAlign: 'center',
-        padding: '32px 16px',
-        background: 'rgba(255,255,255,0.02)',
-        borderRadius: 'var(--radius-lg)',
-        border: '1px dashed var(--border-subtle)',
-      }}>
-        <UserPlus size={28} style={{
-          color: 'var(--text-muted)',
-          marginBottom: '12px',
-        }} />
-        <p style={{
-          color: 'var(--text-muted)',
-          fontSize: '13px',
-          lineHeight: 1.5,
-        }}>
+      <div className="text-center py-8 px-4 bg-white/5 rounded-[var(--radius-lg)] border border-dashed border-[var(--border-subtle)]">
+        <UserPlus size={28} className="text-[var(--text-muted)] mb-3 mx-auto" />
+        <p className="text-[var(--text-muted)] text-[13px] leading-relaxed m-0">
           User authentication and driver following features are coming in v2!
         </p>
       </div>

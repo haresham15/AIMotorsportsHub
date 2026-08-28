@@ -212,13 +212,13 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
   }
 
   return (
-    <div className="card bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-[var(--radius-xl)] p-6">
+    <div className="card glass rounded-[var(--radius-xl)] p-6">
       <div className="flex items-center gap-2.5 mb-5">
         <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-yellow-500/12 flex items-center justify-center text-yellow-500">
           <Trophy size={16} />
         </div>
         <div>
-          <h2 className="text-base font-bold">Fantasy Predictions</h2>
+          <h2 className="font-[family-name:var(--font-disp)] uppercase text-2xl font-extrabold tracking-[-0.01em]">Fantasy Predictions</h2>
           <p className="text-[11px] text-[var(--text-muted)] font-medium">
             Round {round} Podium
           </p>

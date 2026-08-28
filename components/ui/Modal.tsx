@@ -52,14 +52,14 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = '50
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="card relative w-full bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-[var(--radius-xl)] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+            className="card glass relative w-full rounded-[var(--radius-xl)] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
             style={{ maxWidth }}
             onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
           >
             {/* Header */}
             <div className={`flex items-center px-6 py-5 ${title ? 'justify-between border-b border-[var(--border-subtle)]' : 'justify-end'}`}>
               {title && (
-                <h2 className="text-lg font-bold m-0 text-[var(--text-primary)]">
+                <h2 className="font-[family-name:var(--font-disp)] uppercase text-2xl font-extrabold tracking-[-0.01em] m-0 text-[var(--text-primary)]">
                   {title}
                 </h2>
               )}

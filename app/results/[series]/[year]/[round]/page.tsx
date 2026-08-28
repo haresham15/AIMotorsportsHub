@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import Link from 'next/link'
-import ApexisLogo from '@/components/ui/ApexisLogo'
 import { ArrowLeft, Calendar, MapPin, Flag } from 'lucide-react'
 import RaceResultTable from '@/components/results/RaceResultTable'
 import { SERIES_MAP } from '@/lib/data'
@@ -99,11 +98,11 @@ export default async function RaceResultPage({ params }: PageProps) {
     <div className={`min-h-screen relative series-${series}`}>
       {/* ===== NAVBAR ===== */}
       <nav className="glass-nav sticky top-0 z-50 px-6">
-        <div className="max-w-[1280px] mx-auto flex justify-between items-center h-16">
+        <div className="max-w-[1280px] mx-auto flex justify-between items-center h-[68px]">
           <div className="flex items-center gap-3">
-            <Link href="/" className="gradient-text text-lg font-extrabold no-underline flex items-center gap-2">
-              <ApexisLogo width={20} height={20} />
-              <span className="hide-mobile">Apexis</span>
+            <Link href="/" className="logo no-underline text-[var(--text-primary)]">
+              <span className="dot"></span>
+              <span className="hide-mobile">APEXIS</span>
             </Link>
             <span className="text-[var(--text-muted)] text-xl font-extralight">/</span>
             <div className="flex items-center gap-2">
@@ -133,7 +132,7 @@ export default async function RaceResultPage({ params }: PageProps) {
         <div className="animate-fade-in-up">
           <div className="flex justify-between items-start mb-8">
             <div>
-              <h1 className="text-4xl font-extrabold mb-3 leading-[1.1]">
+              <h1 className="font-[family-name:var(--font-disp)] uppercase text-5xl font-extrabold tracking-[-0.01em] mb-3 leading-[1.1]">
                 {race.raceName}
               </h1>
               <div className="flex gap-4 text-[var(--text-muted)] text-sm font-medium">

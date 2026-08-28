@@ -19,7 +19,7 @@ export default function ChampionshipStandings({ drivers, constructors, loading }
     return (
       <div className="championship">
         <div className="championship__header">
-          <div className="championship__title">
+          <div className="championship__title font-[family-name:var(--font-disp)] uppercase text-2xl font-extrabold tracking-[-0.01em]">
             <div className="championship__icon"><Trophy size={16} /></div>
             Championship Standings
           </div>
@@ -39,8 +39,8 @@ export default function ChampionshipStandings({ drivers, constructors, loading }
   return (
     <div className="championship">
       <div className="championship__header">
-        <div className="championship__title">
-          <div className="championship__icon"><Trophy size={16} /></div>
+          <div className="championship__title font-[family-name:var(--font-disp)] uppercase text-2xl font-extrabold tracking-[-0.01em]">
+            <div className="championship__icon"><Trophy size={16} /></div>
           Standings
         </div>
         <div className="championship__tabs">

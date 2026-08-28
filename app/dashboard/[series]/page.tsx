@@ -21,7 +21,7 @@ import { ArrowLeft } from 'lucide-react'
 import { useSeriesData } from '@/lib/hooks/useSeriesData'
 import { RaceData, CVData, Round, DriverStanding, ConstructorStanding } from '@/lib/types'
 import AuthButton from '@/components/AuthButton'
-import ApexisLogo from '@/components/ui/ApexisLogo'
+import Modal from '@/components/ui/Modal'
 
 export default function SeriesDashboard() {
   const params = useParams()
@@ -61,11 +61,11 @@ export default function SeriesDashboard() {
     <div className={`min-h-screen relative series-${series}`}>
       {/* ===== NAVBAR ===== */}
       <nav className="glass-nav sticky top-0 z-50 px-6">
-        <div className="max-w-[1280px] mx-auto flex justify-between items-center h-16">
+        <div className="max-w-[1280px] mx-auto flex justify-between items-center h-[68px]">
           <div className="flex items-center gap-3">
-            <Link href="/" className="text-lg font-extrabold no-underline flex items-center gap-2 text-[var(--text-primary)]">
-              <ApexisLogo width={20} height={20} />
-              <span className="hide-mobile">Apexis</span>
+            <Link href="/" className="logo no-underline text-[var(--text-primary)]">
+              <span className="dot"></span>
+              <span className="hide-mobile">APEXIS</span>
             </Link>
             <span className="text-[var(--text-muted)] text-xl font-extralight">/</span>
             <div className="flex items-center gap-2">
@@ -165,11 +165,9 @@ export default function SeriesDashboard() {
             </div>
           )}
           
-          {isScanningActive && (
-            <div className="animate-fade-in-up delay-100">
-              <BroadcastScanner onScan={setCvData} onClose={() => { setIsScanningActive(false); setCvData([]); }} />
-            </div>
-          )}
+          <Modal isOpen={isScanningActive} onClose={() => { setIsScanningActive(false); setCvData([]); }} title="Broadcast Scanner">
+            <BroadcastScanner onScan={setCvData} onClose={() => { setIsScanningActive(false); setCvData([]); }} />
+          </Modal>
 
           {/* Standings Table (Borderless integration) */}
           <div className="animate-fade-in-up delay-150">

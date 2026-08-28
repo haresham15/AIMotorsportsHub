@@ -12,12 +12,12 @@ export default function WhereToWatch({ series }: WhereToWatchProps) {
   const seriesInfo = SERIES_MAP[series]
 
   return (
-    <div className="glass p-6 rounded-[var(--radius-xl)]">
+    <div className="card glass p-6 rounded-[var(--radius-xl)]">
       <div className="flex items-center gap-2.5 mb-4">
         <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-red-500/12 flex items-center justify-center text-red-400">
           <Tv size={16} />
         </div>
-        <h2 className="text-base font-bold m-0">Where to Watch</h2>
+        <h2 className="font-[family-name:var(--font-disp)] uppercase text-2xl font-extrabold tracking-[-0.01em] m-0">Where to Watch</h2>
       </div>
 
       <div className="flex flex-col gap-2">

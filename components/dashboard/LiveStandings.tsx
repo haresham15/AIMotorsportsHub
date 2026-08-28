@@ -170,7 +170,7 @@ export default function LiveStandings({ series, sessionKey, dataSource = "mock",
           <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-emerald-500/12 flex items-center justify-center text-emerald-400">
             <BarChart3 size={16} />
           </div>
-          <h2 className="text-base font-bold">Live Timing</h2>
+          <h2 className="font-[family-name:var(--font-disp)] uppercase text-2xl font-extrabold tracking-[-0.01em]">Live Timing</h2>
         </div>
 
         {raceData.length > 0 && (

@@ -46,40 +46,15 @@ export default function StrategyPredictor() {
   }, [])
 
   return (
-    <div className="glass" style={{
-      borderRadius: 'var(--radius-xl)',
-      padding: '24px',
-    }}>
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: '20px',
-      }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-        }}>
-          <div style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: 'var(--radius-sm)',
-            background: 'rgba(139,92,246,0.12)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#8b5cf6',
-          }}>
+    <div className="card glass rounded-[var(--radius-xl)] p-6">
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-purple-500/12 flex items-center justify-center text-purple-400">
             <BrainCircuit size={16} />
           </div>
           <div>
-            <h2 style={{ fontSize: '16px', fontWeight: 700 }}>AI Strategy Predictor</h2>
-            <p style={{
-              fontSize: '11px',
-              color: 'var(--text-muted)',
-              fontWeight: 500,
-            }}>
+            <h2 className="font-[family-name:var(--font-disp)] uppercase text-2xl font-extrabold tracking-[-0.01em]">AI Strategy Predictor</h2>
+            <p className="text-[11px] text-[var(--text-muted)] font-medium">
               Powered by TensorFlow.js
             </p>
           </div>
@@ -87,48 +62,26 @@ export default function StrategyPredictor() {
       </div>
 
       {loading ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <div className="skeleton" style={{ height: '120px', borderRadius: 'var(--radius-md)' }} />
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center' }}>
+        <div className="flex flex-col gap-2">
+          <div className="skeleton h-[120px] rounded-[var(--radius-md)]" />
+          <div className="text-[12px] text-[var(--text-muted)] text-center">
             Training Neural Network...
           </div>
         </div>
       ) : (
         <div>
-          <p style={{
-            fontSize: '13px',
-            color: 'var(--text-secondary)',
-            marginBottom: '16px',
-            lineHeight: 1.5,
-          }}>
+          <p className="text-[13px] text-[var(--text-secondary)] mb-4 leading-relaxed">
             Predicted tire degradation (seconds added per lap) on current compound:
           </p>
           
-          <div style={{
-            display: 'flex',
-            alignItems: 'flex-end',
-            gap: '8px',
-            height: '140px',
-            paddingBottom: '20px',
-            borderBottom: '1px solid var(--border-subtle)',
-          }}>
+          <div className="flex items-end gap-2 h-[140px] pb-5 border-b border-[var(--border-subtle)]">
             {predictions.map((p, i) => {
               // Normalize height for the bar chart based on max degradation (approx 3 seconds)
               const heightPercent = Math.min(100, Math.max(10, (p.degradation / 3.0) * 100))
               
               return (
-                <div key={p.lap} style={{
-                  flex: 1,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '8px',
-                }}>
-                  <div style={{
-                    fontSize: '10px',
-                    color: 'var(--text-primary)',
-                    fontWeight: 600,
-                  }}>
+                <div key={p.lap} className="flex-1 flex flex-col items-center gap-2">
+                  <div className="text-[10px] text-[var(--text-primary)] font-semibold">
                     +{p.degradation.toFixed(2)}s
                   </div>
                   <div style={{
@@ -138,12 +91,7 @@ export default function StrategyPredictor() {
                     borderRadius: '4px 4px 0 0',
                     transition: 'height 1s ease-out',
                   }} />
-                  <div style={{
-                    fontSize: '10px',
-                    color: 'var(--text-muted)',
-                    fontWeight: 500,
-                    marginTop: '4px'
-                  }}>
+                  <div className="text-[10px] text-[var(--text-muted)] font-medium mt-1">
                     L{p.lap}
                   </div>
                 </div>

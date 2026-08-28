@@ -57,15 +57,16 @@ export async function GET(request: NextRequest) {
       console.error("Failed to fetch context data for AI summary", e)
     }
 
-    const prompt = `You are a professional motorsports journalist. Write a concise, engaging 2-paragraph summary of the CURRENT state of ${seriesName}. 
-${contextData}
-Include:
-- The current or most recent race/event and notable results
-- Championship standings highlights  
-- Upcoming schedule and what to watch for
-- Any breaking news or notable storylines
+    const prompt = `You are a premium motorsports journalist providing an in-depth, authoritative briefing on the current state of ${seriesName}.
 
-Keep it factual, exciting, and under 200 words. Write as if briefing a passionate fan who wants to stay up-to-date.`;
+${contextData ? `IMPORTANT - LATEST LIVE DATA:\n${contextData}\n\nYou MUST ground your briefing heavily in the live data provided above.` : `Provide a highly relevant, up-to-date overview of the current season and era of ${seriesName}.`}
+
+Your briefing should be comprehensive, highly engaging, and structured into 3 to 4 well-developed paragraphs. Please cover:
+1. The Championship Battle: Analyze the current standings, who is dominating, and who is underperforming.
+2. Recent & Upcoming Action: Discuss the most recent event's outcomes and set the stage for the next round on the calendar.
+3. Key Storylines & Drama: Highlight the biggest technical battles, team rivalries, or paddock rumors currently defining the sport.
+
+Write in a punchy, analytical, and passionate tone tailored for hardcore racing fans. Avoid generic filler and focus on specific, factual racing insights.`;
 
     const result = await model.generateContent(prompt);
     const summary = result.response.text();

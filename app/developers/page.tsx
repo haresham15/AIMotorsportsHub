@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Key, Copy, Check, Terminal, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
+import Loader from '@/components/ui/Loader'
 
 export default function DevelopersPage() {
   const [apiKey, setApiKey] = useState<string | null>(null)
@@ -30,8 +31,8 @@ export default function DevelopersPage() {
     <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)]">
       {/* Simple Header */}
       <header className="py-6 px-12 border-b border-white/5 flex justify-between items-center">
-        <Link href="/" className="text-xl font-extrabold text-[var(--accent)] no-underline">
-          APEXIS
+        <Link href="/" className="logo no-underline text-[var(--text-primary)]">
+          <span className="dot"></span>APEXIS
         </Link>
         <div className="flex gap-6">
           <Link href="/dashboard/f1" className="text-[var(--text-secondary)] no-underline">Dashboard</Link>
@@ -40,7 +41,7 @@ export default function DevelopersPage() {
       </header>
 
       <main className="max-w-[800px] my-16 mx-auto px-6">
-        <h1 className="text-4xl mb-4">Developer API (v1)</h1>
+        <h1 className="font-[family-name:var(--font-disp)] uppercase text-4xl font-extrabold tracking-[-0.01em] mb-4">Developer API (v1)</h1>
         <p className="text-[var(--text-secondary)] text-lg leading-relaxed mb-12">
           Build your own racing applications using our unified API. Get real-time telemetry, 
           championship standings, and race schedules across 7 different motorsport series with a single API key.
@@ -49,7 +50,7 @@ export default function DevelopersPage() {
         <div className="glass p-8 rounded-[var(--radius-xl)] mb-12">
           <div className="flex items-center gap-3 mb-6">
             <Key size={24} color="var(--accent)" />
-            <h2 className="text-2xl m-0">Your API Key</h2>
+            <h2 className="font-[family-name:var(--font-disp)] uppercase text-3xl font-extrabold tracking-[-0.01em] m-0">Your API Key</h2>
           </div>
 
           {!apiKey ? (
@@ -57,7 +58,8 @@ export default function DevelopersPage() {
               <p className="text-[var(--text-muted)] mb-6">
                 You haven't generated an API key yet.
               </p>
-              <button onClick={generateKey} className="btn-primary" disabled={loading}>
+              <button onClick={generateKey} className="btn-primary flex items-center justify-center gap-2" disabled={loading}>
+                {loading && <Loader size="xs" inline />}
                 {loading ? 'Generating...' : 'Generate API Key'}
               </button>
             </div>
@@ -82,13 +84,13 @@ export default function DevelopersPage() {
           )}
         </div>
 
-        <h2 className="text-2xl mb-6">Quick Start</h2>
+        <h2 className="font-[family-name:var(--font-disp)] uppercase text-3xl font-extrabold tracking-[-0.01em] mb-6">Quick Start</h2>
         <div className="glass p-6 rounded-[var(--radius-lg)]">
           <div className="flex items-center gap-3 mb-4 text-[var(--text-secondary)]">
             <Terminal size={20} />
             <span className="font-semibold">Get F1 Championship Standings</span>
           </div>
-          <pre className="bg-black p-6 rounded-[var(--radius-md)] overflow-x-auto font-mono text-sm leading-relaxed text-indigo-300">
+          <pre className="bg-black p-6 rounded-[var(--radius-md)] overflow-x-auto font-mono text-sm leading-relaxed text-[var(--accent-blue)]">
 {`curl -X GET "https://api.apexis.com/api/v1/f1/standings" \\
   -H "Authorization: Bearer YOUR_API_KEY"`}
           </pre>

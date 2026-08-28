@@ -4,9 +4,9 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { ArrowLeft, Loader2 } from 'lucide-react'
-import ApexisLogo from '@/components/ui/ApexisLogo'
+import { ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
+import Loader from '@/components/ui/Loader'
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true)
@@ -54,10 +54,9 @@ export default function LoginPage() {
     <div className="min-h-screen flex flex-col">
       {/* ===== NAVBAR ===== */}
       <nav className="glass-nav px-6">
-        <div className="max-w-[1280px] mx-auto flex justify-between items-center h-16">
-          <Link href="/" className="text-xl font-extrabold flex items-center gap-2 text-[var(--text-primary)] no-underline">
-            <ApexisLogo width={24} height={24} />
-            Apexis
+        <div className="max-w-[1280px] mx-auto flex justify-between items-center h-[68px]">
+          <Link href="/" className="logo no-underline text-[var(--text-primary)]">
+            <span className="dot"></span>APEXIS
           </Link>
           <Link href="/" className="btn-ghost flex items-center gap-1.5 no-underline">
             <ArrowLeft size={14} />
@@ -70,7 +69,7 @@ export default function LoginPage() {
       <main className="flex-1 flex items-center justify-center p-6">
         <div className="card glass animate-fade-in-up w-full max-w-[400px] p-8 rounded-[var(--radius-xl)] bg-[var(--bg-card)] border border-[var(--border-subtle)]">
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-extrabold mb-2">
+            <h1 className="font-[family-name:var(--font-disp)] uppercase text-4xl font-extrabold tracking-[-0.01em] mb-2">
               {isLogin ? 'Welcome Back' : 'Create an Account'}
             </h1>
             <p className="text-sm text-[var(--text-muted)]">
@@ -120,7 +119,7 @@ export default function LoginPage() {
               className="btn-primary w-full p-3 mt-2 flex items-center justify-center gap-2 text-[15px]" 
               disabled={loading}
             >
-              {loading && <Loader2 size={16} className="animate-spin" />}
+              {loading && <Loader size="xs" inline />}
               {isLogin ? 'Sign In' : 'Create Account'}
             </button>
           </form>

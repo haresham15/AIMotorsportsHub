@@ -34,9 +34,16 @@ export function useSeriesData(series: string): SeriesDataResult {
         
         setScheduleData(schedule)
         setStandingsData(standings)
-        setSelectedRound(schedule.currentRound)
+
+        // Find the most recent race that is either live or completed
+        const latestRace = [...(schedule.rounds || [])].reverse().find(
+          (r: Round) => r.status === 'completed' || r.status === 'live'
+        )
+        const initialRound = latestRace ? latestRace.round : schedule.currentRound
         
-        const currentRoundData = schedule.rounds.find((r: Round) => r.round === schedule.currentRound)
+        setSelectedRound(initialRound)
+        
+        const currentRoundData = schedule.rounds.find((r: Round) => r.round === initialRound)
         const raceSession = currentRoundData?.sessions.find((s: any) => s.name === 'Race') || currentRoundData?.sessions[0]
         if (raceSession) setSelectedSessionKey(raceSession.key)
       } catch (err) {

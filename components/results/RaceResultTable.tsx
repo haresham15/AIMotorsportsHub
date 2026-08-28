@@ -62,7 +62,7 @@ export default function RaceResultTable({ series, results }: RaceResultTableProp
               <tr key={result.position} className="bg-white/5 transition-colors hover:bg-white/10">
                 <td className={`p-4 rounded-l-[var(--radius-md)] font-extrabold text-lg font-mono ${
                   result.position === '1' ? 'text-[#fbbf24]' : 
-                  result.position === '2' ? 'text-gray-200' : 
+                  result.position === '2' ? 'text-[#e2e8f0]' : 
                   result.position === '3' ? 'text-[#b45309]' : 'text-[var(--text-primary)]'
                 }`}>
                   {result.position}
@@ -92,12 +92,12 @@ export default function RaceResultTable({ series, results }: RaceResultTableProp
                     P{result.grid}
                   </div>
                   {parseInt(result.grid) > parseInt(result.position) && parseInt(result.grid) > 0 && (
-                    <div className="text-[11px] text-green-400 mt-0.5 font-semibold">
+                    <div className="text-[11px] text-[var(--green-flag)] mt-0.5 font-semibold">
                       ▲ {parseInt(result.grid) - parseInt(result.position)}
                     </div>
                   )}
                   {parseInt(result.grid) < parseInt(result.position) && parseInt(result.grid) > 0 && (
-                    <div className="text-[11px] text-red-500 mt-0.5 font-semibold">
+                    <div className="text-[11px] text-[var(--flag-red)] mt-0.5 font-semibold">
                       ▼ {parseInt(result.position) - parseInt(result.grid)}
                     </div>
                   )}
@@ -110,7 +110,7 @@ export default function RaceResultTable({ series, results }: RaceResultTableProp
                     </div>
                   )}
                 </td>
-                <td className={`p-4 rounded-r-[var(--radius-md)] font-bold text-base ${parseInt(result.points) > 0 ? 'text-green-400' : 'text-[var(--text-muted)]'}`}>
+                <td className={`p-4 rounded-r-[var(--radius-md)] font-bold text-base ${parseInt(result.points) > 0 ? 'text-[var(--green-flag)]' : 'text-[var(--text-muted)]'}`}>
                   {result.points}
                 </td>
               </tr>

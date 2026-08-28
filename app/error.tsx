@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react'
 import Link from 'next/link'
-import ApexisLogo from '@/components/ui/ApexisLogo'
 
 export default function ErrorPage({
   error,
@@ -19,9 +18,8 @@ export default function ErrorPage({
   return (
     <div className="min-h-screen bg-[var(--graphite-950)] text-[var(--text-primary)] flex flex-col">
       <nav className="h-[68px] border-b border-[var(--graphite-700)] flex items-center px-[var(--sp-5)]">
-        <Link href="/" className="flex items-center gap-2.5 no-underline">
-          <ApexisLogo width={24} height={24} />
-          <span className="font-[family-name:var(--font-disp)] font-extrabold text-[22px] tracking-[0.01em] text-white">APEXIS</span>
+        <Link href="/" className="logo no-underline text-white">
+          <span className="dot"></span>APEXIS
         </Link>
       </nav>
       

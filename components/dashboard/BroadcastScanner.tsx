@@ -195,17 +195,7 @@ export default function BroadcastScanner({ onScan, onClose }: BroadcastScannerPr
   }
 
   return (
-    <div className="glass p-5 rounded-[var(--radius-xl)] relative overflow-hidden">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="m-0 flex items-center gap-2 text-lg">
-          <ScanText size={20} className="text-amber-400" />
-          Broadcast Scanner
-        </h3>
-        <button onClick={onClose} className="bg-transparent border-none text-[var(--text-muted)] cursor-pointer hover:text-[var(--text-primary)] transition-colors">
-          <X size={20} />
-        </button>
-      </div>
-
+    <div>
       <p className="text-[var(--text-muted)] text-[13px] mb-4">
         Screen share a race broadcast and draw a box over the leaderboard to sync live standings via Computer Vision.
       </p>

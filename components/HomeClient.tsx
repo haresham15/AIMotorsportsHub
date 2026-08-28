@@ -3,13 +3,30 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { SERIES } from '@/lib/data'
-import ApexisLogo from '@/components/ui/ApexisLogo'
 import AuthButton from '@/components/AuthButton'
 import { Zap } from 'lucide-react'
 
-export default function HomeClient({ summaries }: { summaries: Record<string, string> }) {
+export default function HomeClient() {
   const [lightsStatus, setLightsStatus] = useState<string>('LIGHTS OUT IN <span class="text-[var(--amber)] font-semibold">3.2s</span>')
+  const [summaries, setSummaries] = useState<Record<string, string>>({})
+  const [loadingSummaries, setLoadingSummaries] = useState<Record<string, boolean>>({})
 
+  const fetchSummary = async (e: React.MouseEvent, seriesId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (loadingSummaries[seriesId] || summaries[seriesId]) return;
+
+    setLoadingSummaries(prev => ({ ...prev, [seriesId]: true }))
+    try {
+      const res = await fetch(`/api/ai/summary?series=${seriesId}`)
+      const data = await res.json()
+      setSummaries(prev => ({ ...prev, [seriesId]: data.summary }))
+    } catch (err) {
+      setSummaries(prev => ({ ...prev, [seriesId]: "Briefing not available right now — check back shortly." }))
+    } finally {
+      setLoadingSummaries(prev => ({ ...prev, [seriesId]: false }))
+    }
+  }
   useEffect(() => {
     const lights = document.querySelectorAll('.start-light')
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -49,8 +66,6 @@ export default function HomeClient({ summaries }: { summaries: Record<string, st
   return (
     <>
       <style dangerouslySetInnerHTML={{__html: `
-        .logo { font-family: var(--font-disp); font-weight: 800; font-size: 26px; letter-spacing: 0.01em; display: flex; align-items: center; gap: 10px; }
-        .logo .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 8px var(--amber); }
         .hero { position: relative; z-index: 1; padding: var(--sp-9) 0 var(--sp-7); overflow: hidden; }
         .start-lights { display: flex; gap: 14px; margin-bottom: var(--sp-6); }
         .start-light { width: 22px; height: 22px; border-radius: 50%; background: #2a1210; border: 2px solid #4a2018; transition: background .15s, box-shadow .15s, border-color .15s; }
@@ -99,7 +114,7 @@ export default function HomeClient({ summaries }: { summaries: Record<string, st
 
       <nav className="sticky top-0 z-[100] bg-[rgba(11,13,16,0.85)] backdrop-blur-[10px] border-b border-[var(--border-subtle)]">
         <div className="max-w-[1180px] mx-auto px-[var(--sp-5)] flex items-center justify-between h-[68px]">
-          <div className="logo"><span className="dot"></span>APEXIS</div>
+          <Link href="/" className="logo no-underline"><span className="dot"></span>APEXIS</Link>
           <div className="flex items-center gap-[var(--sp-6)] text-[14px] text-[var(--text-secondary)] font-medium">
             <a href="#series" className="hover:text-[var(--text-primary)] transition-colors hidden sm:block">Series</a>
             <a href="#how" className="hover:text-[var(--text-primary)] transition-colors hidden sm:block">How It Works</a>
@@ -204,16 +219,27 @@ export default function HomeClient({ summaries }: { summaries: Record<string, st
                       <div className="text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--text-muted)] mb-2 flex items-center gap-1.5">
                         <Zap size={10} /> AI Briefing
                       </div>
-                      {summaries[sport.id] ? (
-                        <p className="text-[13px] text-[var(--text-secondary)] leading-[1.6] line-clamp-3">
-                          {summaries[sport.id]}
-                        </p>
-                      ) : (
-                        <div className="flex flex-col gap-1.5">
+                      {!summaries[sport.id] && !loadingSummaries[sport.id] && (
+                        <button 
+                          onClick={(e) => fetchSummary(e, sport.id)}
+                          className="mt-1 text-[12px] font-semibold text-[var(--bg-card)] bg-[var(--amber)] hover:opacity-90 transition-opacity px-3 py-1.5 rounded-[4px] self-start"
+                        >
+                          Generate AI Briefing
+                        </button>
+                      )}
+                      
+                      {loadingSummaries[sport.id] && (
+                        <div className="flex flex-col gap-1.5 mt-2">
                           <div className="skeleton h-3 w-full" />
                           <div className="skeleton h-3 w-[85%]" />
                           <div className="skeleton h-3 w-[60%]" />
                         </div>
+                      )}
+
+                      {summaries[sport.id] && (
+                        <p className="text-[13px] text-[var(--text-secondary)] leading-[1.6] line-clamp-3">
+                          {summaries[sport.id]}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -284,7 +310,7 @@ export default function HomeClient({ summaries }: { summaries: Record<string, st
         <div className="max-w-[1180px] mx-auto px-[var(--sp-5)]">
           <div className="foot-grid">
             <div className="pr-4">
-              <div className="logo mb-[var(--sp-3)]"><span className="dot"></span>APEXIS</div>
+              <Link href="/" className="logo no-underline mb-[var(--sp-3)]"><span className="dot"></span>APEXIS</Link>
               <p className="text-[13px] text-[var(--text-muted)] max-w-[280px] leading-[1.6]">
                 An independent dashboard built for motorsport fans who want the whole weekend — live timing, AI briefings, and full replays — in one place.
               </p>
