@@ -23,12 +23,12 @@ export async function GET(request: NextRequest) {
     const apiKey = process.env.GEMINI_API_KEY?.trim();
     if (!apiKey) {
       return NextResponse.json({
-        summary: `DEBUG: GEMINI_API_KEY is missing or undefined.`,
+        summary: `Briefing not available right now — check back shortly.`,
       });
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
 
     let contextData = ""
     try {
@@ -83,7 +83,7 @@ Keep it factual, exciting, and under 200 words. Write as if briefing a passionat
       error instanceof Error ? error.message : "Unknown error occurred";
     console.error("AI Summary error:", message);
     return NextResponse.json({
-      summary: `DEBUG ERROR: ${message}`,
+      summary: `Briefing not available right now — check back shortly.`,
     });
   }
 }
