@@ -13,23 +13,21 @@ async function fetchSummaries() {
   const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https'
   const baseUrl = `${protocol}://${host}`
 
-  const summaryPromises = SERIES.map(async (sport) => {
+  for (const sport of SERIES) {
     try {
       const response = await fetch(`${baseUrl}/api/ai/summary?series=${sport.id}`, {
         cache: 'force-cache',
         next: { revalidate: 300 } // Revalidate every 5 minutes
       })
       const data = await response.json()
-      return { id: sport.id, summary: data.summary || 'Loading summary...' }
+      summaryMap[sport.id] = data.summary || 'Briefing not available right now — check back shortly.'
+      
+      // Stagger requests to prevent hitting free-tier Gemini API rate limits
+      await new Promise(resolve => setTimeout(resolve, 800))
     } catch (e) {
-      return { id: sport.id, summary: 'Unable to load summary at this time.' }
+      summaryMap[sport.id] = 'Briefing not available right now — check back shortly.'
     }
-  })
-
-  const results = await Promise.all(summaryPromises)
-  results.forEach(({ id, summary }) => {
-    summaryMap[id] = summary
-  })
+  }
 
   return summaryMap
 }

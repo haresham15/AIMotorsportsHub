@@ -93,6 +93,22 @@ export default function SeriesDashboard() {
       />
 
       <main className="max-w-[1280px] mx-auto px-6 pt-8 pb-20">
+        
+        {/* Roadmap Indicator for Non-F1 Series */}
+        {series !== 'f1' && (
+          <div className="animate-fade-in-up w-full bg-[var(--graphite-900)] border border-[var(--amber-dim)] rounded-[var(--radius-lg)] p-4 mb-6 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-[rgba(255,176,32,0.1)] flex items-center justify-center text-[var(--amber)]">
+                <span className="font-[family-name:var(--font-mono)] font-bold">i</span>
+              </div>
+              <div>
+                <div className="text-[13px] font-bold text-[var(--amber)] uppercase tracking-[0.05em]">Simulated Data</div>
+                <div className="text-[14px] text-[var(--text-secondary)]">Live telemetry coming soon for this series. Using simulation engine.</div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* ===== HERO MAP ===== */}
         <div className="animate-fade-in-up delay-100 w-full bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-[var(--radius-xl)] overflow-hidden mb-8">
           {(() => {

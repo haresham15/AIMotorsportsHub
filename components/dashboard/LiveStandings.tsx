@@ -48,8 +48,14 @@ export default function LiveStandings({ series, sessionKey, dataSource = "mock",
           
           const response = await fetch(`/api/f1/live?sessionKey=${sessionParam}`);
           if (!response.ok) {
-            console.warn("OpenF1 Proxy failed. Falling back to mock data.");
-            throw new Error("Invalid API Response");
+            console.warn("OpenF1 Proxy failed or is rate limited. Falling back to mock data.");
+            if (!hasLiveData.current) {
+              const filtered = INITIAL_DATA.filter(d => d.drivers?.series_id === series || series === 'f1')
+              setRaceData(filtered)
+              if (onLiveStandingsUpdate) onLiveStandingsUpdate(filtered)
+            }
+            setLoading(false);
+            return;
           }
 
           const raceData: RaceData[] = await response.json();
@@ -63,9 +69,8 @@ export default function LiveStandings({ series, sessionKey, dataSource = "mock",
           setLoading(false);
           hasLiveData.current = true;
         } catch (err) {
-          console.error("Error fetching live F1 data", err);
+          // Silent fallback instead of loud console.error
           if (!hasLiveData.current) {
-            // Fall back to mock data
             const filtered = INITIAL_DATA.filter(d => d.drivers?.series_id === series || series === 'f1')
             setRaceData(filtered)
             if (onLiveStandingsUpdate) onLiveStandingsUpdate(filtered)
@@ -113,6 +118,8 @@ export default function LiveStandings({ series, sessionKey, dataSource = "mock",
             const change = (Math.random() * 0.4 - 0.15) // slight bias to spread out
             return { ...d, _absoluteTime: gap + change }
           })
+
+          if (withAbsolute.length === 0) return []
 
           withAbsolute.sort((a, b) => a._absoluteTime - b._absoluteTime)
           const leaderTime = withAbsolute[0]._absoluteTime

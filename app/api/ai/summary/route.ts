@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     const apiKey = process.env.GEMINI_API_KEY?.trim();
     if (!apiKey) {
       return NextResponse.json({
-        summary: `Welcome to ${seriesName}! AI summaries require a Gemini API key. Add GEMINI_API_KEY to your .env.local file to enable AI-powered briefings.`,
+        summary: `Briefing not available right now — check back shortly.`,
       });
     }
 
@@ -81,7 +81,7 @@ Keep it factual, exciting, and under 200 words. Write as if briefing a passionat
       error instanceof Error ? error.message : "Unknown error occurred";
     console.error("AI Summary error:", message);
     return NextResponse.json({
-      summary: `Unable to generate AI summary for ${seriesName} at this time. Please check your Gemini API key configuration.`,
+      summary: `Briefing not available right now — check back shortly.`,
     });
   }
 }
