@@ -1,7 +1,13 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { RaceData } from '@/lib/types'
 
 export const revalidate = 10 // Cache for 10 seconds, same strategy as F1
+
+const NASCAR_SERIES_IDS: Record<string, number> = {
+  'nascar-cup': 1,
+  'nascar-xfinity': 2,
+  'nascar-trucks': 3,
+}
 
 // NASCAR CDN live feed shape (per vehicle)
 interface NascarVehicle {
@@ -73,7 +79,6 @@ function getFlagLabel(flagState: number): string {
   }
 }
 
-// Map manufacturer abbreviation to full name
 function getManufacturerName(abbr: string): string {
   switch (abbr) {
     case 'Chv': return 'Chevrolet'
@@ -83,7 +88,14 @@ function getManufacturerName(abbr: string): string {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const series = request.nextUrl.searchParams.get('series') || 'nascar-cup'
+  const requestedSeriesId = NASCAR_SERIES_IDS[series]
+
+  if (!requestedSeriesId) {
+    return NextResponse.json({ error: 'Invalid NASCAR series requested' }, { status: 400 })
+  }
+
   try {
     const response = await fetch('https://cf.nascar.com/live/feeds/live-feed.json', {
       next: { revalidate: 10 }
@@ -98,10 +110,21 @@ export async function GET() {
 
     const feed: NascarLiveFeed = await response.json()
 
+    if (feed.series_id !== requestedSeriesId) {
+      return NextResponse.json(
+        {
+          error: 'Requested NASCAR series is not the active live feed',
+          requestedSeries: series,
+          activeSeriesId: feed.series_id,
+        },
+        { status: 404 }
+      )
+    }
+
     // Sort vehicles by running position
-    const sortedVehicles = [...feed.vehicles].sort(
-      (a, b) => a.running_position - b.running_position
-    )
+    const sortedVehicles = [...(feed.vehicles || [])]
+      .filter((vehicle) => vehicle.running_position > 0 && vehicle.driver?.full_name)
+      .sort((a, b) => a.running_position - b.running_position)
 
     const raceData: RaceData[] = sortedVehicles.map((v) => {
       // Format gap: leader gets "LEADER", others get "+{delta}s"
@@ -131,7 +154,7 @@ export async function GET() {
         manufacturer: v.vehicle_manufacturer,
         drivers: {
           name: v.driver.full_name,
-          series_id: 'nascar'
+          series_id: series
         }
       }
     })

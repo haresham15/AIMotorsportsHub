@@ -78,7 +78,7 @@ export default function LiveMap2D({ series, round = 1, sessionKey = null, sessio
 
     const loadData = async () => {
       try {
-        const driversList = driverStandings ? driverStandings.map(d => ({
+        const driversList = driverStandings && driverStandings.length > 0 ? driverStandings.map(d => ({
           code: d.code || d.lastName.substring(0,3).toUpperCase(),
           name: d.firstName + ' ' + d.lastName,
           number: parseInt(d.driverNumber) || 0,
@@ -173,7 +173,7 @@ export default function LiveMap2D({ series, round = 1, sessionKey = null, sessio
         console.warn(`[LiveMap2D] Fetch failed for ${series}, using simulation:`, err)
         if (cancelled) return
         const track = getTrackForCircuit(circuitName, series)
-        const fallbackDrivers = driverStandings ? driverStandings.map(d => ({
+        const fallbackDrivers = driverStandings && driverStandings.length > 0 ? driverStandings.map(d => ({
           code: d.code || d.lastName.substring(0,3).toUpperCase(),
           name: d.firstName + ' ' + d.lastName,
           number: parseInt(d.driverNumber) || 0,

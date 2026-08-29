@@ -125,7 +125,10 @@ export function getTrackForSeries(seriesId: string): TrackGeometry {
     'f2': 'Jeddah',
     'f3': 'Monza',
     'formula-e': 'Monte Carlo',
-    'nascar': 'Austin',
+    'nascar': 'Daytona',
+    'nascar-cup': 'Daytona',
+    'nascar-xfinity': 'Charlotte',
+    'nascar-trucks': 'Bristol',
     'gt-world-challenge': 'Spa-Francorchamps',
     'top-fuel': 'Las Vegas'
   };

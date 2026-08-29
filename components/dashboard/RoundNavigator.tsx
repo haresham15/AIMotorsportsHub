@@ -7,24 +7,29 @@ import { Round } from '@/lib/types'
 
 interface Props {
   rounds: Round[]
+  series: string
   selectedRound: number
   onSelectRound: (round: number) => void
   selectedSessionKey: number | null
   onSelectSession: (key: number | null) => void
   year: string
   onYearChange: (year: string) => void
+  availableYears?: string[]
 }
 
 export default function RoundNavigator({ 
   rounds, 
+  series,
   selectedRound, 
   onSelectRound,
   selectedSessionKey,
   onSelectSession,
   year,
-  onYearChange
+  onYearChange,
+  availableYears
 }: Props) {
   const current = rounds.find(r => r.round === selectedRound)
+  const years = availableYears?.length ? availableYears : ['2025', '2024', '2023']
 
   const handlePrev = () => {
     if (selectedRound > 1) {
@@ -53,9 +58,9 @@ export default function RoundNavigator({
             onChange={(e) => onYearChange(e.target.value)}
             className="bg-white/5 border border-[var(--border-subtle)] text-[var(--text-primary)] rounded-md px-2 py-1 text-xs font-semibold cursor-pointer outline-none focus:border-[var(--accent-blue)]"
           >
-            <option value="2025">2025 Season</option>
-            <option value="2024">2024 Season</option>
-            <option value="2023">2023 Season</option>
+            {years.map((seasonYear) => (
+              <option key={seasonYear} value={seasonYear}>{seasonYear} Season</option>
+            ))}
           </select>
         </div>
 
@@ -109,7 +114,7 @@ export default function RoundNavigator({
           </div>
           {current.status === 'completed' && (
             <a 
-              href={`/results/f1/${year}/${current.round}`}
+              href={`/results/${series}/${year}/${current.round}`}
               className="btn-ghost absolute right-0 top-1/2 -translate-y-1/2 text-xs no-underline flex items-center gap-1"
             >
               View Full Results

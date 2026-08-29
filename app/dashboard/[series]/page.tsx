@@ -137,12 +137,14 @@ export default function SeriesDashboard() {
           {(series === 'f1' || series.startsWith('nascar-')) && scheduleData && (
             <RoundNavigator 
               rounds={scheduleData.rounds}
+              series={series}
               selectedRound={selectedRound}
               onSelectRound={(r) => setSelectedRound(r)}
               selectedSessionKey={selectedSessionKey}
               onSelectSession={(k) => setSelectedSessionKey(k)}
               year={selectedYear}
               onYearChange={(y) => setSelectedYear(y)}
+              availableYears={scheduleData.availableYears}
             />
           )}
         </div>
@@ -174,7 +176,7 @@ export default function SeriesDashboard() {
             <LiveStandings 
               series={series} 
               sessionKey={selectedSessionKey}
-              dataSource={series === 'f1' ? 'live' : isScanningActive ? 'cv' : 'mock'} 
+              dataSource={isScanningActive ? 'cv' : series === 'f1' || series.startsWith('nascar-') ? 'live' : 'mock'} 
               externalData={cvData}
               onLiveStandingsUpdate={setLiveRaceData}
             />
