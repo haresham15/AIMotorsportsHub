@@ -112,7 +112,7 @@ export default function RoundNavigator({
               </button>
             ))}
           </div>
-          {current.status === 'completed' && (
+          {series === 'f1' && current.status === 'completed' && (
             <a 
               href={`/results/${series}/${year}/${current.round}`}
               className="btn-ghost absolute right-0 top-1/2 -translate-y-1/2 text-xs no-underline flex items-center gap-1"

@@ -22,7 +22,7 @@ export default function HomeClient() {
       const data = await res.json()
       setSummaries(prev => ({ ...prev, [seriesId]: data.summary }))
     } catch (err) {
-      setSummaries(prev => ({ ...prev, [seriesId]: "Briefing not available right now — check back shortly." }))
+      setSummaries(prev => ({ ...prev, [seriesId]: "Briefing not available right now. Check back shortly." }))
     } finally {
       setLoadingSummaries(prev => ({ ...prev, [seriesId]: false }))
     }
@@ -30,6 +30,12 @@ export default function HomeClient() {
   useEffect(() => {
     const lights = document.querySelectorAll('.start-light')
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const timeoutIds: ReturnType<typeof setTimeout>[] = []
+    const scheduleTimeout = (callback: () => void, delay: number) => {
+      const timeoutId = setTimeout(callback, delay)
+      timeoutIds.push(timeoutId)
+      return timeoutId
+    }
     
     if(reduced) {
       lights.forEach(l => l.classList.add('start-light-lit'))
@@ -42,9 +48,9 @@ export default function HomeClient() {
       if(i < lights.length) {
         lights[i].classList.add('start-light-lit')
         i++
-        setTimeout(step, 260)
+        scheduleTimeout(step, 260)
       } else {
-        setTimeout(() => {
+        scheduleTimeout(() => {
           lights.forEach(l => {
             l.classList.remove('start-light-lit')
             l.classList.add('start-light-go')
@@ -59,8 +65,8 @@ export default function HomeClient() {
       l.classList.remove('start-light-lit', 'start-light-go')
     })
     
-    const initialDelay = setTimeout(step, 300)
-    return () => clearTimeout(initialDelay)
+    scheduleTimeout(step, 300)
+    return () => timeoutIds.forEach(clearTimeout)
   }, [])
 
   return (
@@ -135,7 +141,7 @@ export default function HomeClient() {
 
           <h1 className="mt-8">Every series.<br/>One <em>race&nbsp;wall</em>.</h1>
           <p className="mt-[var(--sp-5)] text-[18px] text-[var(--text-secondary)] max-w-[560px] leading-[1.65]">
-            Live timing, AI-written race briefings, and full circuit replays for F1, F2, F3, Formula&nbsp;E, NASCAR, GT&nbsp;World&nbsp;Challenge, and NHRA Top Fuel — in one dashboard built for people who watch every session.
+            Live timing, AI-written race briefings, and full circuit replays for F1, F2, F3, Formula&nbsp;E, NASCAR, GT&nbsp;World&nbsp;Challenge, and NHRA Top Fuel - in one dashboard built for people who watch every session.
           </p>
 
           <div className="flex flex-wrap gap-[var(--sp-4)] mt-[var(--sp-7)]">
@@ -149,12 +155,12 @@ export default function HomeClient() {
         <div className="ticker-track">
           {[0, 1].map((set) => (
             <div key={set} className="flex">
-              <div className="ticker-item"><span className="flag bg-[var(--green-flag)]"></span><b>F1 Australian GP</b>&nbsp;— Race Day Sunday</div>
-              <div className="ticker-item"><span className="flag bg-[var(--amber)]"></span><b>NASCAR Bristol Night Race</b>&nbsp;— Flag-to-flag action expected</div>
-              <div className="ticker-item"><span className="flag bg-[var(--green-flag)]"></span><b>Formula E Tokyo E-Prix</b>&nbsp;— Final results confirmed</div>
-              <div className="ticker-item"><span className="flag bg-[var(--flag-red)]"></span><b>NHRA Winternationals</b>&nbsp;— Qualifying begins Friday</div>
-              <div className="ticker-item"><span className="flag bg-[var(--amber)]"></span><b>F2 Championship</b>&nbsp;— Title fight intensifies in Bahrain</div>
-              <div className="ticker-item"><span className="flag bg-[var(--green-flag)]"></span><b>GT World Challenge Spa 24H</b>&nbsp;— Entry list released</div>
+              <div className="ticker-item"><span className="flag bg-[var(--green-flag)]"></span><b>F1 Australian GP</b>&nbsp;- Race Day Sunday</div>
+              <div className="ticker-item"><span className="flag bg-[var(--amber)]"></span><b>NASCAR Bristol Night Race</b>&nbsp;- Flag-to-flag action expected</div>
+              <div className="ticker-item"><span className="flag bg-[var(--green-flag)]"></span><b>Formula E Tokyo E-Prix</b>&nbsp;- Final results confirmed</div>
+              <div className="ticker-item"><span className="flag bg-[var(--flag-red)]"></span><b>NHRA Winternationals</b>&nbsp;- Qualifying begins Friday</div>
+              <div className="ticker-item"><span className="flag bg-[var(--amber)]"></span><b>F2 Championship</b>&nbsp;- Title fight intensifies in Bahrain</div>
+              <div className="ticker-item"><span className="flag bg-[var(--green-flag)]"></span><b>GT World Challenge Spa 24H</b>&nbsp;- Entry list released</div>
             </div>
           ))}
         </div>
@@ -173,12 +179,12 @@ export default function HomeClient() {
             <div className="how-step">
               <div className="how-num">01 / TRACK</div>
               <h3>Watch it live</h3>
-              <p className="text-[14px] text-[var(--text-secondary)] leading-[1.65]">Real positions, gaps, and tyre life pulled straight from session timing — not a scoreboard that updates when someone remembers to refresh it.</p>
+              <p className="text-[14px] text-[var(--text-secondary)] leading-[1.65]">Real positions, gaps, and tyre life pulled straight from session timing - not a scoreboard that updates when someone remembers to refresh it.</p>
             </div>
             <div className="how-step">
               <div className="how-num">02 / UNDERSTAND</div>
               <h3>Get the briefing</h3>
-              <p className="text-[14px] text-[var(--text-secondary)] leading-[1.65]">An AI-written summary grounded in the actual standings and schedule — what happened, what's next, and what it means for the championship.</p>
+              <p className="text-[14px] text-[var(--text-secondary)] leading-[1.65]">An AI-written summary grounded in the actual standings and schedule - what happened, what's next, and what it means for the championship.</p>
             </div>
             <div className="how-step">
               <div className="how-num">03 / RELIVE</div>
@@ -264,33 +270,33 @@ export default function HomeClient() {
           <div className="mt-[var(--sp-7)]">
             <div className="tl-row">
               <div className="tl-year">1894</div>
-              <div className="tl-event">Paris–Rouen</div>
-              <div className="text-[13.5px] text-[var(--text-secondary)] leading-[1.6]">The first organized motoring competition — 79 miles, no rulebook, and the birth of the idea that cars could race, not just drive.</div>
+              <div className="tl-event">Paris-Rouen</div>
+              <div className="text-[13.5px] text-[var(--text-secondary)] leading-[1.6]">The first organized motoring competition - 79 miles, no rulebook, and the birth of the idea that cars could race, not just drive.</div>
             </div>
             <div className="tl-row">
               <div className="tl-year">1911</div>
               <div className="tl-event">Indianapolis 500</div>
-              <div className="text-[13.5px] text-[var(--text-secondary)] leading-[1.6]">The first running of what's now the oldest surviving major race in the world — and the start of American open-wheel racing.</div>
+              <div className="text-[13.5px] text-[var(--text-secondary)] leading-[1.6]">The first running of what's now the oldest surviving major race in the world - and the start of American open-wheel racing.</div>
             </div>
             <div className="tl-row">
               <div className="tl-year">1923</div>
               <div className="tl-event">24 Hours of Le Mans</div>
-              <div className="text-[13.5px] text-[var(--text-secondary)] leading-[1.6]">Endurance racing's founding event — the same discipline GT World Challenge fields carry into the night today.</div>
+              <div className="text-[13.5px] text-[var(--text-secondary)] leading-[1.6]">Endurance racing's founding event - the same discipline GT World Challenge fields carry into the night today.</div>
             </div>
             <div className="tl-row">
               <div className="tl-year">1950</div>
               <div className="tl-event">F1's First Championship</div>
-              <div className="text-[13.5px] text-[var(--text-secondary)] leading-[1.6]">Silverstone hosted round one of the first official Formula 1 World Championship — the series that still leads this dashboard.</div>
+              <div className="text-[13.5px] text-[var(--text-secondary)] leading-[1.6]">Silverstone hosted round one of the first official Formula 1 World Championship - the series that still leads this dashboard.</div>
             </div>
             <div className="tl-row">
               <div className="tl-year">1951</div>
               <div className="tl-event">NHRA Founded</div>
-              <div className="text-[13.5px] text-[var(--text-secondary)] leading-[1.6]">Wally Parks organized America's dragstrip chaos into a sanctioned sport — Top Fuel's quarter-mile record chase started here.</div>
+              <div className="text-[13.5px] text-[var(--text-secondary)] leading-[1.6]">Wally Parks organized America's dragstrip chaos into a sanctioned sport - Top Fuel's quarter-mile record chase started here.</div>
             </div>
             <div className="tl-row">
               <div className="tl-year">1959</div>
               <div className="tl-event">First Daytona 500</div>
-              <div className="text-[13.5px] text-[var(--text-secondary)] leading-[1.6]">NASCAR's new high-banked superspeedway hosted its first 500 — and stock car racing found its cathedral.</div>
+              <div className="text-[13.5px] text-[var(--text-secondary)] leading-[1.6]">NASCAR's new high-banked superspeedway hosted its first 500 - and stock car racing found its cathedral.</div>
             </div>
             <div className="tl-row">
               <div className="tl-year">1994</div>
@@ -300,7 +306,7 @@ export default function HomeClient() {
             <div className="tl-row">
               <div className="tl-year">2014</div>
               <div className="tl-event">Formula E's First Race</div>
-              <div className="text-[13.5px] text-[var(--text-secondary)] leading-[1.6]">The Beijing ePrix opened all-electric racing on city streets — proof the sport's next chapter was already being written.</div>
+              <div className="text-[13.5px] text-[var(--text-secondary)] leading-[1.6]">The Beijing ePrix opened all-electric racing on city streets - proof the sport's next chapter was already being written.</div>
             </div>
           </div>
         </div>
@@ -312,7 +318,7 @@ export default function HomeClient() {
             <div className="pr-4">
               <Link href="/" className="logo no-underline mb-[var(--sp-3)]"><span className="dot"></span>APEXIS</Link>
               <p className="text-[13px] text-[var(--text-muted)] max-w-[280px] leading-[1.6]">
-                An independent dashboard built for motorsport fans who want the whole weekend — live timing, AI briefings, and full replays — in one place.
+                An independent dashboard built for motorsport fans who want the whole weekend - live timing, AI briefings, and full replays - in one place.
               </p>
             </div>
             <div className="foot-col">
@@ -341,7 +347,7 @@ export default function HomeClient() {
               <span className="w-[7px] h-[7px] rounded-full bg-[var(--green-flag)] shadow-[0_0_6px_var(--green-flag)]"></span>
               ALL SYSTEMS LIVE
             </div>
-            <div>© 2026 APEXIS — NOT AFFILIATED WITH FIA, NASCAR, OR NHRA</div>
+            <div>(c) 2026 APEXIS - NOT AFFILIATED WITH FIA, NASCAR, OR NHRA</div>
           </div>
         </div>
       </footer>

@@ -306,6 +306,10 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
     if (!canvas) return
     const ctx = canvas.getContext('2d')
     if (!ctx) return
+    if (data.frames.length === 0) {
+      ctx.clearRect(0, 0, canvasSize.w, canvasSize.h)
+      return
+    }
 
     let running = true
     let lastSyncTime = 0

@@ -72,7 +72,7 @@ export default async function Image({ params }: { params: Promise<{ series: stri
           </h2>
         </div>
 
-        {podium.length > 0 && (
+        {podium.length >= 3 && (
           <div style={{ display: 'flex', gap: '32px', alignItems: 'flex-end', height: '200px' }}>
             {/* P2 */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '30%' }}>

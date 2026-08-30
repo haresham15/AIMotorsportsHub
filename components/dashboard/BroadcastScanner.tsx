@@ -31,11 +31,15 @@ export default function BroadcastScanner({ onScan, onClose }: BroadcastScannerPr
   useEffect(() => {
     let active = true;
     (async () => {
-      const worker = await createWorker('eng')
-      if (active) {
-        workerRef.current = worker
-      } else {
-        await worker.terminate()
+      try {
+        const worker = await createWorker('eng')
+        if (active) {
+          workerRef.current = worker
+        } else {
+          await worker.terminate()
+        }
+      } catch (error) {
+        console.error("Failed to initialize OCR worker:", error)
       }
     })();
     return () => {
@@ -115,21 +119,23 @@ export default function BroadcastScanner({ onScan, onClose }: BroadcastScannerPr
 
   // Scanning loop
   const startScanning = () => {
-    if (!cropBox || !videoRef.current) return
+    if (!cropBox || !videoRef.current || scanIntervalRef.current) return
     setIsScanning(true)
 
     scanIntervalRef.current = setInterval(async () => {
       const video = videoRef.current
       if (!video) return
+      if (!video.videoWidth || !video.videoHeight) return
 
       // We need to map the DOM box coords to the intrinsic video resolution
       const domRect = video.getBoundingClientRect()
+      if (!domRect.width || !domRect.height) return
       const scaleX = video.videoWidth / domRect.width
       const scaleY = video.videoHeight / domRect.height
 
       const canvas = document.createElement('canvas')
-      canvas.width = cropBox.w * scaleX
-      canvas.height = cropBox.h * scaleY
+      canvas.width = Math.max(1, Math.round(cropBox.w * scaleX))
+      canvas.height = Math.max(1, Math.round(cropBox.h * scaleY))
       const ctx = canvas.getContext('2d')
       if (!ctx) return
 

@@ -3,19 +3,31 @@ import { NextRequest, NextResponse } from 'next/server'
 export const maxDuration = 60;
 export const revalidate = 86400; // Cache for 24 hours
 
+function getScheduleUrl(origin: string, series: string) {
+  if (series === 'f1') {
+    return `${origin}/api/f1/schedule`
+  }
+
+  if (series.startsWith('nascar-')) {
+    return `${origin}/api/nascar/schedule?series=${encodeURIComponent(series)}`
+  }
+
+  return null
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ series: string }> }
 ) {
   const { series } = await params;
-  
-  if (series !== 'f1') {
-    return new NextResponse('Only F1 calendar is supported currently.', { status: 400 });
+  const scheduleUrl = getScheduleUrl(request.nextUrl.origin, series)
+
+  if (!scheduleUrl) {
+    return new NextResponse('Calendar feed is not supported for this series.', { status: 400 });
   }
 
   try {
-    const origin = request.nextUrl.origin;
-    const res = await fetch(`${origin}/api/f1/schedule`);
+    const res = await fetch(scheduleUrl);
     if (!res.ok) throw new Error('Failed to fetch schedule');
     
     const data = await res.json();

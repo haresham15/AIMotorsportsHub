@@ -12,8 +12,9 @@ interface Props {
 
 export default function ReplayControls({ playback, data, onChange }: Props) {
   const totalFrames = data.frames.length
+  const maxFrameIndex = Math.max(0, totalFrames - 1)
   const progress = totalFrames > 0 ? playback.frameIndex / totalFrames : 0
-  const currentFrame = data.frames[Math.min(Math.floor(playback.frameIndex), totalFrames - 1)]
+  const currentFrame = data.frames[Math.min(Math.floor(playback.frameIndex), maxFrameIndex)]
   const currentTime = currentFrame?.t ?? 0
   const totalTime = data.frames[totalFrames - 1]?.t ?? 0
 
@@ -28,7 +29,7 @@ export default function ReplayControls({ playback, data, onChange }: Props) {
 
   const handleScrub = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = parseFloat(e.target.value)
-    onChange({ frameIndex: v * totalFrames, isPlaying: false })
+    onChange({ frameIndex: Math.min(v * totalFrames, maxFrameIndex), isPlaying: false })
   }
 
   return (
@@ -69,7 +70,7 @@ export default function ReplayControls({ playback, data, onChange }: Props) {
         <button
           className="replay-controls__btn"
           title="Forward 10s (→)"
-          onClick={() => onChange({ frameIndex: Math.min(totalFrames - 1, playback.frameIndex + REPLAY_FPS * 10) })}
+          onClick={() => onChange({ frameIndex: Math.min(maxFrameIndex, playback.frameIndex + REPLAY_FPS * 10) })}
         >
           <SkipForward size={16} />
         </button>

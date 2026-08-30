@@ -110,6 +110,8 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
   const drivers = SERIES_DRIVERS[series] || SERIES_DRIVERS['f1']
   const sortedDrivers = [...drivers].sort((a, b) => a.name.localeCompare(b.name))
 
+  const hasDuplicatePicks = new Set([predictions.p1, predictions.p2, predictions.p3].filter(Boolean)).size !== [predictions.p1, predictions.p2, predictions.p3].filter(Boolean).length
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
@@ -144,6 +146,10 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
         setPredictions({ p1: myPred.p1, p2: myPred.p2, p3: myPred.p3 })
         setSubmitted(true)
         if (myPred.score !== undefined) setScore(myPred.score)
+      } else {
+        setPredictions({ p1: '', p2: '', p3: '' })
+        setSubmitted(false)
+        setScore(null)
       }
     } catch (e) {
       console.error(e)
@@ -162,7 +168,7 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!user || !predictions.p1 || !predictions.p2 || !predictions.p3) return
+    if (!user || !predictions.p1 || !predictions.p2 || !predictions.p3 || hasDuplicatePicks) return
     
     setLoading(true)
     const username = user.email?.split('@')[0] || 'Anonymous'
@@ -259,7 +265,15 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
                     </div>
                     <CustomSelect
                       value={predictions[pos]}
-                      onChange={(val) => setPredictions(prev => ({ ...prev, [pos]: val }))}
+                      onChange={(val) => setPredictions(prev => {
+                        const next = { ...prev, [pos]: val }
+                        for (const key of ['p1', 'p2', 'p3'] as const) {
+                          if (key !== pos && next[key] === val) {
+                            next[key] = ''
+                          }
+                        }
+                        return next
+                      })}
                       options={sortedDrivers}
                       placeholder="Select Driver"
                     />
@@ -269,7 +283,7 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
 
               <button 
                 type="submit"
-                disabled={loading || !user || !predictions.p1 || !predictions.p2 || !predictions.p3}
+                disabled={loading || !user || !predictions.p1 || !predictions.p2 || !predictions.p3 || hasDuplicatePicks}
                 className="btn-primary mt-2"
               >
                 {loading ? 'Saving...' : 'Lock Predictions'}

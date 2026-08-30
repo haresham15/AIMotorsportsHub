@@ -5,6 +5,18 @@ import { createClient } from '@supabase/supabase-js';
 const MAX_PROMPT_LENGTH = 1000;
 const MAX_AGENT_TURNS = 5; // Prevent infinite loops
 
+function getInternalApiUrl(origin: string, series: string, resource: 'schedule' | 'standings') {
+  if (series === 'f1') {
+    return `${origin}/api/f1/${resource}`;
+  }
+
+  if (series.startsWith('nascar-')) {
+    return `${origin}/api/nascar/${resource}?series=${encodeURIComponent(series)}`;
+  }
+
+  return null;
+}
+
 const getLiveStandingsDeclaration: FunctionDeclaration = {
   name: "get_live_standings",
   description: "Get the current live telemetry, standings, intervals, and tire data for the active race session. Useful for answering 'who is leading right now', 'what are the gaps', or 'what tires are they on'.",
@@ -97,6 +109,9 @@ export async function POST(request: NextRequest) {
     const seriesFullNames: Record<string, string> = {
       f1: "Formula 1", f2: "Formula 2", f3: "Formula 3",
       "formula-e": "Formula E", nascar: "NASCAR",
+      "nascar-cup": "NASCAR Cup Series",
+      "nascar-xfinity": "NASCAR Xfinity Series",
+      "nascar-trucks": "NASCAR Craftsman Truck Series",
       "gt-world-challenge": "GT World Challenge",
       "top-fuel": "NHRA Top Fuel Drag Racing",
     };
@@ -151,12 +166,22 @@ export async function POST(request: NextRequest) {
             if (contextData?.championship) {
               apiResponse = contextData.championship;
             } else {
-              const res = await fetch(`${origin}/api/${targetSeries}/standings`);
-              apiResponse = res.ok ? await res.json() : { error: "Failed to fetch standings" };
+              const standingsUrl = getInternalApiUrl(origin, targetSeries, "standings");
+              if (!standingsUrl) {
+                apiResponse = { error: `Championship standings are not available for ${targetSeries}` };
+              } else {
+                const res = await fetch(standingsUrl);
+                apiResponse = res.ok ? await res.json() : { error: "Failed to fetch standings" };
+              }
             }
           } else if (name === "get_schedule") {
-            const res = await fetch(`${origin}/api/${targetSeries}/schedule`);
-            apiResponse = res.ok ? await res.json() : { error: "Failed to fetch schedule" };
+            const scheduleUrl = getInternalApiUrl(origin, targetSeries, "schedule");
+            if (!scheduleUrl) {
+              apiResponse = { error: `Schedule data is not available for ${targetSeries}` };
+            } else {
+              const res = await fetch(scheduleUrl);
+              apiResponse = res.ok ? await res.json() : { error: "Failed to fetch schedule" };
+            }
           } else if (name === "search_rulebook") {
             // Semantic Search using pgvector
             const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

@@ -4,6 +4,18 @@ import { supabase } from '@/lib/supabase'
 export const maxDuration = 60;
 export const revalidate = 60; // Cache for 1 minute for v1 API
 
+function getStandingsUrl(origin: string, series: string) {
+  if (series === 'f1') {
+    return `${origin}/api/f1/standings`
+  }
+
+  if (series.startsWith('nascar-')) {
+    return `${origin}/api/nascar/standings?series=${encodeURIComponent(series)}`
+  }
+
+  return null
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ series: string }> }
@@ -33,7 +45,12 @@ export async function GET(
   // For V1, we fetch the internal route and pass it along to avoid duplicating Jolpica/OpenF1 logic.
   try {
     const origin = request.nextUrl.origin;
-    const internalRes = await fetch(`${origin}/api/${series}/standings`);
+    const standingsUrl = getStandingsUrl(origin, series)
+    if (!standingsUrl) {
+      return NextResponse.json({ error: `Standings not found for series: ${series}` }, { status: 404 })
+    }
+
+    const internalRes = await fetch(standingsUrl);
     
     if (!internalRes.ok) {
       if (internalRes.status === 404) {

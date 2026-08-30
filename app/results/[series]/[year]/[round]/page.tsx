@@ -23,8 +23,7 @@ async function getRaceResults(year: string, round: string) {
     if (!res.ok) return null
     const data = await res.json()
     return data.MRData.RaceTable.Races[0]
-  } catch (error) {
-    console.error('Error fetching race results:', error)
+  } catch {
     return null
   }
 }

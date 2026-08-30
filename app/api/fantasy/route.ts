@@ -1,6 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+function getScheduleUrl(origin: string, series: string) {
+  if (series === 'f1') {
+    return `${origin}/api/f1/schedule`;
+  }
+
+  if (series.startsWith('nascar-')) {
+    return `${origin}/api/nascar/schedule?series=${encodeURIComponent(series)}`;
+  }
+
+  return null;
+}
+
+async function getRoundStatus(origin: string, series: string, round: string) {
+  const scheduleUrl = getScheduleUrl(origin, series);
+  if (!scheduleUrl) return null;
+
+  const scheduleRes = await fetch(scheduleUrl);
+  if (!scheduleRes.ok) return null;
+
+  const scheduleData = await scheduleRes.json();
+  const currentRoundData = scheduleData.rounds?.find((entry: { round: number }) => entry.round === parseInt(round));
+  return currentRoundData?.status || null;
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const series = searchParams.get("series");
@@ -50,14 +74,9 @@ export async function GET(request: NextRequest) {
   // Fetch schedule to determine if we should lock visibility
   let isLocked = false;
   try {
-    const origin = request.nextUrl.origin;
-    const scheduleRes = await fetch(`${origin}/api/f1/schedule`);
-    if (scheduleRes.ok) {
-      const scheduleData = await scheduleRes.json();
-      const currentRoundData = scheduleData.rounds?.find((r: any) => r.round === parseInt(round));
-      if (currentRoundData && currentRoundData.status === 'upcoming') {
-        isLocked = true;
-      }
+    const roundStatus = await getRoundStatus(request.nextUrl.origin, series, round);
+    if (roundStatus === 'upcoming') {
+      isLocked = true;
     }
   } catch (e) {
     console.error("Error checking schedule for GET", e);
@@ -100,16 +119,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
+    if (new Set([p1, p2, p3]).size !== 3) {
+      return NextResponse.json({ error: "Choose three different drivers for the podium." }, { status: 400 });
+    }
+
     // Check schedule for round locking
     try {
-      const origin = request.nextUrl.origin;
-      const scheduleRes = await fetch(`${origin}/api/f1/schedule`);
-      if (scheduleRes.ok) {
-        const scheduleData = await scheduleRes.json();
-        const currentRoundData = scheduleData.rounds?.find((r: any) => r.round === parseInt(round));
-        if (currentRoundData && (currentRoundData.status === 'live' || currentRoundData.status === 'completed')) {
-          return NextResponse.json({ error: "Cannot submit predictions after the round has started." }, { status: 403 });
-        }
+      const roundStatus = await getRoundStatus(request.nextUrl.origin, series, round.toString());
+      if (roundStatus === 'live' || roundStatus === 'completed') {
+        return NextResponse.json({ error: "Cannot submit predictions after the round has started." }, { status: 403 });
       }
     } catch (e) {
       console.error("Error checking schedule for POST", e);

@@ -4,6 +4,7 @@
 
 import type { TrackGeometry, Point2D } from './replayTypes';
 import generatedTracks from './generatedTracks.json';
+import { getNascarTrack, NASCAR_TRACK_REGISTRY } from './nascarTracks';
 
 // ── Utility: generate smooth curves ──────────────────────────────────
 function lerp(a: number, b: number, t: number): number {
@@ -106,9 +107,14 @@ export const TRACK_REGISTRY = generatedTracks as Record<string, TrackGeometry>;
 
 /** Look up a circuit geometry by circuit name (fuzzy match), with series fallback */
 export function getTrackForCircuit(circuitName?: string, seriesId?: string): TrackGeometry {
+  if (seriesId === 'nascar' || seriesId?.startsWith('nascar-')) {
+    const nascarTrack = getNascarTrack(circuitName);
+    if (nascarTrack) return nascarTrack;
+  }
   if (circuitName) {
     const lower = circuitName.toLowerCase();
-    for (const [venue, geometry] of Object.entries(TRACK_REGISTRY)) {
+    const venues = Object.entries(TRACK_REGISTRY).sort(([a], [b]) => b.length - a.length);
+    for (const [venue, geometry] of venues) {
       if (lower.includes(venue.toLowerCase()) || venue.toLowerCase().includes(lower)) {
         return geometry;
       }
@@ -120,15 +126,21 @@ export function getTrackForCircuit(circuitName?: string, seriesId?: string): Tra
 
 /** Get the track geometry for a series, with fallback */
 export function getTrackForSeries(seriesId: string): TrackGeometry {
+  if (seriesId === 'nascar' || seriesId.startsWith('nascar-')) {
+    const fallbackMap: Record<string, string> = {
+      'nascar': 'Daytona International Speedway',
+      'nascar-cup': 'Daytona International Speedway',
+      'nascar-xfinity': 'Charlotte Motor Speedway',
+      'nascar-trucks': 'Bristol Motor Speedway',
+    };
+    return NASCAR_TRACK_REGISTRY[fallbackMap[seriesId]];
+  }
+
   const fallbackMap: Record<string, string> = {
     'f1': 'Sakhir',
     'f2': 'Jeddah',
     'f3': 'Monza',
     'formula-e': 'Monte Carlo',
-    'nascar': 'Daytona',
-    'nascar-cup': 'Daytona',
-    'nascar-xfinity': 'Charlotte',
-    'nascar-trucks': 'Bristol',
     'gt-world-challenge': 'Spa-Francorchamps',
     'top-fuel': 'Las Vegas'
   };
