@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { checkApiKeyRateLimit } from '@/lib/rateLimit'
 
 export const maxDuration = 60;
 export const revalidate = 60; // Cache for 1 minute for v1 API
@@ -39,6 +40,15 @@ export async function GET(
 
   if (keyError || !keyData) {
     return NextResponse.json({ error: 'Invalid or inactive API Key' }, { status: 403 })
+  }
+
+  const limit = await checkApiKeyRateLimit(keyData.key_id)
+  if (limit && !limit.success) {
+    const retryAfter = Math.max(1, Math.ceil((limit.reset - Date.now()) / 1000))
+    return NextResponse.json(
+      { error: 'API rate limit exceeded' },
+      { status: 429, headers: { 'Retry-After': retryAfter.toString() } }
+    )
   }
 
   // We reuse the internal route logic by making a local fetch, or we could extract it to a shared lib.

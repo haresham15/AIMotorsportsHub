@@ -112,8 +112,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { username, series, round, p1, p2, p3 } = body;
+    const { series, round, p1, p2, p3 } = body;
     const userId = session.user.id;
+    const profileName = session.user.user_metadata?.display_name || session.user.user_metadata?.full_name;
+    const emailName = session.user.email?.split('@')[0] || 'Racer';
+    const username = profileName || `${emailName}-${userId.slice(0, 6)}`;
 
     if (!username || !series || round === undefined || !p1 || !p2 || !p3) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });

@@ -1,0 +1,1826 @@
+[
+  {
+    "id": "hamilton_2018",
+    "name": "Lewis Hamilton",
+    "year": 2018,
+    "x": 6.275943740403601,
+    "y": 1.2535418432505328,
+    "cluster": 2,
+    "stats": {
+      "points_per_race": 19.428571428571427,
+      "win_rate": 0.5238095238095238
+    }
+  },
+  {
+    "id": "vettel_2018",
+    "name": "Sebastian Vettel",
+    "year": 2018,
+    "x": 3.3032461315798236,
+    "y": -0.23764100559741344,
+    "cluster": 1,
+    "stats": {
+      "points_per_race": 15.238095238095237,
+      "win_rate": 0.23809523809523808
+    }
+  },
+  {
+    "id": "raikkonen_2018",
+    "name": "Kimi R\u00e4ikk\u00f6nen",
+    "year": 2018,
+    "x": 1.635473287669841,
+    "y": -0.9194725958287817,
+    "cluster": 3,
+    "stats": {
+      "points_per_race": 11.952380952380953,
+      "win_rate": 0.047619047619047616
+    }
+  },
+  {
+    "id": "max_verstappen_2018",
+    "name": "Max Verstappen",
+    "year": 2018,
+    "x": 1.5924833944216141,
+    "y": -0.7733387336895409,
+    "cluster": 3,
+    "stats": {
+      "points_per_race": 11.857142857142858,
+      "win_rate": 0.09523809523809523
+    }
+  },
+  {
+    "id": "bottas_2018",
+    "name": "Valtteri Bottas",
+    "year": 2018,
+    "x": 1.1087073296240126,
+    "y": -1.3205122239139009,
+    "cluster": 3,
+    "stats": {
+      "points_per_race": 11.761904761904763,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "ricciardo_2018",
+    "name": "Daniel Ricciardo",
+    "year": 2018,
+    "x": 0.735908662590333,
+    "y": -0.27518563727883844,
+    "cluster": 3,
+    "stats": {
+      "points_per_race": 8.095238095238095,
+      "win_rate": 0.09523809523809523
+    }
+  },
+  {
+    "id": "hulkenberg_2018",
+    "name": "Nico H\u00fclkenberg",
+    "year": 2018,
+    "x": -0.5078751156132633,
+    "y": -0.016297952616171365,
+    "cluster": 4,
+    "stats": {
+      "points_per_race": 3.2857142857142856,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "perez_2018",
+    "name": "Sergio P\u00e9rez",
+    "year": 2018,
+    "x": -0.6089042601280652,
+    "y": 0.013266007751924835,
+    "cluster": 4,
+    "stats": {
+      "points_per_race": 2.9523809523809526,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "kevin_magnussen_2018",
+    "name": "Kevin Magnussen",
+    "year": 2018,
+    "x": -0.6921000542722182,
+    "y": 0.04057899948537917,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 2.6666666666666665,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "sainz_2018",
+    "name": "Carlos Sainz",
+    "year": 2018,
+    "x": -0.7436957607377859,
+    "y": 0.04843647978335295,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 2.5238095238095237,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "alonso_2018",
+    "name": "Fernando Alonso",
+    "year": 2018,
+    "x": -0.7904440444671154,
+    "y": 0.05910560399344957,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 2.380952380952381,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "ocon_2018",
+    "name": "Esteban Ocon",
+    "year": 2018,
+    "x": -0.8169335068667609,
+    "y": 0.056335779927871976,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 2.3333333333333335,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "leclerc_2018",
+    "name": "Charles Leclerc",
+    "year": 2018,
+    "x": -0.9154310234750429,
+    "y": 0.12515262356323695,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 1.8571428571428572,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "grosjean_2018",
+    "name": "Romain Grosjean",
+    "year": 2018,
+    "x": -0.9452382022274816,
+    "y": 0.133053251275746,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 1.7619047619047619,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "gasly_2018",
+    "name": "Pierre Gasly",
+    "year": 2018,
+    "x": -1.0231572872157784,
+    "y": 0.1886165297505218,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 1.380952380952381,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "vandoorne_2018",
+    "name": "Stoffel Vandoorne",
+    "year": 2018,
+    "x": -1.1744527579680641,
+    "y": 0.3149728044647824,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.5714285714285714,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "ericsson_2018",
+    "name": "Marcus Ericsson",
+    "year": 2018,
+    "x": -1.2082092359079908,
+    "y": 0.3331775478364141,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.42857142857142855,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "stroll_2018",
+    "name": "Lance Stroll",
+    "year": 2018,
+    "x": -1.2409855364563986,
+    "y": 0.351950822146159,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.2857142857142857,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "brendon_hartley_2018",
+    "name": "Brendon Hartley",
+    "year": 2018,
+    "x": -1.2646247973258273,
+    "y": 0.3634290187462738,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.19047619047619047,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "sirotkin_2018",
+    "name": "Sergey Sirotkin",
+    "year": 2018,
+    "x": -1.2958740846748165,
+    "y": 0.383088004412237,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.047619047619047616,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "hamilton_2019",
+    "name": "Lewis Hamilton",
+    "year": 2019,
+    "x": 6.3175018760973645,
+    "y": 1.214672640226117,
+    "cluster": 2,
+    "stats": {
+      "points_per_race": 19.666666666666668,
+      "win_rate": 0.5238095238095238
+    }
+  },
+  {
+    "id": "bottas_2019",
+    "name": "Valtteri Bottas",
+    "year": 2019,
+    "x": 3.1795263455132385,
+    "y": -0.5308505415312554,
+    "cluster": 1,
+    "stats": {
+      "points_per_race": 15.523809523809524,
+      "win_rate": 0.19047619047619047
+    }
+  },
+  {
+    "id": "max_verstappen_2019",
+    "name": "Max Verstappen",
+    "year": 2019,
+    "x": 2.207066318214365,
+    "y": -0.636233307551542,
+    "cluster": 1,
+    "stats": {
+      "points_per_race": 13.238095238095237,
+      "win_rate": 0.14285714285714285
+    }
+  },
+  {
+    "id": "leclerc_2019",
+    "name": "Charles Leclerc",
+    "year": 2019,
+    "x": 1.7171578015029034,
+    "y": -0.8899463427627883,
+    "cluster": 3,
+    "stats": {
+      "points_per_race": 12.571428571428571,
+      "win_rate": 0.09523809523809523
+    }
+  },
+  {
+    "id": "vettel_2019",
+    "name": "Sebastian Vettel",
+    "year": 2019,
+    "x": 1.2241154885518453,
+    "y": -1.0195288473751758,
+    "cluster": 3,
+    "stats": {
+      "points_per_race": 11.428571428571429,
+      "win_rate": 0.047619047619047616
+    }
+  },
+  {
+    "id": "sainz_2019",
+    "name": "Carlos Sainz",
+    "year": 2019,
+    "x": -0.22633084347556423,
+    "y": -0.19305441712656896,
+    "cluster": 4,
+    "stats": {
+      "points_per_race": 4.571428571428571,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "gasly_2019",
+    "name": "Pierre Gasly",
+    "year": 2019,
+    "x": -0.2917728100056949,
+    "y": -0.21841780834313382,
+    "cluster": 4,
+    "stats": {
+      "points_per_race": 4.523809523809524,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "albon_2019",
+    "name": "Alexander Albon",
+    "year": 2019,
+    "x": -0.3595554459654862,
+    "y": -0.2199492103945704,
+    "cluster": 4,
+    "stats": {
+      "points_per_race": 4.380952380952381,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "ricciardo_2019",
+    "name": "Daniel Ricciardo",
+    "year": 2019,
+    "x": -0.7087233085497233,
+    "y": 0.05612668069514548,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 2.5714285714285716,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "perez_2019",
+    "name": "Sergio P\u00e9rez",
+    "year": 2019,
+    "x": -0.7520073878765385,
+    "y": 0.0562103203882361,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 2.4761904761904763,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "norris_2019",
+    "name": "Lando Norris",
+    "year": 2019,
+    "x": -0.7987556716058679,
+    "y": 0.06687944459833271,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 2.3333333333333335,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "raikkonen_2019",
+    "name": "Kimi R\u00e4ikk\u00f6nen",
+    "year": 2019,
+    "x": -0.8668032696992768,
+    "y": 0.10297882355717103,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 2.0476190476190474,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "kvyat_2019",
+    "name": "Daniil Kvyat",
+    "year": 2019,
+    "x": -0.9320542777525481,
+    "y": 0.14070030477300327,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 1.7619047619047619,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "hulkenberg_2019",
+    "name": "Nico H\u00fclkenberg",
+    "year": 2019,
+    "x": -0.9452382022274816,
+    "y": 0.133053251275746,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 1.7619047619047619,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "stroll_2019",
+    "name": "Lance Stroll",
+    "year": 2019,
+    "x": -1.0896503043257995,
+    "y": 0.2508072545895872,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 1.0,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "kevin_magnussen_2019",
+    "name": "Kevin Magnussen",
+    "year": 2019,
+    "x": -1.107959740858043,
+    "y": 0.2527820796257169,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.9523809523809523,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "giovinazzi_2019",
+    "name": "Antonio Giovinazzi",
+    "year": 2019,
+    "x": -1.1666511002142275,
+    "y": 0.29430834481199825,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.6666666666666666,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "grosjean_2019",
+    "name": "Romain Grosjean",
+    "year": 2019,
+    "x": -1.2243622821788933,
+    "y": 0.3364031409363927,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.38095238095238093,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "kubica_2019",
+    "name": "Robert Kubica",
+    "year": 2019,
+    "x": -1.2895596787420853,
+    "y": 0.38675054056092334,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.047619047619047616,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "russell_2019",
+    "name": "George Russell",
+    "year": 2019,
+    "x": -1.3041857118135693,
+    "y": 0.3908618450171202,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.0,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "hamilton_2020",
+    "name": "Lewis Hamilton",
+    "year": 2020,
+    "x": 6.56374729864405,
+    "y": 2.057312972781872,
+    "cluster": 2,
+    "stats": {
+      "points_per_race": 20.41176470588235,
+      "win_rate": 0.6470588235294118
+    }
+  },
+  {
+    "id": "bottas_2020",
+    "name": "Valtteri Bottas",
+    "year": 2020,
+    "x": 2.2799891524572753,
+    "y": -0.30557221431055465,
+    "cluster": 1,
+    "stats": {
+      "points_per_race": 13.117647058823529,
+      "win_rate": 0.11764705882352941
+    }
+  },
+  {
+    "id": "max_verstappen_2020",
+    "name": "Max Verstappen",
+    "year": 2020,
+    "x": 1.7963104611461356,
+    "y": -0.4595641009946576,
+    "cluster": 3,
+    "stats": {
+      "points_per_race": 12.588235294117647,
+      "win_rate": 0.11764705882352941
+    }
+  },
+  {
+    "id": "perez_2020",
+    "name": "Sergio P\u00e9rez",
+    "year": 2020,
+    "x": 0.5535643373181459,
+    "y": -0.10910238215828778,
+    "cluster": 4,
+    "stats": {
+      "points_per_race": 7.352941176470588,
+      "win_rate": 0.058823529411764705
+    }
+  },
+  {
+    "id": "ricciardo_2020",
+    "name": "Daniel Ricciardo",
+    "year": 2020,
+    "x": 0.16331226557519044,
+    "y": -0.43129354915864343,
+    "cluster": 4,
+    "stats": {
+      "points_per_race": 7.0,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "sainz_2020",
+    "name": "Carlos Sainz",
+    "year": 2020,
+    "x": -0.04697336712839506,
+    "y": -0.3564009731615077,
+    "cluster": 4,
+    "stats": {
+      "points_per_race": 6.176470588235294,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "albon_2020",
+    "name": "Alexander Albon",
+    "year": 2020,
+    "x": -0.10410370651977306,
+    "y": -0.38953820498295577,
+    "cluster": 4,
+    "stats": {
+      "points_per_race": 6.176470588235294,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "leclerc_2020",
+    "name": "Charles Leclerc",
+    "year": 2020,
+    "x": -0.21210303984113474,
+    "y": -0.3537487785754602,
+    "cluster": 4,
+    "stats": {
+      "points_per_race": 5.764705882352941,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "norris_2020",
+    "name": "Lando Norris",
+    "year": 2020,
+    "x": -0.2547364395496045,
+    "y": -0.364415637575079,
+    "cluster": 4,
+    "stats": {
+      "points_per_race": 5.705882352941177,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "gasly_2020",
+    "name": "Pierre Gasly",
+    "year": 2020,
+    "x": -0.2717252206891649,
+    "y": 0.11529270217788622,
+    "cluster": 4,
+    "stats": {
+      "points_per_race": 4.411764705882353,
+      "win_rate": 0.058823529411764705
+    }
+  },
+  {
+    "id": "stroll_2020",
+    "name": "Lance Stroll",
+    "year": 2020,
+    "x": -0.5079727716423027,
+    "y": -0.20194183297933702,
+    "cluster": 4,
+    "stats": {
+      "points_per_race": 4.411764705882353,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "ocon_2020",
+    "name": "Esteban Ocon",
+    "year": 2020,
+    "x": -0.6471463960620195,
+    "y": -0.09986398999886055,
+    "cluster": 4,
+    "stats": {
+      "points_per_race": 3.6470588235294117,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "vettel_2020",
+    "name": "Sebastian Vettel",
+    "year": 2020,
+    "x": -0.93244132479092,
+    "y": 0.14244704157822477,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 1.9411764705882353,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "kvyat_2020",
+    "name": "Daniil Kvyat",
+    "year": 2020,
+    "x": -0.9549326176626861,
+    "y": 0.14346318097719346,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 1.8823529411764706,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "hulkenberg_2020",
+    "name": "Nico H\u00fclkenberg",
+    "year": 2020,
+    "x": -1.1711207902712786,
+    "y": 0.32742597832987447,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.5882352941176471,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "raikkonen_2020",
+    "name": "Kimi R\u00e4ikk\u00f6nen",
+    "year": 2020,
+    "x": -1.2369628100457652,
+    "y": 0.37360612013847666,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.23529411764705882,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "giovinazzi_2020",
+    "name": "Antonio Giovinazzi",
+    "year": 2020,
+    "x": -1.245784406569434,
+    "y": 0.36848934169545894,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.23529411764705882,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "russell_2020",
+    "name": "George Russell",
+    "year": 2020,
+    "x": -1.2629331940984165,
+    "y": 0.3726042870867802,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.17647058823529413,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "grosjean_2020",
+    "name": "Romain Grosjean",
+    "year": 2020,
+    "x": -1.279256569087173,
+    "y": 0.37719799537335463,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.11764705882352941,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "kevin_magnussen_2020",
+    "name": "Kevin Magnussen",
+    "year": 2020,
+    "x": -1.2948783434167366,
+    "y": 0.3821986521208942,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.058823529411764705,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "latifi_2020",
+    "name": "Nicholas Latifi",
+    "year": 2020,
+    "x": -1.3098987457527071,
+    "y": 0.3875481218349754,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.0,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "aitken_2020",
+    "name": "Jack Aitken",
+    "year": 2020,
+    "x": -1.3150924129701052,
+    "y": 0.38453564621484376,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.0,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "pietro_fittipaldi_2020",
+    "name": "Pietro Fittipaldi",
+    "year": 2020,
+    "x": -1.3198344569512077,
+    "y": 0.38178512499646267,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.0,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "max_verstappen_2021",
+    "name": "Max Verstappen",
+    "year": 2021,
+    "x": 5.84347648517163,
+    "y": 1.0600222271281814,
+    "cluster": 2,
+    "stats": {
+      "points_per_race": 17.977272727272727,
+      "win_rate": 0.45454545454545453
+    }
+  },
+  {
+    "id": "hamilton_2021",
+    "name": "Lewis Hamilton",
+    "year": 2021,
+    "x": 4.247386983979601,
+    "y": -0.04576121876936427,
+    "cluster": 1,
+    "stats": {
+      "points_per_race": 17.613636363636363,
+      "win_rate": 0.36363636363636365
+    }
+  },
+  {
+    "id": "bottas_2021",
+    "name": "Valtteri Bottas",
+    "year": 2021,
+    "x": 1.3763190170517117,
+    "y": -0.6975058360007851,
+    "cluster": 3,
+    "stats": {
+      "points_per_race": 10.272727272727273,
+      "win_rate": 0.045454545454545456
+    }
+  },
+  {
+    "id": "perez_2021",
+    "name": "Sergio P\u00e9rez",
+    "year": 2021,
+    "x": 0.8840691800270772,
+    "y": -0.5398129265353064,
+    "cluster": 3,
+    "stats": {
+      "points_per_race": 8.636363636363637,
+      "win_rate": 0.045454545454545456
+    }
+  },
+  {
+    "id": "sainz_2021",
+    "name": "Carlos Sainz",
+    "year": 2021,
+    "x": 0.3913550176289591,
+    "y": -0.6509081730708113,
+    "cluster": 4,
+    "stats": {
+      "points_per_race": 7.4772727272727275,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "norris_2021",
+    "name": "Lando Norris",
+    "year": 2021,
+    "x": 0.2748358363366783,
+    "y": -0.6630911450157702,
+    "cluster": 4,
+    "stats": {
+      "points_per_race": 7.2727272727272725,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "leclerc_2021",
+    "name": "Charles Leclerc",
+    "year": 2021,
+    "x": 0.20958622891322226,
+    "y": -0.6886263429249809,
+    "cluster": 4,
+    "stats": {
+      "points_per_race": 7.2272727272727275,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "ricciardo_2021",
+    "name": "Daniel Ricciardo",
+    "year": 2021,
+    "x": -0.024810204183514428,
+    "y": -0.14363085018010283,
+    "cluster": 4,
+    "stats": {
+      "points_per_race": 5.2272727272727275,
+      "win_rate": 0.045454545454545456
+    }
+  },
+  {
+    "id": "gasly_2021",
+    "name": "Pierre Gasly",
+    "year": 2021,
+    "x": -0.2644316905137751,
+    "y": -0.36030965698727846,
+    "cluster": 4,
+    "stats": {
+      "points_per_race": 5.0,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "alonso_2021",
+    "name": "Fernando Alonso",
+    "year": 2021,
+    "x": -0.5265512884933496,
+    "y": -0.15531471504906927,
+    "cluster": 4,
+    "stats": {
+      "points_per_race": 3.6818181818181817,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "ocon_2021",
+    "name": "Esteban Ocon",
+    "year": 2021,
+    "x": -0.4395004521727349,
+    "y": 0.12060604920455771,
+    "cluster": 4,
+    "stats": {
+      "points_per_race": 3.3636363636363638,
+      "win_rate": 0.045454545454545456
+    }
+  },
+  {
+    "id": "vettel_2021",
+    "name": "Sebastian Vettel",
+    "year": 2021,
+    "x": -0.8750747112862818,
+    "y": 0.11036651134093872,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 1.9545454545454546,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "stroll_2021",
+    "name": "Lance Stroll",
+    "year": 2021,
+    "x": -0.9635293687957402,
+    "y": 0.16986325413760867,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 1.5454545454545454,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "tsunoda_2021",
+    "name": "Yuki Tsunoda",
+    "year": 2021,
+    "x": -0.99295182933483,
+    "y": 0.17742026846482623,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 1.4545454545454546,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "russell_2021",
+    "name": "George Russell",
+    "year": 2021,
+    "x": -1.134286185726355,
+    "y": 0.29242536469633523,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.7272727272727273,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "raikkonen_2021",
+    "name": "Kimi R\u00e4ikk\u00f6nen",
+    "year": 2021,
+    "x": -1.1929996033123147,
+    "y": 0.3322385526010063,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.45454545454545453,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "latifi_2021",
+    "name": "Nicholas Latifi",
+    "year": 2021,
+    "x": -1.2261790039322176,
+    "y": 0.34992787589470076,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.3181818181818182,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "giovinazzi_2021",
+    "name": "Antonio Giovinazzi",
+    "year": 2021,
+    "x": -1.2664974951926802,
+    "y": 0.37578776403874575,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.13636363636363635,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "mick_schumacher_2021",
+    "name": "Mick Schumacher",
+    "year": 2021,
+    "x": -1.297871305880838,
+    "y": 0.3945243811658065,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.0,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "kubica_2021",
+    "name": "Robert Kubica",
+    "year": 2021,
+    "x": -1.3041857118135693,
+    "y": 0.3908618450171202,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.0,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "mazepin_2021",
+    "name": "Nikita Mazepin",
+    "year": 2021,
+    "x": -1.3098987457527071,
+    "y": 0.3875481218349754,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.0,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "max_verstappen_2022",
+    "name": "Max Verstappen",
+    "year": 2022,
+    "x": 7.146949239339364,
+    "y": 1.7920978656248823,
+    "cluster": 2,
+    "stats": {
+      "points_per_race": 20.636363636363637,
+      "win_rate": 0.6818181818181818
+    }
+  },
+  {
+    "id": "leclerc_2022",
+    "name": "Charles Leclerc",
+    "year": 2022,
+    "x": 2.7734096011382277,
+    "y": -0.6181941451090804,
+    "cluster": 1,
+    "stats": {
+      "points_per_race": 14.0,
+      "win_rate": 0.13636363636363635
+    }
+  },
+  {
+    "id": "perez_2022",
+    "name": "Sergio P\u00e9rez",
+    "year": 2022,
+    "x": 2.183440306444114,
+    "y": -1.0627075905950225,
+    "cluster": 1,
+    "stats": {
+      "points_per_race": 13.863636363636363,
+      "win_rate": 0.09090909090909091
+    }
+  },
+  {
+    "id": "russell_2022",
+    "name": "George Russell",
+    "year": 2022,
+    "x": 1.5742069627537154,
+    "y": -1.1859858090754867,
+    "cluster": 3,
+    "stats": {
+      "points_per_race": 12.5,
+      "win_rate": 0.045454545454545456
+    }
+  },
+  {
+    "id": "sainz_2022",
+    "name": "Carlos Sainz",
+    "year": 2022,
+    "x": 1.2187744771015567,
+    "y": -1.0351150124456425,
+    "cluster": 3,
+    "stats": {
+      "points_per_race": 11.181818181818182,
+      "win_rate": 0.045454545454545456
+    }
+  },
+  {
+    "id": "hamilton_2022",
+    "name": "Lewis Hamilton",
+    "year": 2022,
+    "x": 0.9243772789029259,
+    "y": -1.2712538579947632,
+    "cluster": 3,
+    "stats": {
+      "points_per_race": 10.909090909090908,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "norris_2022",
+    "name": "Lando Norris",
+    "year": 2022,
+    "x": -0.09082668827366726,
+    "y": -0.40735108817219673,
+    "cluster": 4,
+    "stats": {
+      "points_per_race": 5.545454545454546,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "ocon_2022",
+    "name": "Esteban Ocon",
+    "year": 2022,
+    "x": -0.3772524837795437,
+    "y": -0.20414299467116034,
+    "cluster": 4,
+    "stats": {
+      "points_per_race": 4.181818181818182,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "alonso_2022",
+    "name": "Fernando Alonso",
+    "year": 2022,
+    "x": -0.4998904634440399,
+    "y": -0.13985067353239353,
+    "cluster": 4,
+    "stats": {
+      "points_per_race": 3.6818181818181817,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "bottas_2022",
+    "name": "Valtteri Bottas",
+    "year": 2022,
+    "x": -0.7863678655198486,
+    "y": 0.08795037014252792,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 2.227272727272727,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "ricciardo_2022",
+    "name": "Daniel Ricciardo",
+    "year": 2022,
+    "x": -0.9056124842178573,
+    "y": 0.16652237948482396,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 1.6818181818181819,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "vettel_2022",
+    "name": "Sebastian Vettel",
+    "year": 2022,
+    "x": -0.9237903194787505,
+    "y": 0.1559787148143632,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 1.6818181818181819,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "kevin_magnussen_2022",
+    "name": "Kevin Magnussen",
+    "year": 2022,
+    "x": -1.0366027810844431,
+    "y": 0.23828155934774536,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 1.1363636363636365,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "gasly_2022",
+    "name": "Pierre Gasly",
+    "year": 2022,
+    "x": -1.0660252416235327,
+    "y": 0.24583857367496298,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 1.0454545454545454,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "stroll_2022",
+    "name": "Lance Stroll",
+    "year": 2022,
+    "x": -1.118047649662199,
+    "y": 0.2772212968718603,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.8181818181818182,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "mick_schumacher_2022",
+    "name": "Mick Schumacher",
+    "year": 2022,
+    "x": -1.1767610672481585,
+    "y": 0.31703448477653146,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.5454545454545454,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "tsunoda_2022",
+    "name": "Yuki Tsunoda",
+    "year": 2022,
+    "x": -1.1855826637718272,
+    "y": 0.31191770633351373,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.5454545454545454,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "zhou_2022",
+    "name": "Guanyu Zhou",
+    "year": 2022,
+    "x": -1.242139691096446,
+    "y": 0.3529816623020336,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.2727272727272727,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "albon_2022",
+    "name": "Alexander Albon",
+    "year": 2022,
+    "x": -1.2653942337525255,
+    "y": 0.36411624551685684,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.18181818181818182,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "latifi_2022",
+    "name": "Nicholas Latifi",
+    "year": 2022,
+    "x": -1.2879471757494132,
+    "y": 0.37565777719264537,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.09090909090909091,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "de_vries_2022",
+    "name": "Nyck de Vries",
+    "year": 2022,
+    "x": -1.293660209688551,
+    "y": 0.3723440540105006,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.09090909090909091,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "hulkenberg_2022",
+    "name": "Nico H\u00fclkenberg",
+    "year": 2022,
+    "x": -1.3150924129701052,
+    "y": 0.38453564621484376,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.0,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "max_verstappen_2023",
+    "name": "Max Verstappen",
+    "year": 2023,
+    "x": 8.792177130653744,
+    "y": 1.8136874601342279,
+    "cluster": 2,
+    "stats": {
+      "points_per_race": 26.136363636363637,
+      "win_rate": 0.8636363636363636
+    }
+  },
+  {
+    "id": "perez_2023",
+    "name": "Sergio P\u00e9rez",
+    "year": 2023,
+    "x": 2.4209673215421987,
+    "y": -0.678706289600138,
+    "cluster": 1,
+    "stats": {
+      "points_per_race": 12.954545454545455,
+      "win_rate": 0.09090909090909091
+    }
+  },
+  {
+    "id": "hamilton_2023",
+    "name": "Lewis Hamilton",
+    "year": 2023,
+    "x": 1.2755740464501033,
+    "y": -0.9936810317712023,
+    "cluster": 3,
+    "stats": {
+      "points_per_race": 10.636363636363637,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "alonso_2023",
+    "name": "Fernando Alonso",
+    "year": 2023,
+    "x": 0.8482783536820937,
+    "y": -0.896804393603623,
+    "cluster": 3,
+    "stats": {
+      "points_per_race": 9.363636363636363,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "leclerc_2023",
+    "name": "Charles Leclerc",
+    "year": 2023,
+    "x": 0.7283046409602,
+    "y": -0.9663925804286639,
+    "cluster": 3,
+    "stats": {
+      "points_per_race": 9.363636363636363,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "norris_2023",
+    "name": "Lando Norris",
+    "year": 2023,
+    "x": 0.6402028977801927,
+    "y": -1.005182671066454,
+    "cluster": 3,
+    "stats": {
+      "points_per_race": 9.318181818181818,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "sainz_2023",
+    "name": "Carlos Sainz",
+    "year": 2023,
+    "x": 0.7081753330866573,
+    "y": -0.7649508088541968,
+    "cluster": 3,
+    "stats": {
+      "points_per_race": 9.090909090909092,
+      "win_rate": 0.045454545454545456
+    }
+  },
+  {
+    "id": "russell_2023",
+    "name": "George Russell",
+    "year": 2023,
+    "x": 0.2966467628829383,
+    "y": -0.8351118093868656,
+    "cluster": 4,
+    "stats": {
+      "points_per_race": 7.954545454545454,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "piastri_2023",
+    "name": "Oscar Piastri",
+    "year": 2023,
+    "x": -0.36998217493079033,
+    "y": -0.26148321612819214,
+    "cluster": 4,
+    "stats": {
+      "points_per_race": 4.409090909090909,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "stroll_2023",
+    "name": "Lance Stroll",
+    "year": 2023,
+    "x": -0.5833861647178963,
+    "y": -0.1021004776634074,
+    "cluster": 4,
+    "stats": {
+      "points_per_race": 3.3636363636363638,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "gasly_2023",
+    "name": "Pierre Gasly",
+    "year": 2023,
+    "x": -0.702630783415905,
+    "y": -0.023528468321111346,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 2.8181818181818183,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "ocon_2023",
+    "name": "Esteban Ocon",
+    "year": 2023,
+    "x": -0.7532856908051105,
+    "y": -0.003663997342622429,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 2.6363636363636362,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "albon_2023",
+    "name": "Alexander Albon",
+    "year": 2023,
+    "x": -1.020364245020287,
+    "y": 0.22307749152327055,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 1.2272727272727273,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "tsunoda_2023",
+    "name": "Yuki Tsunoda",
+    "year": 2023,
+    "x": -1.1147408498160014,
+    "y": 0.29145077714838746,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.7727272727272727,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "bottas_2023",
+    "name": "Valtteri Bottas",
+    "year": 2023,
+    "x": -1.1830017939188235,
+    "y": 0.3380375681697597,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.45454545454545453,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "hulkenberg_2023",
+    "name": "Nico H\u00fclkenberg",
+    "year": 2023,
+    "x": -1.201118871344393,
+    "y": 0.3398405865132437,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.4090909090909091,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "ricciardo_2023",
+    "name": "Daniel Ricciardo",
+    "year": 2023,
+    "x": -1.2342982719642959,
+    "y": 0.3575299098069382,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.2727272727272727,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "zhou_2023",
+    "name": "Guanyu Zhou",
+    "year": 2023,
+    "x": -1.242139691096446,
+    "y": 0.3529816623020336,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.2727272727272727,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "kevin_magnussen_2023",
+    "name": "Kevin Magnussen",
+    "year": 2023,
+    "x": -1.2735135017846038,
+    "y": 0.37171827942909424,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.13636363636363635,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "lawson_2023",
+    "name": "Liam Lawson",
+    "year": 2023,
+    "x": -1.2879471757494132,
+    "y": 0.37565777719264537,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.09090909090909091,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "sargeant_2023",
+    "name": "Logan Sargeant",
+    "year": 2023,
+    "x": -1.3017794777206289,
+    "y": 0.37994608792273793,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.045454545454545456,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "de_vries_2023",
+    "name": "Nyck de Vries",
+    "year": 2023,
+    "x": -1.3150924129701052,
+    "y": 0.38453564621484376,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.0,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "max_verstappen_2024",
+    "name": "Max Verstappen",
+    "year": 2024,
+    "x": 5.743346030671611,
+    "y": 0.4640488701442679,
+    "cluster": 2,
+    "stats": {
+      "points_per_race": 18.208333333333332,
+      "win_rate": 0.375
+    }
+  },
+  {
+    "id": "norris_2024",
+    "name": "Lando Norris",
+    "year": 2024,
+    "x": 3.293848332509053,
+    "y": -0.8505749533317538,
+    "cluster": 1,
+    "stats": {
+      "points_per_race": 15.583333333333334,
+      "win_rate": 0.16666666666666666
+    }
+  },
+  {
+    "id": "leclerc_2024",
+    "name": "Charles Leclerc",
+    "year": 2024,
+    "x": 2.6019575887655355,
+    "y": -1.1668565572464333,
+    "cluster": 1,
+    "stats": {
+      "points_per_race": 14.833333333333334,
+      "win_rate": 0.125
+    }
+  },
+  {
+    "id": "piastri_2024",
+    "name": "Oscar Piastri",
+    "year": 2024,
+    "x": 1.7520216115035485,
+    "y": -1.031294728581107,
+    "cluster": 3,
+    "stats": {
+      "points_per_race": 12.166666666666666,
+      "win_rate": 0.08333333333333333
+    }
+  },
+  {
+    "id": "sainz_2024",
+    "name": "Carlos Sainz",
+    "year": 2024,
+    "x": 1.6164826195908595,
+    "y": -1.0862801710059333,
+    "cluster": 3,
+    "stats": {
+      "points_per_race": 12.083333333333334,
+      "win_rate": 0.08333333333333333
+    }
+  },
+  {
+    "id": "russell_2024",
+    "name": "George Russell",
+    "year": 2024,
+    "x": 1.1862813626500357,
+    "y": -0.8041105465511305,
+    "cluster": 3,
+    "stats": {
+      "points_per_race": 10.208333333333334,
+      "win_rate": 0.08333333333333333
+    }
+  },
+  {
+    "id": "hamilton_2024",
+    "name": "Lewis Hamilton",
+    "year": 2024,
+    "x": 0.9579329521599094,
+    "y": -0.6766175899702173,
+    "cluster": 3,
+    "stats": {
+      "points_per_race": 9.291666666666666,
+      "win_rate": 0.08333333333333333
+    }
+  },
+  {
+    "id": "perez_2024",
+    "name": "Sergio P\u00e9rez",
+    "year": 2024,
+    "x": 0.0587360757697152,
+    "y": -0.6145644491616326,
+    "cluster": 4,
+    "stats": {
+      "points_per_race": 6.333333333333333,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "alonso_2024",
+    "name": "Fernando Alonso",
+    "year": 2024,
+    "x": -0.6127664023645297,
+    "y": -0.03518198064867628,
+    "cluster": 4,
+    "stats": {
+      "points_per_race": 2.9166666666666665,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "gasly_2024",
+    "name": "Pierre Gasly",
+    "year": 2024,
+    "x": -0.8573411360849739,
+    "y": 0.15379239943765327,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 1.75,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "hulkenberg_2024",
+    "name": "Nico H\u00fclkenberg",
+    "year": 2024,
+    "x": -0.8869371779934431,
+    "y": 0.1484413740332077,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 1.7083333333333333,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "tsunoda_2024",
+    "name": "Yuki Tsunoda",
+    "year": 2024,
+    "x": -0.9907240488037103,
+    "y": 0.21821280356392758,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 1.25,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "stroll_2024",
+    "name": "Lance Stroll",
+    "year": 2024,
+    "x": -1.052801131596852,
+    "y": 0.2530994743511048,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 1.0,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "ocon_2024",
+    "name": "Esteban Ocon",
+    "year": 2024,
+    "x": -1.0737676956671829,
+    "y": 0.2527537930539548,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.9583333333333334,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "kevin_magnussen_2024",
+    "name": "Kevin Magnussen",
+    "year": 2024,
+    "x": -1.139672240713242,
+    "y": 0.2972359520904165,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.6666666666666666,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "albon_2024",
+    "name": "Alexander Albon",
+    "year": 2024,
+    "x": -1.1808006084883238,
+    "y": 0.3206424253220924,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.5,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "ricciardo_2024",
+    "name": "Daniel Ricciardo",
+    "year": 2024,
+    "x": -1.1896222050119925,
+    "y": 0.3155256468790747,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.5,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "bearman_2024",
+    "name": "Oliver Bearman",
+    "year": 2024,
+    "x": -1.2363768221211306,
+    "y": 0.3474842603747067,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.2916666666666667,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "colapinto_2024",
+    "name": "Franco Colapinto",
+    "year": 2024,
+    "x": -1.2589581079038497,
+    "y": 0.3580175201652699,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.20833333333333334,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "zhou_2024",
+    "name": "Guanyu Zhou",
+    "year": 2024,
+    "x": -1.2730551534319785,
+    "y": 0.36165635621669084,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.16666666666666666,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "lawson_2024",
+    "name": "Liam Lawson",
+    "year": 2024,
+    "x": -1.2787681873711163,
+    "y": 0.358342633034546,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.16666666666666666,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "bottas_2024",
+    "name": "Valtteri Bottas",
+    "year": 2024,
+    "x": -1.3150924129701052,
+    "y": 0.38453564621484376,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.0,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "sargeant_2024",
+    "name": "Logan Sargeant",
+    "year": 2024,
+    "x": -1.3198344569512077,
+    "y": 0.38178512499646267,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.0,
+      "win_rate": 0.0
+    }
+  },
+  {
+    "id": "doohan_2024",
+    "name": "Jack Doohan",
+    "year": 2024,
+    "x": -1.3241813306005517,
+    "y": 0.3792638138796134,
+    "cluster": 0,
+    "stats": {
+      "points_per_race": 0.0,
+      "win_rate": 0.0
+    }
+  }
+]

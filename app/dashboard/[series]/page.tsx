@@ -22,6 +22,8 @@ import { useSeriesData } from '@/lib/hooks/useSeriesData'
 import { RaceData, CVData, Round, DriverStanding, ConstructorStanding } from '@/lib/types'
 import AuthButton from '@/components/AuthButton'
 import Modal from '@/components/ui/Modal'
+import PodiumProbability from '@/components/dashboard/PodiumProbability'
+import DriverSimilarityMap from '@/components/dashboard/DriverSimilarityMap'
 
 export default function SeriesDashboard() {
   const params = useParams()
@@ -204,6 +206,7 @@ export default function SeriesDashboard() {
             <div className="animate-fade-in-up delay-250">
               <StrategyPredictor />
             </div>
+            {series === 'f1' && <div className="animate-fade-in-up delay-250"><PodiumProbability /></div>}
             <div className="animate-fade-in-up delay-300">
               <TeamHistory series={series} />
             </div>
@@ -214,6 +217,7 @@ export default function SeriesDashboard() {
               <AlertSettings />
             </div>
           </div>
+          {series === 'f1' && <div className="animate-fade-in-up"><DriverSimilarityMap /></div>}
 
         </div>
       </main>

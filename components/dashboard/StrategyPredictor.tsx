@@ -55,7 +55,7 @@ export default function StrategyPredictor() {
           <div>
             <h2 className="font-[family-name:var(--font-disp)] uppercase text-2xl font-extrabold tracking-[-0.01em]">AI Strategy Predictor</h2>
             <p className="text-[11px] text-[var(--text-muted)] font-medium">
-              Powered by TensorFlow.js
+              Powered by a trained degradation model
             </p>
           </div>
         </div>
@@ -65,7 +65,7 @@ export default function StrategyPredictor() {
         <div className="flex flex-col gap-2">
           <div className="skeleton h-[120px] rounded-[var(--radius-md)]" />
           <div className="text-[12px] text-[var(--text-muted)] text-center">
-            Training Neural Network...
+            Loading model weights...
           </div>
         </div>
       ) : (

@@ -171,15 +171,12 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
     if (!user || !predictions.p1 || !predictions.p2 || !predictions.p3 || hasDuplicatePicks) return
     
     setLoading(true)
-    const username = user.email?.split('@')[0] || 'Anonymous'
-
     try {
       const res = await fetch('/api/fantasy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: user.id,
-          username,
           series,
           round,
           ...predictions

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getRaceStatus } from '@/lib/f1Parsers'
 
 export const revalidate = 300 // Cache for 5 minutes
 
@@ -38,24 +39,19 @@ export async function GET(request: NextRequest) {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rounds = races.map((race: any) => {
-      const raceDate = new Date(`${race.date}T${race.time || '00:00:00Z'}`)
-      
-      let status = 'upcoming'
-      if (now > raceDate) {
-        status = 'completed'
+      const status = getRaceStatus(race, now)
+      if (status === 'completed') {
         // If this race is completed, the current round is at least the next one
         const roundNum = parseInt(race.round)
         if (roundNum >= currentRound) {
           currentRound = Math.min(roundNum + 1, races.length)
         }
-      } else if (now >= new Date(race.FirstPractice?.date || raceDate) && now <= raceDate) {
-        status = 'live'
+      } else if (status === 'live') {
         currentRound = parseInt(race.round)
       }
 
       // Try to find matching OpenF1 sessions for this round
       // OpenF1 groups sessions by meeting_key, so we find the Race session first to get the meeting_key
-      const raceSessionNameMatch = race.raceName.replace(' Grand Prix', '')
       const openF1RaceSession = openF1Sessions.find(s => 
         s.session_name === 'Race' && 
         (s.country_name === race.Circuit.Location.country || s.location === race.Circuit.Location.locality) &&

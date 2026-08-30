@@ -22,6 +22,21 @@ interface TrackGeometry {
   rotation: number;
 }
 
+const F1_TRACK_FACTS: Record<string, { lengthKm: number; totalLaps: number }> = {
+  Sakhir: { lengthKm: 5.412, totalLaps: 57 }, Jeddah: { lengthKm: 6.174, totalLaps: 50 },
+  Melbourne: { lengthKm: 5.278, totalLaps: 58 }, Suzuka: { lengthKm: 5.807, totalLaps: 53 },
+  Shanghai: { lengthKm: 5.451, totalLaps: 56 }, Miami: { lengthKm: 5.412, totalLaps: 57 },
+  Imola: { lengthKm: 4.909, totalLaps: 63 }, 'Monte Carlo': { lengthKm: 3.337, totalLaps: 78 },
+  Montreal: { lengthKm: 4.361, totalLaps: 70 }, Catalunya: { lengthKm: 4.657, totalLaps: 66 },
+  Spielberg: { lengthKm: 4.318, totalLaps: 71 }, Silverstone: { lengthKm: 5.891, totalLaps: 52 },
+  Hungaroring: { lengthKm: 4.381, totalLaps: 70 }, 'Spa-Francorchamps': { lengthKm: 7.004, totalLaps: 44 },
+  Zandvoort: { lengthKm: 4.259, totalLaps: 72 }, Monza: { lengthKm: 5.793, totalLaps: 53 },
+  Baku: { lengthKm: 6.003, totalLaps: 51 }, Singapore: { lengthKm: 4.94, totalLaps: 62 },
+  Austin: { lengthKm: 5.513, totalLaps: 56 }, 'Mexico City': { lengthKm: 4.304, totalLaps: 71 },
+  Interlagos: { lengthKm: 4.309, totalLaps: 71 }, 'Las Vegas': { lengthKm: 6.201, totalLaps: 50 },
+  Lusail: { lengthKm: 5.419, totalLaps: 57 }, 'Yas Marina Circuit': { lengthKm: 5.281, totalLaps: 58 },
+};
+
 async function getJSON(url: string, retries = 3): Promise<any> {
   for (let i = 0; i < retries; i++) {
     try {
@@ -138,11 +153,13 @@ async function main() {
     const rawPoints = locs.map((p: any) => ({ x: p.x, y: p.y }));
     const normalizedPoints = normalizeCoordinates(rawPoints);
 
+    const facts = F1_TRACK_FACTS[venueName];
+    if (!facts) throw new Error(`Missing race facts for ${venueName}`);
     const track: TrackGeometry = {
       name: venueName === 'Sakhir' ? 'Bahrain International Circuit' : venueName,
       country: country,
-      lengthKm: 5.0, // Keeping simple for now
-      totalLaps: 50,
+      lengthKm: facts.lengthKm,
+      totalLaps: facts.totalLaps,
       type: 'circuit',
       referenceLine: normalizedPoints,
       innerEdge: [],
