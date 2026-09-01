@@ -5,34 +5,41 @@ export class TireDegradationModel {
 
   constructor() {
     this.model = tf.sequential()
-    // Simple linear regression: predict lap time added based on lap count
-    this.model.add(tf.layers.dense({ units: 1, inputShape: [1] }))
+    // 2 inputs: lap count, and compound multiplier
+    this.model.add(tf.layers.dense({ units: 8, activation: 'relu', inputShape: [2] }))
+    this.model.add(tf.layers.dense({ units: 1 }))
     this.model.compile({
-      optimizer: tf.train.sgd(0.001),
+      optimizer: tf.train.adam(0.05),
       loss: 'meanSquaredError'
     })
   }
 
   /**
-   * Train the model with some simulated historical data
+   * Train the model with synthetic multi-compound data
    */
   async train() {
-    // x: lap number on current tire
-    const laps = [1, 5, 10, 15, 20, 25, 30]
-    // y: time degradation in seconds (e.g. lap 30 is 2.5s slower)
-    const degradation = [0.1, 0.4, 0.9, 1.4, 1.8, 2.2, 2.6]
+    const inputs: number[][] = []
+    const outputs: number[][] = []
     
-    const xs = tf.tensor2d(laps, [laps.length, 1])
-    const ys = tf.tensor2d(degradation, [degradation.length, 1])
+    const compounds = [1.0, 0.6, 0.3] // SOFT, MEDIUM, HARD
+    
+    for (const comp of compounds) {
+      for (let lap = 1; lap <= 40; lap++) {
+        inputs.push([lap, comp])
+        // Non-linear degradation curve
+        let deg = (0.08 * comp) * lap
+        if (comp === 1.0 && lap > 12) deg += 0.1 * (lap - 12) // Soft cliff
+        if (comp === 0.6 && lap > 25) deg += 0.05 * (lap - 25) // Medium cliff
+        outputs.push([deg])
+      }
+    }
+    
+    const xs = tf.tensor2d(inputs, [inputs.length, 2])
+    const ys = tf.tensor2d(outputs, [outputs.length, 1])
 
     await this.model.fit(xs, ys, {
       epochs: 50,
-      shuffle: true,
-      callbacks: {
-        onEpochEnd: (epoch, logs) => {
-          // Training progress could be logged here
-        }
-      }
+      shuffle: true
     })
 
     xs.dispose()
@@ -40,17 +47,18 @@ export class TireDegradationModel {
   }
 
   /**
-   * Predict the time degradation for a specific lap count
+   * Predict the time degradation for a specific lap count and compound
    */
-  predict(lap: number): number {
-    const input = tf.tensor2d([lap], [1, 1])
+  predict(lap: number, compound: 'SOFT' | 'MEDIUM' | 'HARD'): number {
+    const compVal = compound === 'SOFT' ? 1.0 : (compound === 'MEDIUM' ? 0.6 : 0.3)
+    const input = tf.tensor2d([[lap, compVal]], [1, 2])
     const output = this.model.predict(input) as tf.Tensor
     const prediction = output.dataSync()[0]
     
     input.dispose()
     output.dispose()
     
-    return prediction
+    return Math.max(0, prediction)
   }
 
   /**

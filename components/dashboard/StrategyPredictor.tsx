@@ -1,107 +1,175 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { BrainCircuit } from 'lucide-react'
+import { useEffect, useState, useRef } from 'react'
+import { BrainCircuit, Loader2 } from 'lucide-react'
 import { TireDegradationModel } from '@/lib/ml/tireModel'
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
+
+type Compound = 'SOFT' | 'MEDIUM' | 'HARD'
 
 export default function StrategyPredictor() {
   const [predictions, setPredictions] = useState<{ lap: number, degradation: number }[]>([])
   const [loading, setLoading] = useState(true)
+  const [compound, setCompound] = useState<Compound>('SOFT')
+  const [pitLap, setPitLap] = useState<number>(20)
+  
+  const modelRef = useRef<TireDegradationModel | null>(null)
 
   useEffect(() => {
     let isMounted = true
 
-    const loadModel = async () => {
-      let tfModel: TireDegradationModel | null = null
+    const initModel = async () => {
       try {
-        tfModel = new TireDegradationModel()
-        
-        // Train the TensorFlow model (uses simulated historical data internally)
+        const tfModel = new TireDegradationModel()
         await tfModel.train()
         
-        if (!isMounted) return
-
-        // Generate predictions for laps 5 to 30 (intervals of 5)
-        const preds = []
-        for (let lap = 5; lap <= 30; lap += 5) {
-          const pred = tfModel.predict(lap)
-          preds.push({ lap, degradation: pred })
+        if (!isMounted) {
+          tfModel.dispose()
+          return
         }
         
-        setPredictions(preds)
+        modelRef.current = tfModel
+        setLoading(false)
       } catch (error) {
         console.error('ML Model Error:', error)
-      } finally {
-        if (tfModel) {
-          try {
-            tfModel.dispose()
-          } catch (e) {
-            console.error('Error disposing model:', e)
-          }
-        }
         if (isMounted) setLoading(false)
       }
     }
 
-    loadModel()
+    initModel()
 
     return () => {
       isMounted = false
+      if (modelRef.current) {
+        try {
+          modelRef.current.dispose()
+        } catch(e) {
+          console.error(e)
+        }
+      }
     }
   }, [])
 
+  // Re-run predictions when the model loads or slider/compound changes
+  useEffect(() => {
+    if (!modelRef.current) return
+
+    const preds = []
+    // Predict degradation for laps 1 to 40
+    for (let lap = 1; lap <= 40; lap++) {
+      // If the car pits, degradation resets
+      const currentTireAge = lap < pitLap ? lap : (lap - pitLap + 1)
+      const pred = modelRef.current.predict(currentTireAge, compound)
+      preds.push({ lap, degradation: Number(pred.toFixed(2)) })
+    }
+    
+    setPredictions(preds)
+  }, [loading, compound, pitLap])
+
   return (
     <div className="card glass rounded-[var(--radius-xl)] p-6">
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-purple-500/12 flex items-center justify-center text-purple-400">
             <BrainCircuit size={16} />
           </div>
           <div>
-            <h2 className="font-[family-name:var(--font-disp)] uppercase text-2xl font-extrabold tracking-[-0.01em]">AI Strategy Predictor</h2>
+            <h2 className="font-[family-name:var(--font-disp)] uppercase text-xl font-extrabold tracking-[-0.01em]">Interactive Strategy Sandbox</h2>
             <p className="text-[11px] text-[var(--text-muted)] font-medium">
-              Powered by a trained degradation model
+              Live time-loss projection via ML Model
             </p>
           </div>
         </div>
       </div>
 
       {loading ? (
-        <div className="flex flex-col gap-2">
-          <div className="skeleton h-[120px] rounded-[var(--radius-md)]" />
-          <div className="text-[12px] text-[var(--text-muted)] text-center">
-            Loading model weights...
+        <div className="flex flex-col items-center justify-center h-[250px] gap-3">
+          <Loader2 className="animate-spin text-purple-400" size={24} />
+          <div className="text-[12px] text-[var(--text-muted)]">
+            Training TensorFlow.js model in browser...
           </div>
         </div>
       ) : (
-        <div>
-          <p className="text-[13px] text-[var(--text-secondary)] mb-4 leading-relaxed">
-            Predicted tire degradation (seconds added per lap) on current compound:
-          </p>
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[var(--surface-sunken)] p-4 rounded-[var(--radius-lg)]">
+            <div>
+              <label className="text-[12px] uppercase font-bold text-[var(--text-muted)] mb-2 block">
+                Tire Compound
+              </label>
+              <div className="flex gap-2">
+                {(['SOFT', 'MEDIUM', 'HARD'] as Compound[]).map((c) => (
+                  <button
+                    key={c}
+                    onClick={() => setCompound(c)}
+                    className={`flex-1 text-[11px] font-bold py-1.5 rounded-[var(--radius-sm)] transition-all ${
+                      compound === c
+                        ? c === 'SOFT' ? 'bg-red-500 text-white'
+                        : c === 'MEDIUM' ? 'bg-yellow-500 text-black'
+                        : 'bg-white text-black'
+                        : 'bg-[var(--surface-elevated)] text-[var(--text-secondary)] hover:text-white'
+                    }`}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-[12px] uppercase font-bold text-[var(--text-muted)]">
+                  Pit Stop Lap
+                </label>
+                <span className="text-[12px] font-mono text-[var(--amber)]">Lap {pitLap}</span>
+              </div>
+              <input 
+                type="range" 
+                min="5" max="35" 
+                value={pitLap} 
+                onChange={(e) => setPitLap(parseInt(e.target.value))}
+                className="w-full accent-[var(--amber)] cursor-pointer"
+              />
+            </div>
+          </div>
           
-          <div className="flex items-end gap-2 h-[140px] pb-5 border-b border-[var(--border-subtle)]">
-            {predictions.map((p, i) => {
-              // Normalize height for the bar chart based on max degradation (approx 3 seconds)
-              const heightPercent = Math.min(100, Math.max(10, (p.degradation / 3.0) * 100))
-              
-              return (
-                <div key={p.lap} className="flex-1 flex flex-col items-center gap-2">
-                  <div className="text-[10px] text-[var(--text-primary)] font-semibold">
-                    +{p.degradation.toFixed(2)}s
-                  </div>
-                  <div style={{
-                    width: '100%',
-                    height: `${heightPercent}%`,
-                    background: `linear-gradient(to top, rgba(139,92,246,0.2), rgba(139,92,246,0.8))`,
-                    borderRadius: '4px 4px 0 0',
-                    transition: 'height 1s ease-out',
-                  }} />
-                  <div className="text-[10px] text-[var(--text-muted)] font-medium mt-1">
-                    L{p.lap}
-                  </div>
-                </div>
-              )
-            })}
+          <div className="h-[200px] w-full mt-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={predictions} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorDeg" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <XAxis 
+                  dataKey="lap" 
+                  tick={{ fontSize: 10, fill: 'var(--text-muted)' }} 
+                  axisLine={false} 
+                  tickLine={false} 
+                />
+                <YAxis 
+                  tick={{ fontSize: 10, fill: 'var(--text-muted)' }} 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tickFormatter={(val) => `+${val}s`}
+                />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: 'var(--surface-elevated)', border: 'none', borderRadius: '8px' }}
+                  itemStyle={{ color: 'var(--text-primary)' }}
+                  labelStyle={{ color: 'var(--text-muted)', marginBottom: '4px' }}
+                  formatter={(value: number) => [`+${value}s`, 'Degradation']}
+                  labelFormatter={(label) => `Lap ${label}`}
+                />
+                <ReferenceLine x={pitLap} stroke="var(--amber)" strokeDasharray="3 3" label={{ position: 'top', value: 'PIT', fill: 'var(--amber)', fontSize: 10, fontWeight: 'bold' }} />
+                <Area 
+                  type="monotone" 
+                  dataKey="degradation" 
+                  stroke="#8b5cf6" 
+                  strokeWidth={2}
+                  fillOpacity={1} 
+                  fill="url(#colorDeg)" 
+                />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
       )}
