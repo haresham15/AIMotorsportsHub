@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { BrainCircuit } from 'lucide-react'
+import { TireDegradationModel } from '@/lib/ml/tireModel'
 
 export default function StrategyPredictor() {
   const [predictions, setPredictions] = useState<{ lap: number, degradation: number }[]>([])
@@ -11,22 +12,19 @@ export default function StrategyPredictor() {
     let isMounted = true
 
     const loadModel = async () => {
+      let tfModel: TireDegradationModel | null = null
       try {
-        const res = await fetch('/models/tire_degradation_weights.json')
-        let softDegRate = 0.12 // Fallback default
-        if (res.ok) {
-          const data = await res.json()
-          if (data['SOFT']) {
-            softDegRate = data['SOFT'].degradation_rate_per_lap
-          }
-        }
+        tfModel = new TireDegradationModel()
+        
+        // Train the TensorFlow model (uses simulated historical data internally)
+        await tfModel.train()
         
         if (!isMounted) return
 
         // Generate predictions for laps 5 to 30 (intervals of 5)
         const preds = []
         for (let lap = 5; lap <= 30; lap += 5) {
-          const pred = softDegRate * lap
+          const pred = tfModel.predict(lap)
           preds.push({ lap, degradation: pred })
         }
         
@@ -34,6 +32,13 @@ export default function StrategyPredictor() {
       } catch (error) {
         console.error('ML Model Error:', error)
       } finally {
+        if (tfModel) {
+          try {
+            tfModel.dispose()
+          } catch (e) {
+            console.error('Error disposing model:', e)
+          }
+        }
         if (isMounted) setLoading(false)
       }
     }
