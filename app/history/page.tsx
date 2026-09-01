@@ -13,12 +13,30 @@ export default function HistoryPage() {
         Dive deep into the ultimate motorsport archive. Explore past seasons, compare drivers head-to-head, and discover legendary track records.
       </p>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Link href="/history/what-if" className="card glass rounded-[var(--radius-xl)] p-8 hover-lift group relative overflow-hidden border border-[var(--primary)]/30">
+          <div className="absolute -right-8 -top-8 w-32 h-32 bg-[var(--primary)]/20 rounded-full blur-2xl group-hover:bg-[var(--primary)]/30 transition-colors" />
+          <h2 className="text-2xl font-bold mb-3 font-[family-name:var(--font-disp)] flex items-center gap-2">
+            What If? Simulator <span className="bg-[var(--primary)] text-white text-[10px] uppercase px-2 py-0.5 rounded-full font-bold tracking-wider">New</span>
+          </h2>
+          <p className="text-[var(--text-secondary)] leading-relaxed">
+            Ask historical counterfactuals. Our AI and ML models simulate alternate realities based on real telemetry.
+          </p>
+        </Link>
+
         <Link href="/history/seasons" className="card glass rounded-[var(--radius-xl)] p-8 hover-lift group relative overflow-hidden">
           <div className="absolute -right-8 -top-8 w-32 h-32 bg-[var(--amber)]/10 rounded-full blur-2xl group-hover:bg-[var(--amber)]/20 transition-colors" />
           <h2 className="text-2xl font-bold mb-3 font-[family-name:var(--font-disp)]">Past Seasons</h2>
           <p className="text-[var(--text-secondary)] leading-relaxed">
             Explore final standings and race results from every season since 1950.
+          </p>
+        </Link>
+        
+        <Link href="/history/goat" className="card glass rounded-[var(--radius-xl)] p-8 hover-lift group relative overflow-hidden">
+          <div className="absolute -right-8 -top-8 w-32 h-32 bg-[var(--amber)]/20 rounded-full blur-2xl group-hover:bg-[var(--amber)]/30 transition-colors" />
+          <h2 className="text-2xl font-bold mb-3 font-[family-name:var(--font-disp)]">The GOAT Debate</h2>
+          <p className="text-[var(--text-secondary)] leading-relaxed">
+            A mathematically rigorous, dual-Elo rating system comparing drivers across all eras by isolating their skill from car dominance.
           </p>
         </Link>
         

@@ -20,11 +20,8 @@ export default function SiteFooter() {
             <Link href="/models" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">
               Predictive AI Models
             </Link>
-            <Link href="#" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">
+            <Link href="/embed/f1" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">
               Embed Widget
-            </Link>
-            <Link href="#" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">
-              Calendar Feed
             </Link>
           </div>
           <div>
@@ -34,7 +31,7 @@ export default function SiteFooter() {
             <Link href="/about/data" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">
               Data & Methodology
             </Link>
-            <Link href="#" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">
+            <Link href="/developers" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">
               Developer API
             </Link>
           </div>
@@ -48,7 +45,7 @@ export default function SiteFooter() {
             <Link href="/about" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">
               About Apexis
             </Link>
-            <a href="https://github.com" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">
+            <a href="https://github.com/haresham15/AIMotorsportsHub" target="_blank" rel="noopener noreferrer" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">
               GitHub
             </a>
           </div>

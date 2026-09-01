@@ -4,10 +4,8 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   poweredByHeader: false,
   serverExternalPackages: ['better-sqlite3'],
-  experimental: {
-    outputFileTracingIncludes: {
-      '/*': ['./data/**/*'],
-    },
+  outputFileTracingIncludes: {
+    '/*': ['./data/**/*']
   },
 
   async headers() {

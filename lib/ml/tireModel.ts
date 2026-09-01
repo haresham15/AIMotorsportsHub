@@ -67,4 +67,34 @@ export class TireDegradationModel {
   dispose() {
     this.model.dispose()
   }
+
+  /**
+   * Helper function to simulate time delta if a driver pits earlier/later.
+   * A negative result means they gained time (faster overall).
+   * A positive result means they lost time (slower overall).
+   * Note: This assumes a simplified 1-stop strategy replacement.
+   */
+  async simulateTireDelta(originalPitLap: number, newPitLap: number, compound: 'SOFT' | 'MEDIUM' | 'HARD'): Promise<number> {
+    // Ensure model is trained (for serverless environments)
+    if (!this.model.optimizer) {
+      await this.train();
+    }
+    
+    // In our simplified model, the 'predict' method returns degradation time penalty for a given lap
+    // The total degradation over a stint is the sum of penalties for each lap
+    
+    let originalStintDeg = 0;
+    for (let i = 1; i <= originalPitLap; i++) {
+      originalStintDeg += this.predict(i, compound);
+    }
+    
+    let newStintDeg = 0;
+    for (let i = 1; i <= newPitLap; i++) {
+      newStintDeg += this.predict(i, compound);
+    }
+    
+    // Total delta is new degradation - original degradation
+    // e.g. if newStintDeg < originalStintDeg, they gained time (negative delta)
+    return newStintDeg - originalStintDeg;
+  }
 }
