@@ -124,7 +124,8 @@ export default function HomeClient() {
           <div className="flex items-center gap-[var(--sp-6)] text-[14px] text-[var(--text-secondary)] font-medium">
             <a href="#series" className="hover:text-[var(--text-primary)] transition-colors hidden sm:block">Series</a>
             <a href="#how" className="hover:text-[var(--text-primary)] transition-colors hidden sm:block">How It Works</a>
-            <a href="#history" className="hover:text-[var(--text-primary)] transition-colors hidden sm:block">History</a>
+            <a href="#history" className="hover:text-[var(--text-primary)] transition-colors hidden sm:block">Timeline</a>
+            <Link href="/history" className="hover:text-[var(--amber)] transition-colors hidden sm:block font-bold">Data Archive</Link>
             <div className="ml-2">
               <AuthButton />
             </div>
@@ -309,6 +310,12 @@ export default function HomeClient() {
               <div className="text-[13.5px] text-[var(--text-secondary)] leading-[1.6]">The Beijing ePrix opened all-electric racing on city streets - proof the sport's next chapter was already being written.</div>
             </div>
           </div>
+          
+          <div className="mt-[var(--sp-7)] flex justify-center">
+            <Link href="/history" className="btn-primary-amber flex items-center gap-2">
+              Explore the Historical Data Archive &rarr;
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -337,7 +344,8 @@ export default function HomeClient() {
             </div>
             <div className="foot-col">
               <h4>About</h4>
-              <a href="#history" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">History</a>
+              <a href="#history" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">Timeline</a>
+              <Link href="/history" className="block text-[14px] text-[var(--amber)] font-bold mb-[var(--sp-3)] hover:opacity-80 transition-opacity">Data Archive</Link>
               <a href="https://github.com" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">GitHub</a>
               <a href="#" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">Built by Haresh Murugesan</a>
             </div>

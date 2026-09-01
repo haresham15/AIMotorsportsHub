@@ -210,6 +210,12 @@ export default function SeriesDashboard() {
             <div className="animate-fade-in-up delay-300">
               <TeamHistory series={series} />
             </div>
+            <div className="animate-fade-in-up delay-350">
+              <Link href="/history" className="block card glass-hover p-6 rounded-[var(--radius-xl)] bg-[var(--bg-card)] border border-[var(--border-subtle)] no-underline h-full">
+                <h3 className="m-0 text-lg font-semibold text-[var(--amber)] mb-2">Historical Archive</h3>
+                <p className="text-sm text-[var(--text-secondary)] m-0 leading-[1.5]">Explore past seasons, historical standings, driver head-to-heads, and track records.</p>
+              </Link>
+            </div>
             <div className="animate-fade-in-up delay-400">
               <WhereToWatch series={series} />
             </div>

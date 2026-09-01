@@ -9,6 +9,7 @@ A centralized, personalized web platform for motorsport fans to track their favo
 - **Machine Learning Strategy Predictor**: TensorFlow.js integration predicting tire degradation with real-time time-loss estimates for staying out on aging tires.
 - **Computer Vision Standings Extractor**: In-browser OCR using `tesseract.js` to automatically extract live standings directly from TV broadcasts (runs entirely client-side).
 - **Multi-Threaded Live Race Simulation**: 2D race map visualization powered by a custom Web Worker engine. Incorporates true track geometries (via OpenF1), session-specific dynamic lap logic (Sprint, Qualifying, Practice, Race), and dynamic framerate buffering for endurance events.
+- **Historical Statistics Archive**: Access historical records dating back to 1950, featuring comprehensive past seasons, track records, and interactive head-to-head driver comparisons (powered by a local SQLite database).
 - **Public Portfolio Demo (Guest Access)**: Core functionality is available to guests without an account, while a fully functioning Supabase Auth integration handles optional personalized features.
 
 ## Tech Stack
@@ -19,6 +20,7 @@ A centralized, personalized web platform for motorsport fans to track their favo
 - **Computer Vision**: Tesseract.js (In-Browser Web Worker OCR)
 - **Generative AI**: Google Gemini API (`@google/generative-ai`)
 - **Simulation Engine**: Custom Multi-Threaded Web Worker Pipeline
+- **Database**: `better-sqlite3` for local historical statistical storage
 
 ## Prerequisites
 
@@ -38,9 +40,11 @@ See [DEPLOYMENT.md](./DEPLOYMENT.md) for a comprehensive guide on how to deploy 
 ```text
 ├── app/
 │   ├── dashboard/[series]/    # Sport-specific dashboard pages
+│   ├── history/               # Historical Statistics Archive pages
 │   ├── api/                   # Next.js Serverless API Routes
 │   │   ├── ai/                # AI Chatbot endpoints
 │   │   ├── f1/                # F1 data & OpenF1 endpoints
+│   │   ├── historical/        # SQLite Database query endpoints
 │   │   └── replay/            # Replay system endpoints
 │   └── page.tsx               # Main dashboard
 ├── components/
@@ -51,8 +55,11 @@ See [DEPLOYMENT.md](./DEPLOYMENT.md) for a comprehensive guide on how to deploy 
 │       ├── LiveStandings.tsx  # Real-time race standings
 │       └── LiveMap2D.tsx      # 2D race map visualization
 ├── lib/
-│   └── ml/
-│       └── tireModel.ts       # TensorFlow.js neural network definition
+│   ├── ml/
+│   │   └── tireModel.ts       # TensorFlow.js neural network definition
+│   └── db.ts                  # SQLite database access and queries
+├── data/
+│   └── f1_history.db          # Core statistical database
 ├── workers/                   # Web workers for heavy off-main-thread processing
 │   └── simulator.worker.ts    # Race replay simulation worker
 └── public/                    # Static assets
@@ -64,6 +71,11 @@ See [DEPLOYMENT.md](./DEPLOYMENT.md) for a comprehensive guide on how to deploy 
 - Overview of all supported racing series
 - Navigation to sport-specific dashboards
 - Predictive AI modeling
+
+### Historical Statistics Archive
+- **Past Seasons**: View complete race calendars and final Championship standings for every season.
+- **Head-to-Head**: Direct performance comparison between two drivers across all their shared races, utilizing URL query parameters for fast server-side rendering.
+- **Track Records**: View historical data for all tracks that have hosted races.
 
 ### Sport-Specific Dashboard
 - **AI Strategy Predictor**: Dynamic charting projecting time penalties for staying out on aging tires.
