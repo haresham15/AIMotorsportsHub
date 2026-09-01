@@ -4,7 +4,8 @@ export default function AboutPage() {
   return (
     <main className="max-w-[1200px] mx-auto px-6 py-12">
       <Link href="/" className="text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">← Back to Hub</Link>
-      <h1 className="text-4xl md:text-5xl font-extrabold mt-6 mb-4 tracking-tight">About Apexis</h1>
+      <div className="eyebrow mt-8">The Platform</div>
+      <h1 className="text-4xl md:text-5xl font-extrabold mt-2 mb-4 tracking-tight font-[family-name:var(--font-disp)] uppercase">About Apexis</h1>
       <p className="text-[var(--text-secondary)] text-[18px] max-w-[640px] mb-12 leading-[1.65]">
         You used to need a timing app, a strategist's Twitter feed, and last week's highlights reel. Apexis puts the whole weekend on one wall.
       </p>

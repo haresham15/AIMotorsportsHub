@@ -8,8 +8,9 @@ export default function HistoryPage() {
   return (
     <main className="max-w-[1200px] mx-auto px-6 py-12">
       <Link href="/" className="text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">← Back to Hub</Link>
-      <h1 className="text-4xl md:text-5xl font-extrabold mt-6 mb-2 tracking-tight">Historical Data & Statistics</h1>
-      <p className="text-[var(--text-secondary)] mb-10 text-lg max-w-2xl">
+      <div className="eyebrow mt-8">The Archive</div>
+      <h1 className="text-4xl md:text-5xl font-extrabold mt-2 mb-2 tracking-tight font-[family-name:var(--font-disp)] uppercase">Historical Data & Statistics</h1>
+      <p className="text-[var(--text-secondary)] mb-10 text-lg max-w-[640px] leading-[1.65]">
         Dive deep into the ultimate motorsport archive. Explore past seasons, compare drivers head-to-head, and discover legendary track records.
       </p>
       

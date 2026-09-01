@@ -4,7 +4,8 @@ export default function LegacyPage() {
   return (
     <main className="max-w-[1200px] mx-auto px-6 py-12">
       <Link href="/" className="text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">← Back to Hub</Link>
-      <h1 className="text-4xl md:text-5xl font-extrabold mt-6 mb-8 tracking-tight">The Heritage of Racing</h1>
+      <div className="eyebrow mt-8">Motorsport Timeline</div>
+      <h1 className="text-4xl md:text-5xl font-extrabold mt-2 mb-8 tracking-tight font-[family-name:var(--font-disp)] uppercase">The Heritage of Racing</h1>
       <p className="text-[var(--text-secondary)] text-[18px] max-w-[640px] mb-[var(--sp-9)] leading-[1.65]">
         Every series traces back to someone deciding two vehicles should settle it on a track. These are the foundational moments that built the sport you watch today.
       </p>

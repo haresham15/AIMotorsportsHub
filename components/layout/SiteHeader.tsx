@@ -17,6 +17,9 @@ export default function SiteHeader() {
           <Link href="/history" className="hover:text-[var(--text-primary)] transition-colors hidden sm:block">
             History
           </Link>
+          <Link href="/models" className="hover:text-[var(--text-primary)] transition-colors hidden sm:block">
+            Models
+          </Link>
           <Link href="/legacy" className="hover:text-[var(--text-primary)] transition-colors hidden sm:block">
             Legacy
           </Link>
