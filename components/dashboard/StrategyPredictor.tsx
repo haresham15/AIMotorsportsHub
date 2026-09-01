@@ -156,7 +156,7 @@ export default function StrategyPredictor() {
                   contentStyle={{ backgroundColor: 'var(--surface-elevated)', border: 'none', borderRadius: '8px' }}
                   itemStyle={{ color: 'var(--text-primary)' }}
                   labelStyle={{ color: 'var(--text-muted)', marginBottom: '4px' }}
-                  formatter={(value: number) => [`+${value}s`, 'Degradation']}
+                  formatter={(value: any) => [`+${value}s`, 'Degradation']}
                   labelFormatter={(label) => `Lap ${label}`}
                 />
                 <ReferenceLine x={pitLap} stroke="var(--amber)" strokeDasharray="3 3" label={{ position: 'top', value: 'PIT', fill: 'var(--amber)', fontSize: 10, fontWeight: 'bold' }} />
