@@ -3,6 +3,12 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactCompiler: true,
   poweredByHeader: false,
+  serverExternalPackages: ['better-sqlite3'],
+  experimental: {
+    outputFileTracingIncludes: {
+      '/*': ['./data/**/*'],
+    },
+  },
 
   async headers() {
     return [
