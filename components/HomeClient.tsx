@@ -124,6 +124,7 @@ export default function HomeClient() {
           <div className="flex items-center gap-[var(--sp-6)] text-[14px] text-[var(--text-secondary)] font-medium">
             <a href="#series" className="hover:text-[var(--text-primary)] transition-colors hidden sm:block">Series</a>
             <a href="#how" className="hover:text-[var(--text-primary)] transition-colors hidden sm:block">How It Works</a>
+            <Link href="/models" className="hover:text-[var(--text-primary)] transition-colors hidden sm:block">AI Models</Link>
             <a href="#history" className="hover:text-[var(--text-primary)] transition-colors hidden sm:block">Timeline</a>
             <Link href="/history" className="hover:text-[var(--amber)] transition-colors hidden sm:block font-bold">Data Archive</Link>
             <div className="ml-2">
@@ -338,6 +339,7 @@ export default function HomeClient() {
             <div className="foot-col">
               <h4>Product</h4>
               <a href="#how" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">How It Works</a>
+              <Link href="/models" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">Predictive AI Models</Link>
               <a href="#" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">Developer API</a>
               <a href="#" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">Embed Widget</a>
               <a href="#" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">Calendar Feed</a>
