@@ -29,65 +29,64 @@ export default async function SeasonDetailsPage({ params }: { params: { year: st
   }
 
   return (
-    <div className="container mx-auto p-4 space-y-8">
-      <div className="flex items-center space-x-4 mb-4">
-        <Link href="/history/seasons" className="text-blue-500 hover:underline">
-          &larr; Back to Seasons
-        </Link>
-        <h1 className="text-3xl font-bold">{year} Formula 1 Season</h1>
-      </div>
+    <main className="max-w-[1200px] mx-auto px-6 py-12">
+      <Link href="/history/seasons" className="text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">← Back to Seasons</Link>
+      <h1 className="text-4xl md:text-5xl font-extrabold mt-6 mb-8 tracking-tight">{year} Formula 1 Season</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <section>
-          <h2 className="text-2xl font-bold mb-4">Final Championship Standings</h2>
+          <h2 className="text-2xl font-bold mb-4 font-[family-name:var(--font-disp)]">Championship Standings</h2>
           {standings.length > 0 ? (
-            <div className="overflow-x-auto bg-white dark:bg-gray-800 rounded-lg shadow border dark:border-gray-700">
-              <table className="min-w-full text-sm text-left">
-                <thead className="text-xs uppercase bg-gray-50 dark:bg-gray-700">
-                  <tr>
-                    <th className="px-4 py-3">Pos</th>
-                    <th className="px-4 py-3">Driver</th>
-                    <th className="px-4 py-3">Constructor</th>
-                    <th className="px-4 py-3 text-right">Pts</th>
-                    <th className="px-4 py-3 text-right">Wins</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {standings.map((s, idx) => (
-                    <tr key={idx} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                      <td className="px-4 py-3 font-semibold">{s.position}</td>
-                      <td className="px-4 py-3">{s.forename} {s.surname}</td>
-                      <td className="px-4 py-3">{s.constructorName || '-'}</td>
-                      <td className="px-4 py-3 text-right font-mono">{s.points}</td>
-                      <td className="px-4 py-3 text-right font-mono">{s.wins}</td>
+            <div className="card glass rounded-[var(--radius-xl)] overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left whitespace-nowrap">
+                  <thead className="text-xs uppercase text-[var(--text-muted)] bg-[var(--surface-sunken)] border-b border-[var(--border-subtle)]">
+                    <tr>
+                      <th className="px-6 py-4 font-bold tracking-wider">Pos</th>
+                      <th className="px-6 py-4 font-bold tracking-wider">Driver</th>
+                      <th className="px-6 py-4 font-bold tracking-wider">Constructor</th>
+                      <th className="px-6 py-4 font-bold tracking-wider text-right">Pts</th>
+                      <th className="px-6 py-4 font-bold tracking-wider text-right">Wins</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--border-subtle)]">
+                    {standings.map((s, idx) => (
+                      <tr key={idx} className="hover:bg-[var(--surface-highlight)] transition-colors group">
+                        <td className="px-6 py-4 font-bold text-[var(--text-primary)]">{s.position}</td>
+                        <td className="px-6 py-4 font-semibold text-[var(--text-primary)]">{s.forename} {s.surname}</td>
+                        <td className="px-6 py-4 text-[var(--text-secondary)]">{s.constructorName || '-'}</td>
+                        <td className="px-6 py-4 text-right font-mono font-medium text-[var(--amber)]">{s.points}</td>
+                        <td className="px-6 py-4 text-right font-mono text-[var(--text-secondary)]">{s.wins}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           ) : (
-            <p className="text-gray-500">Standings data not available for this season.</p>
+            <p className="text-[var(--text-muted)]">Standings data not available for this season.</p>
           )}
         </section>
 
         <section>
-          <h2 className="text-2xl font-bold mb-4">Race Calendar</h2>
-          <div className="space-y-3">
+          <h2 className="text-2xl font-bold mb-4 font-[family-name:var(--font-disp)]">Race Calendar</h2>
+          <div className="space-y-4">
             {races.map((r) => (
-              <div key={r.raceId} className="flex justify-between items-center p-4 bg-white dark:bg-gray-800 rounded shadow border dark:border-gray-700">
-                <div>
-                  <span className="text-sm font-semibold text-gray-500 block">Round {r.round}</span>
-                  <span className="text-lg font-bold">{r.raceName}</span>
-                  <span className="block text-sm text-gray-600 dark:text-gray-400">{r.circuitName}, {r.country}</span>
+              <div key={r.raceId} className="card glass rounded-[var(--radius-lg)] p-5 hover-lift flex justify-between items-center group relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[var(--surface-highlight)] opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="relative z-10">
+                  <span className="text-xs font-bold text-[var(--amber)] uppercase tracking-wider block mb-1">Round {r.round}</span>
+                  <span className="text-lg font-bold text-[var(--text-primary)] block leading-tight">{r.raceName}</span>
+                  <span className="block text-sm text-[var(--text-secondary)] mt-1">{r.circuitName}, {r.country}</span>
                 </div>
-                <div className="text-right">
-                  <span className="font-mono text-sm">{r.date}</span>
+                <div className="text-right relative z-10">
+                  <span className="font-mono text-sm font-semibold text-[var(--text-muted)] bg-[var(--surface-sunken)] px-3 py-1.5 rounded-[var(--radius-sm)]">{r.date}</span>
                 </div>
               </div>
             ))}
           </div>
         </section>
       </div>
-    </div>
+    </main>
   );
 }

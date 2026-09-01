@@ -9,34 +9,32 @@ export default function TracksPage() {
   const tracks = getTrackRecords() as { circuitId: number; name: string; country: string; racesHosted: number }[];
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
-      <div className="flex items-center space-x-4 mb-4">
-        <Link href="/history" className="text-blue-500 hover:underline">
-          &larr; Back to History
-        </Link>
-        <h1 className="text-3xl font-bold">Track Records</h1>
-      </div>
+    <main className="max-w-[1200px] mx-auto px-6 py-12">
+      <Link href="/history" className="text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">← Back to History</Link>
+      <h1 className="text-4xl md:text-5xl font-extrabold mt-6 mb-8 tracking-tight">Track Records</h1>
       
-      <div className="overflow-x-auto bg-white dark:bg-gray-800 rounded-lg shadow border dark:border-gray-700">
-        <table className="min-w-full text-sm text-left">
-          <thead className="text-xs uppercase bg-gray-50 dark:bg-gray-700">
-            <tr>
-              <th className="px-4 py-3">Circuit Name</th>
-              <th className="px-4 py-3">Country</th>
-              <th className="px-4 py-3 text-right">Races Hosted</th>
-            </tr>
-          </thead>
-          <tbody>
-            {tracks.map((t) => (
-              <tr key={t.circuitId} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                <td className="px-4 py-3 font-semibold">{t.name}</td>
-                <td className="px-4 py-3">{t.country}</td>
-                <td className="px-4 py-3 text-right font-mono">{t.racesHosted}</td>
+      <div className="card glass rounded-[var(--radius-xl)] overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left whitespace-nowrap">
+            <thead className="text-xs uppercase text-[var(--text-muted)] bg-[var(--surface-sunken)] border-b border-[var(--border-subtle)]">
+              <tr>
+                <th className="px-6 py-4 font-bold tracking-wider">Circuit Name</th>
+                <th className="px-6 py-4 font-bold tracking-wider">Country</th>
+                <th className="px-6 py-4 font-bold tracking-wider text-right">Races Hosted</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-[var(--border-subtle)]">
+              {tracks.map((t) => (
+                <tr key={t.circuitId} className="hover:bg-[var(--surface-highlight)] transition-colors group">
+                  <td className="px-6 py-4 font-semibold text-[var(--text-primary)]">{t.name}</td>
+                  <td className="px-6 py-4 text-[var(--text-secondary)]">{t.country}</td>
+                  <td className="px-6 py-4 text-right font-mono font-medium text-[var(--amber)]">{t.racesHosted}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+    </main>
   );
 }

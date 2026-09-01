@@ -118,22 +118,6 @@ export default function HomeClient() {
         @media (max-width: 760px) { .series-grid { grid-template-columns: 1fr; } .series-card.featured { grid-column: span 1; flex-direction: column; align-items: flex-start; } .how-grid { grid-template-columns: 1fr; } .how-step { border-right: none; border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--sp-6); } .tl-row { grid-template-columns: 1fr; gap: 6px; } .foot-grid { grid-template-columns: 1fr 1fr; } }
       `}} />
 
-      <nav className="sticky top-0 z-[100] bg-[rgba(11,13,16,0.85)] backdrop-blur-[10px] border-b border-[var(--border-subtle)]">
-        <div className="max-w-[1180px] mx-auto px-[var(--sp-5)] flex items-center justify-between h-[68px]">
-          <Link href="/" className="logo no-underline"><span className="dot"></span>APEXIS</Link>
-          <div className="flex items-center gap-[var(--sp-6)] text-[14px] text-[var(--text-secondary)] font-medium">
-            <a href="#series" className="hover:text-[var(--text-primary)] transition-colors hidden sm:block">Series</a>
-            <a href="#how" className="hover:text-[var(--text-primary)] transition-colors hidden sm:block">How It Works</a>
-            <Link href="/models" className="hover:text-[var(--text-primary)] transition-colors hidden sm:block">AI Models</Link>
-            <a href="#history" className="hover:text-[var(--text-primary)] transition-colors hidden sm:block">Timeline</a>
-            <Link href="/history" className="hover:text-[var(--amber)] transition-colors hidden sm:block font-bold">Data Archive</Link>
-            <div className="ml-2">
-              <AuthButton />
-            </div>
-          </div>
-        </div>
-      </nav>
-
       <header className="hero">
         <div className="max-w-[1180px] mx-auto px-[var(--sp-5)] relative">
           <div className="start-lights">
@@ -177,22 +161,10 @@ export default function HomeClient() {
               You used to need a timing app, a strategist's Twitter feed, and last week's highlights reel. Apexis puts the whole weekend on one wall.
             </p>
           </div>
-          <div className="how-grid">
-            <div className="how-step">
-              <div className="how-num">01 / TRACK</div>
-              <h3>Watch it live</h3>
-              <p className="text-[14px] text-[var(--text-secondary)] leading-[1.65]">Real positions, gaps, and tyre life pulled straight from session timing - not a scoreboard that updates when someone remembers to refresh it.</p>
-            </div>
-            <div className="how-step">
-              <div className="how-num">02 / UNDERSTAND</div>
-              <h3>Get the briefing</h3>
-              <p className="text-[14px] text-[var(--text-secondary)] leading-[1.65]">An AI-written summary grounded in the actual standings and schedule - what happened, what's next, and what it means for the championship.</p>
-            </div>
-            <div className="how-step">
-              <div className="how-num">03 / RELIVE</div>
-              <h3>Replay the race</h3>
-              <p className="text-[14px] text-[var(--text-secondary)] leading-[1.65]">Scrub through the full circuit map lap by lap, compare drivers side by side, and see exactly where the race was won or lost.</p>
-            </div>
+          <div className="mt-[var(--sp-6)]">
+            <Link href="/about" className="btn-primary-amber flex inline-flex items-center gap-2">
+              Learn more &rarr;
+            </Link>
           </div>
         </div>
       </section>
@@ -265,7 +237,7 @@ export default function HomeClient() {
             <div className="eyebrow">The Sport Before The Screen</div>
             <h2>Racing didn't start with a livestream.</h2>
             <p className="text-[var(--text-secondary)] text-[15px] max-w-[520px] mt-[var(--sp-3)] leading-[1.65]">
-              Every series on this dashboard traces back to someone deciding two vehicles should settle it on a track. A few of the moments that built the sport you're watching tonight.
+              Every series on this dashboard traces back to someone deciding two vehicles should settle it on a track.
             </p>
           </div>
 
@@ -273,94 +245,23 @@ export default function HomeClient() {
             <div className="tl-row">
               <div className="tl-year">1894</div>
               <div className="tl-event">Paris-Rouen</div>
-              <div className="text-[13.5px] text-[var(--text-secondary)] leading-[1.6]">The first organized motoring competition - 79 miles, no rulebook, and the birth of the idea that cars could race, not just drive.</div>
+              <div className="text-[13.5px] text-[var(--text-secondary)] leading-[1.6]">The first organized motoring competition - 79 miles, no rulebook, and the birth of the idea that cars could race.</div>
             </div>
             <div className="tl-row">
               <div className="tl-year">1911</div>
               <div className="tl-event">Indianapolis 500</div>
-              <div className="text-[13.5px] text-[var(--text-secondary)] leading-[1.6]">The first running of what's now the oldest surviving major race in the world - and the start of American open-wheel racing.</div>
-            </div>
-            <div className="tl-row">
-              <div className="tl-year">1923</div>
-              <div className="tl-event">24 Hours of Le Mans</div>
-              <div className="text-[13.5px] text-[var(--text-secondary)] leading-[1.6]">Endurance racing's founding event - the same discipline GT World Challenge fields carry into the night today.</div>
-            </div>
-            <div className="tl-row">
-              <div className="tl-year">1950</div>
-              <div className="tl-event">F1's First Championship</div>
-              <div className="text-[13.5px] text-[var(--text-secondary)] leading-[1.6]">Silverstone hosted round one of the first official Formula 1 World Championship - the series that still leads this dashboard.</div>
-            </div>
-            <div className="tl-row">
-              <div className="tl-year">1951</div>
-              <div className="tl-event">NHRA Founded</div>
-              <div className="text-[13.5px] text-[var(--text-secondary)] leading-[1.6]">Wally Parks organized America's dragstrip chaos into a sanctioned sport - Top Fuel's quarter-mile record chase started here.</div>
-            </div>
-            <div className="tl-row">
-              <div className="tl-year">1959</div>
-              <div className="tl-event">First Daytona 500</div>
-              <div className="text-[13.5px] text-[var(--text-secondary)] leading-[1.6]">NASCAR's new high-banked superspeedway hosted its first 500 - and stock car racing found its cathedral.</div>
-            </div>
-            <div className="tl-row">
-              <div className="tl-year">1994</div>
-              <div className="tl-event">Imola, and a Reckoning</div>
-              <div className="text-[13.5px] text-[var(--text-secondary)] leading-[1.6]">Ayrton Senna's death at the San Marino Grand Prix triggered the safety-first era every series on this dashboard now races under.</div>
-            </div>
-            <div className="tl-row">
-              <div className="tl-year">2014</div>
-              <div className="tl-event">Formula E's First Race</div>
-              <div className="text-[13.5px] text-[var(--text-secondary)] leading-[1.6]">The Beijing ePrix opened all-electric racing on city streets - proof the sport's next chapter was already being written.</div>
+              <div className="text-[13.5px] text-[var(--text-secondary)] leading-[1.6]">The first running of what's now the oldest surviving major race in the world.</div>
             </div>
           </div>
           
-          <div className="mt-[var(--sp-7)] flex justify-center">
-            <Link href="/history" className="btn-primary-amber flex items-center gap-2">
-              Explore the Historical Data Archive &rarr;
+          <div className="mt-[var(--sp-7)] flex justify-start">
+            <Link href="/legacy" className="border border-[var(--border-subtle)] px-[26px] py-[14px] rounded-[6px] text-[15px] font-semibold text-[var(--text-secondary)] transition-colors hover:border-[var(--text-secondary)] hover:text-[var(--text-primary)]">
+              See the full story &rarr;
             </Link>
           </div>
         </div>
       </section>
 
-      <footer className="py-[var(--sp-8)] relative z-10">
-        <div className="max-w-[1180px] mx-auto px-[var(--sp-5)]">
-          <div className="foot-grid">
-            <div className="pr-4">
-              <Link href="/" className="logo no-underline mb-[var(--sp-3)]"><span className="dot"></span>APEXIS</Link>
-              <p className="text-[13px] text-[var(--text-muted)] max-w-[280px] leading-[1.6]">
-                An independent dashboard built for motorsport fans who want the whole weekend - live timing, AI briefings, and full replays - in one place.
-              </p>
-            </div>
-            <div className="foot-col">
-              <h4>Series</h4>
-              <a href="/dashboard/f1" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">Formula 1</a>
-              <a href="/dashboard/nascar" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">NASCAR</a>
-              <a href="/dashboard/formula-e" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">Formula E</a>
-              <a href="/dashboard/gt-world-challenge" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">GT World Challenge</a>
-            </div>
-            <div className="foot-col">
-              <h4>Product</h4>
-              <a href="#how" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">How It Works</a>
-              <Link href="/models" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">Predictive AI Models</Link>
-              <a href="#" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">Developer API</a>
-              <a href="#" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">Embed Widget</a>
-              <a href="#" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">Calendar Feed</a>
-            </div>
-            <div className="foot-col">
-              <h4>About</h4>
-              <a href="#history" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">Timeline</a>
-              <Link href="/history" className="block text-[14px] text-[var(--amber)] font-bold mb-[var(--sp-3)] hover:opacity-80 transition-opacity">Data Archive</Link>
-              <a href="https://github.com" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">GitHub</a>
-              <a href="#" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">Built by Haresh Murugesan</a>
-            </div>
-          </div>
-          <div className="foot-bottom">
-            <div className="flex items-center gap-[8px]">
-              <span className="w-[7px] h-[7px] rounded-full bg-[var(--green-flag)] shadow-[0_0_6px_var(--green-flag)]"></span>
-              ALL SYSTEMS LIVE
-            </div>
-            <div>(c) 2026 APEXIS - NOT AFFILIATED WITH FIA, NASCAR, OR NHRA</div>
-          </div>
-        </div>
-      </footer>
     </>
   )
 }

@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { Analytics } from '@vercel/analytics/react';
 import { Toaster } from 'sonner';
+import SiteHeader from '@/components/layout/SiteHeader';
+import SiteFooter from '@/components/layout/SiteFooter';
 import "./globals.css";
 
 const inter = Inter({
@@ -76,10 +78,14 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&display=swap" rel="stylesheet" />
       </head>
       <body
-        className={`${inter.variable} ${jetbrainsMono.variable}`}
+        className={`${inter.variable} ${jetbrainsMono.variable} flex flex-col min-h-screen`}
         suppressHydrationWarning
       >
-        {children}
+        <SiteHeader />
+        <div className="flex-1">
+          {children}
+        </div>
+        <SiteFooter />
         <Toaster theme="dark" richColors position="bottom-right" />
         <Analytics />
       </body>

@@ -9,25 +9,22 @@ export default function SeasonsPage() {
   const seasons = getSeasons() as { year: number, url: string }[];
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
-      <div className="flex items-center space-x-4 mb-4">
-        <Link href="/history" className="text-blue-500 hover:underline">
-          &larr; Back to History
-        </Link>
-        <h1 className="text-3xl font-bold">Past Seasons</h1>
-      </div>
+    <main className="max-w-[1200px] mx-auto px-6 py-12">
+      <Link href="/history" className="text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">← Back to History</Link>
+      <h1 className="text-4xl md:text-5xl font-extrabold mt-6 mb-8 tracking-tight">Past Seasons</h1>
       
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
         {seasons.map((season) => (
           <Link
             key={season.year}
             href={`/history/seasons/${season.year}`}
-            className="block text-center py-4 px-2 bg-white dark:bg-gray-800 rounded shadow hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors border dark:border-gray-700 font-semibold text-lg"
+            className="card glass rounded-[var(--radius-lg)] p-4 text-center font-bold text-lg hover-lift group relative overflow-hidden"
           >
-            {season.year}
+            <div className="absolute inset-0 bg-gradient-to-tr from-[var(--amber)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <span className="relative z-10">{season.year}</span>
           </Link>
         ))}
       </div>
-    </div>
+    </main>
   );
 }

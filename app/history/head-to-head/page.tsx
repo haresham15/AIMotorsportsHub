@@ -32,19 +32,15 @@ export default async function HeadToHeadPage({
   }
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
-      <div className="flex items-center space-x-4 mb-4">
-        <Link href="/history" className="text-blue-500 hover:underline">
-          &larr; Back to History
-        </Link>
-        <h1 className="text-3xl font-bold">Driver Head-to-Head</h1>
-      </div>
+    <main className="max-w-[1200px] mx-auto px-6 py-12">
+      <Link href="/history" className="text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">← Back to History</Link>
+      <h1 className="text-4xl md:text-5xl font-extrabold mt-6 mb-8 tracking-tight">Driver Head-to-Head</h1>
 
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border dark:border-gray-700">
-        <form method="GET" action="/history/head-to-head" className="flex flex-col md:flex-row gap-4 items-end">
+      <div className="card glass rounded-[var(--radius-xl)] p-8 mb-8">
+        <form method="GET" action="/history/head-to-head" className="flex flex-col md:flex-row gap-6 items-end">
           <div className="flex-1 w-full">
-            <label className="block text-sm font-medium mb-1">Driver 1</label>
-            <select name="d1" defaultValue={d1Id || ""} className="w-full p-2 border rounded dark:bg-gray-900 dark:border-gray-700">
+            <label className="block text-xs uppercase font-bold text-[var(--text-muted)] mb-2">Driver 1</label>
+            <select name="d1" defaultValue={d1Id || ""} className="w-full p-3 bg-[var(--surface-sunken)] border border-[var(--border-subtle)] text-[var(--text-primary)] rounded-[var(--radius-md)] focus:outline-none focus:ring-2 focus:ring-[var(--amber)] transition-all">
               <option value="" disabled>Select a driver</option>
               {drivers.map(d => (
                 <option key={d.driverId} value={d.driverId}>{d.forename} {d.surname} ({d.nationality})</option>
@@ -52,11 +48,11 @@ export default async function HeadToHeadPage({
             </select>
           </div>
           
-          <div className="flex items-center justify-center font-bold text-xl pb-2 px-2">VS</div>
+          <div className="flex items-center justify-center font-extrabold text-2xl pb-2 px-2 text-[var(--text-muted)]">VS</div>
 
           <div className="flex-1 w-full">
-            <label className="block text-sm font-medium mb-1">Driver 2</label>
-            <select name="d2" defaultValue={d2Id || ""} className="w-full p-2 border rounded dark:bg-gray-900 dark:border-gray-700">
+            <label className="block text-xs uppercase font-bold text-[var(--text-muted)] mb-2">Driver 2</label>
+            <select name="d2" defaultValue={d2Id || ""} className="w-full p-3 bg-[var(--surface-sunken)] border border-[var(--border-subtle)] text-[var(--text-primary)] rounded-[var(--radius-md)] focus:outline-none focus:ring-2 focus:ring-[var(--amber)] transition-all">
               <option value="" disabled>Select a driver</option>
               {drivers.map(d => (
                 <option key={d.driverId} value={d.driverId}>{d.forename} {d.surname} ({d.nationality})</option>
@@ -64,7 +60,7 @@ export default async function HeadToHeadPage({
             </select>
           </div>
           
-          <button type="submit" className="w-full md:w-auto px-6 py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 transition-colors">
+          <button type="submit" className="w-full md:w-auto px-8 py-3 bg-[var(--amber)] text-black font-extrabold rounded-[var(--radius-md)] hover:bg-yellow-400 transition-colors shadow-lg shadow-yellow-500/20">
             Compare
           </button>
         </form>
@@ -72,90 +68,93 @@ export default async function HeadToHeadPage({
 
       {comparisonData && d1Info && d2Info && (
         <div className="space-y-6">
-          <div className="grid grid-cols-3 text-center bg-white dark:bg-gray-800 p-6 rounded-lg shadow border dark:border-gray-700">
-            <div>
-              <h2 className="text-2xl font-bold">{d1Info.forename} {d1Info.surname}</h2>
+          <div className="grid grid-cols-3 text-center card glass rounded-[var(--radius-xl)] p-8 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-[var(--amber)]/5 via-transparent to-[var(--amber)]/5" />
+            <div className="relative z-10 flex items-center justify-center">
+              <h2 className="text-2xl md:text-3xl font-extrabold text-[var(--text-primary)]">{d1Info.forename} <br className="hidden md:block"/><span className="text-[var(--amber)]">{d1Info.surname}</span></h2>
             </div>
-            <div className="flex flex-col justify-center text-gray-500">
-              <span className="text-sm uppercase tracking-wide">Races Together</span>
-              <span className="text-3xl font-bold text-gray-800 dark:text-gray-200">{comparisonData.racesTogether}</span>
+            <div className="flex flex-col justify-center relative z-10 border-x border-[var(--border-subtle)] px-2">
+              <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest mb-1">Races Together</span>
+              <span className="text-4xl md:text-5xl font-extrabold text-[var(--text-primary)] font-mono">{comparisonData.racesTogether}</span>
             </div>
-            <div>
-              <h2 className="text-2xl font-bold">{d2Info.forename} {d2Info.surname}</h2>
+            <div className="relative z-10 flex items-center justify-center">
+              <h2 className="text-2xl md:text-3xl font-extrabold text-[var(--text-primary)]">{d2Info.forename} <br className="hidden md:block"/><span className="text-[var(--amber)]">{d2Info.surname}</span></h2>
             </div>
           </div>
 
-          <div className="grid grid-cols-3 text-center gap-4">
+          <div className="grid grid-cols-3 text-center gap-y-6 gap-x-2">
             {/* Finished Ahead */}
-            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg flex flex-col justify-center border border-blue-100 dark:border-blue-800">
-              <span className="text-3xl font-bold text-blue-600 dark:text-blue-400">{comparisonData.driver1.ahead}</span>
+            <div className="card glass rounded-[var(--radius-lg)] p-6 flex flex-col justify-center">
+              <span className="text-4xl font-extrabold text-blue-500 font-mono">{comparisonData.driver1.ahead}</span>
             </div>
-            <div className="flex flex-col justify-center font-semibold text-gray-600 dark:text-gray-400">
+            <div className="flex flex-col justify-center font-bold text-[var(--text-secondary)] text-sm uppercase tracking-wider">
               Finished Ahead
             </div>
-            <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg flex flex-col justify-center border border-red-100 dark:border-red-800">
-              <span className="text-3xl font-bold text-red-600 dark:text-red-400">{comparisonData.driver2.ahead}</span>
+            <div className="card glass rounded-[var(--radius-lg)] p-6 flex flex-col justify-center">
+              <span className="text-4xl font-extrabold text-red-500 font-mono">{comparisonData.driver2.ahead}</span>
             </div>
 
             {/* Total Points (in shared races) */}
-            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg flex flex-col justify-center border border-blue-100 dark:border-blue-800">
-              <span className="text-3xl font-bold text-blue-600 dark:text-blue-400">{comparisonData.driver1.points}</span>
+            <div className="card glass rounded-[var(--radius-lg)] p-6 flex flex-col justify-center">
+              <span className="text-4xl font-extrabold text-[var(--text-primary)] font-mono">{comparisonData.driver1.points}</span>
             </div>
-            <div className="flex flex-col justify-center font-semibold text-gray-600 dark:text-gray-400">
-              Points Scored (Shared Races)
+            <div className="flex flex-col justify-center font-bold text-[var(--text-secondary)] text-sm uppercase tracking-wider">
+              Points Scored<br/><span className="text-[10px] text-[var(--text-muted)]">(Shared Races)</span>
             </div>
-            <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg flex flex-col justify-center border border-red-100 dark:border-red-800">
-              <span className="text-3xl font-bold text-red-600 dark:text-red-400">{comparisonData.driver2.points}</span>
+            <div className="card glass rounded-[var(--radius-lg)] p-6 flex flex-col justify-center">
+              <span className="text-4xl font-extrabold text-[var(--text-primary)] font-mono">{comparisonData.driver2.points}</span>
             </div>
 
             {/* Shared Race Wins */}
-            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg flex flex-col justify-center border border-blue-100 dark:border-blue-800">
-              <span className="text-3xl font-bold text-blue-600 dark:text-blue-400">{comparisonData.driver1.wins}</span>
+            <div className="card glass rounded-[var(--radius-lg)] p-6 flex flex-col justify-center">
+              <span className="text-4xl font-extrabold text-[var(--amber)] font-mono">{comparisonData.driver1.wins}</span>
             </div>
-            <div className="flex flex-col justify-center font-semibold text-gray-600 dark:text-gray-400">
-              Shared Race Wins
+            <div className="flex flex-col justify-center font-bold text-[var(--text-secondary)] text-sm uppercase tracking-wider">
+              Shared Wins
             </div>
-            <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg flex flex-col justify-center border border-red-100 dark:border-red-800">
-              <span className="text-3xl font-bold text-red-600 dark:text-red-400">{comparisonData.driver2.wins}</span>
+            <div className="card glass rounded-[var(--radius-lg)] p-6 flex flex-col justify-center">
+              <span className="text-4xl font-extrabold text-[var(--amber)] font-mono">{comparisonData.driver2.wins}</span>
             </div>
           </div>
           
-          <div className="mt-8">
-            <h3 className="text-xl font-bold mb-4">Recent Shared Races</h3>
-            <div className="overflow-x-auto bg-white dark:bg-gray-800 rounded-lg shadow border dark:border-gray-700">
-              <table className="min-w-full text-sm text-left">
-                <thead className="text-xs uppercase bg-gray-50 dark:bg-gray-700">
-                  <tr>
-                    <th className="px-4 py-3">Year</th>
-                    <th className="px-4 py-3">Race</th>
-                    <th className="px-4 py-3 text-center">{d1Info.surname} Pos</th>
-                    <th className="px-4 py-3 text-center">{d2Info.surname} Pos</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {comparisonData.history.slice(0, 10).map((race: any, idx: number) => (
-                    <tr key={idx} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                      <td className="px-4 py-3 font-semibold">{race.year}</td>
-                      <td className="px-4 py-3">{race.raceName}</td>
-                      <td className={`px-4 py-3 text-center font-mono ${race.d1_pos < race.d2_pos ? 'text-green-600 dark:text-green-400 font-bold' : ''}`}>
-                        {race.d1_pos || 'DNF'}
-                      </td>
-                      <td className={`px-4 py-3 text-center font-mono ${race.d2_pos < race.d1_pos ? 'text-green-600 dark:text-green-400 font-bold' : ''}`}>
-                        {race.d2_pos || 'DNF'}
-                      </td>
+          <div className="mt-12">
+            <h3 className="text-2xl font-bold mb-6 font-[family-name:var(--font-disp)]">Recent Shared Races</h3>
+            <div className="card glass rounded-[var(--radius-xl)] overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left whitespace-nowrap">
+                  <thead className="text-xs uppercase text-[var(--text-muted)] bg-[var(--surface-sunken)] border-b border-[var(--border-subtle)]">
+                    <tr>
+                      <th className="px-6 py-4 font-bold tracking-wider">Year</th>
+                      <th className="px-6 py-4 font-bold tracking-wider">Race</th>
+                      <th className="px-6 py-4 font-bold tracking-wider text-center">{d1Info.surname} Pos</th>
+                      <th className="px-6 py-4 font-bold tracking-wider text-center">{d2Info.surname} Pos</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--border-subtle)]">
+                    {comparisonData.history.slice(0, 10).map((race: any, idx: number) => (
+                      <tr key={idx} className="hover:bg-[var(--surface-highlight)] transition-colors group">
+                        <td className="px-6 py-4 font-bold text-[var(--text-muted)]">{race.year}</td>
+                        <td className="px-6 py-4 font-semibold text-[var(--text-primary)]">{race.raceName}</td>
+                        <td className={`px-6 py-4 text-center font-mono text-lg ${race.d1_pos < race.d2_pos && race.d1_pos > 0 ? 'text-blue-500 font-extrabold' : 'text-[var(--text-secondary)]'}`}>
+                          {race.d1_pos || 'DNF'}
+                        </td>
+                        <td className={`px-6 py-4 text-center font-mono text-lg ${race.d2_pos < race.d1_pos && race.d2_pos > 0 ? 'text-red-500 font-extrabold' : 'text-[var(--text-secondary)]'}`}>
+                          {race.d2_pos || 'DNF'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
               {comparisonData.history.length > 10 && (
-                <div className="p-4 text-center text-sm text-gray-500">
-                  Showing 10 most recent out of {comparisonData.history.length} races.
+                <div className="p-4 text-center text-xs font-bold uppercase tracking-widest text-[var(--text-muted)] bg-[var(--surface-sunken)] border-t border-[var(--border-subtle)]">
+                  Showing 10 most recent out of {comparisonData.history.length} races
                 </div>
               )}
             </div>
           </div>
         </div>
       )}
-    </div>
+    </main>
   );
 }
