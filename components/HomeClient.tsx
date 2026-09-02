@@ -231,6 +231,71 @@ export default function HomeClient() {
         </div>
       </section>
 
+      <section id="archive" className="py-[var(--sp-9)] relative z-10">
+        <div className="max-w-[1180px] mx-auto px-[var(--sp-5)]">
+          <div className="section-head">
+            <div className="eyebrow">The Archive &amp; AI Tools</div>
+            <h2>Dig into the data.</h2>
+            <p className="text-[var(--text-secondary)] text-[15px] max-w-[520px] mt-[var(--sp-3)] leading-[1.65]">
+              70+ years of race results, AI-powered simulators, and mathematical driver ratings — all grounded in real data.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[1px] bg-[var(--border-subtle)] border border-[var(--border-subtle)] mt-[var(--sp-7)]">
+            <Link href="/history/what-if" className="bg-[var(--bg-card)] p-[var(--sp-6)] no-underline group hover:bg-[var(--bg-card-hover)] transition-colors relative">
+              <div className="absolute top-[var(--sp-4)] right-[var(--sp-4)]">
+                <span className="text-[9px] font-bold uppercase tracking-[0.1em] px-2 py-1 rounded-full bg-[var(--amber)]/15 text-[var(--amber)] border border-[var(--amber)]/25">AI + ML</span>
+              </div>
+              <div className="font-[family-name:var(--font-disp)] text-[28px] font-800 text-[var(--amber)] uppercase mb-2">&ldquo;What If?&rdquo;</div>
+              <div className="text-[14px] font-semibold text-[var(--text-primary)] mb-1">Historical Simulator</div>
+              <p className="text-[13px] text-[var(--text-secondary)] leading-[1.6]">Ask counterfactuals. Our ML tire model and Gemini AI simulate alternate race outcomes grounded in real data.</p>
+              <div className="text-[13px] font-semibold text-[var(--amber)] mt-4 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">Try it &rarr;</div>
+            </Link>
+
+            <Link href="/history/goat" className="bg-[var(--bg-card)] p-[var(--sp-6)] no-underline group hover:bg-[var(--bg-card-hover)] transition-colors relative">
+              <div className="absolute top-[var(--sp-4)] right-[var(--sp-4)]">
+                <span className="text-[9px] font-bold uppercase tracking-[0.1em] px-2 py-1 rounded-full bg-[var(--amber)]/15 text-[var(--amber)] border border-[var(--amber)]/25">Elo Model</span>
+              </div>
+              <div className="font-[family-name:var(--font-disp)] text-[28px] font-800 text-[var(--amber)] uppercase mb-2">GOAT Debate</div>
+              <div className="text-[14px] font-semibold text-[var(--text-primary)] mb-1">Era-Adjusted Ratings</div>
+              <p className="text-[13px] text-[var(--text-secondary)] leading-[1.6]">A dual-Elo system that isolates driver skill from car dominance across every race since 1950.</p>
+              <div className="text-[13px] font-semibold text-[var(--amber)] mt-4 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">View rankings &rarr;</div>
+            </Link>
+
+            <Link href="/models" className="bg-[var(--bg-card)] p-[var(--sp-6)] no-underline group hover:bg-[var(--bg-card-hover)] transition-colors relative">
+              <div className="absolute top-[var(--sp-4)] right-[var(--sp-4)]">
+                <span className="text-[9px] font-bold uppercase tracking-[0.1em] px-2 py-1 rounded-full bg-[var(--amber)]/15 text-[var(--amber)] border border-[var(--amber)]/25">ML</span>
+              </div>
+              <div className="font-[family-name:var(--font-disp)] text-[28px] font-800 text-[var(--amber)] uppercase mb-2">AI Models</div>
+              <div className="text-[14px] font-semibold text-[var(--text-primary)] mb-1">Predictive Performance</div>
+              <p className="text-[13px] text-[var(--text-secondary)] leading-[1.6]">See how our trained race-outcome models perform — log loss, calibration curves, and confusion matrices.</p>
+              <div className="text-[13px] font-semibold text-[var(--amber)] mt-4 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">Explore &rarr;</div>
+            </Link>
+
+            <Link href="/history/seasons" className="bg-[var(--bg-card)] p-[var(--sp-6)] no-underline group hover:bg-[var(--bg-card-hover)] transition-colors">
+              <div className="font-[family-name:var(--font-disp)] text-[28px] font-800 text-[var(--text-primary)] uppercase mb-2">Seasons</div>
+              <div className="text-[14px] font-semibold text-[var(--text-primary)] mb-1">1950 — Present</div>
+              <p className="text-[13px] text-[var(--text-secondary)] leading-[1.6]">Final standings and race results from every championship season in F1 history.</p>
+              <div className="text-[13px] font-semibold text-[var(--amber)] mt-4 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">Browse &rarr;</div>
+            </Link>
+
+            <Link href="/history/head-to-head" className="bg-[var(--bg-card)] p-[var(--sp-6)] no-underline group hover:bg-[var(--bg-card-hover)] transition-colors">
+              <div className="font-[family-name:var(--font-disp)] text-[28px] font-800 text-[var(--text-primary)] uppercase mb-2">Head-to-Head</div>
+              <div className="text-[14px] font-semibold text-[var(--text-primary)] mb-1">Driver Comparison</div>
+              <p className="text-[13px] text-[var(--text-secondary)] leading-[1.6]">Compare any two drivers who raced in the same Grand Prix — side by side performance data.</p>
+              <div className="text-[13px] font-semibold text-[var(--amber)] mt-4 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">Compare &rarr;</div>
+            </Link>
+
+            <Link href="/history/tracks" className="bg-[var(--bg-card)] p-[var(--sp-6)] no-underline group hover:bg-[var(--bg-card-hover)] transition-colors">
+              <div className="font-[family-name:var(--font-disp)] text-[28px] font-800 text-[var(--text-primary)] uppercase mb-2">Circuits</div>
+              <div className="text-[14px] font-semibold text-[var(--text-primary)] mb-1">Track Records</div>
+              <p className="text-[13px] text-[var(--text-secondary)] leading-[1.6]">View statistics for every circuit that has hosted a Grand Prix — lap records, winners, and history.</p>
+              <div className="text-[13px] font-semibold text-[var(--amber)] mt-4 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">Explore &rarr;</div>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       <section id="history" className="history py-[var(--sp-9)]">
         <div className="max-w-[1180px] mx-auto px-[var(--sp-5)]">
           <div className="section-head">

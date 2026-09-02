@@ -237,7 +237,11 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
       }
     }
 
-    /* driver dots */
+    /* driver dots and trails */
+    const currentFi = Math.min(Math.floor(frameIdxRef.current), data.frames.length - 1)
+    const trailLength = 30 // ~1.2 seconds of history
+    const startFi = Math.max(0, currentFi - trailLength)
+
     const driverEntries = Object.entries(frame.drivers)
     for (const [code, d] of driverEntries) {
       const sp = toScreen({ x: d.x, y: d.y })
@@ -245,6 +249,28 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
       const [r, g, b] = hexToRgb(color)
       const isSelected = playback.selectedDrivers.includes(code)
       const isLeader = d.position <= 3
+
+      /* ghost trail */
+      ctx.beginPath()
+      let started = false
+      for (let i = startFi; i <= currentFi; i++) {
+        const pastD = data.frames[i].drivers[code]
+        if (!pastD) continue
+        const p = toScreen({ x: pastD.x, y: pastD.y })
+        if (!started) {
+          ctx.moveTo(p.x, p.y)
+          started = true
+        } else {
+          ctx.lineTo(p.x, p.y)
+        }
+      }
+      if (started) {
+        ctx.lineCap = 'round'
+        ctx.lineJoin = 'round'
+        ctx.strokeStyle = `rgba(${r},${g},${b},${isSelected ? 0.7 : 0.25})`
+        ctx.lineWidth = isSelected ? 3.5 : 1.5
+        ctx.stroke()
+      }
 
       /* outer pulse for leaders or selected */
       if (isLeader || isSelected) {
@@ -254,20 +280,42 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
 
       /* car dot */
       const radius = isSelected ? 7 : (d.inPit ? 4 : 5.5)
+      const tyreColor = TYRE_COMPOUNDS[d.tyre]?.color || '#ffffff'
+      
       ctx.beginPath(); ctx.arc(sp.x, sp.y, radius, 0, Math.PI * 2)
       ctx.fillStyle = d.inPit ? `rgba(${r},${g},${b},0.4)` : color
       ctx.fill()
-      ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.lineWidth = isSelected ? 2 : 1.2; ctx.stroke()
+      ctx.strokeStyle = tyreColor; ctx.lineWidth = isSelected ? 2 : 1.2; ctx.stroke()
 
       /* label */
       if (isSelected || playback.showDriverLabels) {
         ctx.fillStyle = '#fff'; ctx.font = 'bold 9px "JetBrains Mono", monospace'; ctx.textAlign = 'center'
-        ctx.fillText(code, sp.x, sp.y - 14)
+        ctx.fillText(code, sp.x, sp.y - (isSelected ? 16 : 14))
+      }
+
+      /* telemetry bars for selected drivers */
+      if (isSelected) {
+        const barW = 20
+        const barH = 3
+        const bx = sp.x - barW / 2
+        const by = sp.y + 12
+        
+        // throttle (green)
+        ctx.fillStyle = 'rgba(255,255,255,0.1)'; ctx.fillRect(bx, by, barW, barH)
+        ctx.fillStyle = '#22c55e'; ctx.fillRect(bx, by, barW * (d.throttle / 100), barH)
+        
+        // brake (red)
+        ctx.fillStyle = 'rgba(255,255,255,0.1)'; ctx.fillRect(bx, by + 4, barW, barH)
+        ctx.fillStyle = '#ef4444'; ctx.fillRect(bx, by + 4, barW * (d.brake / 100), barH)
+        
+        // gear
+        ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 8px "JetBrains Mono", monospace'; ctx.textAlign = 'center'
+        ctx.fillText(`G${d.gear}`, sp.x, by + 15)
       }
 
       /* DRS indicator */
       if (d.drs >= 10) {
-        ctx.beginPath(); ctx.arc(sp.x + 8, sp.y - 8, 3, 0, Math.PI * 2)
+        ctx.beginPath(); ctx.arc(sp.x + (isSelected ? 9 : 7), sp.y - (isSelected ? 9 : 7), 2.5, 0, Math.PI * 2)
         ctx.fillStyle = '#22c55e'; ctx.fill()
       }
     }

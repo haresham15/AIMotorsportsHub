@@ -50,8 +50,8 @@ export default function GoatDebatePage() {
       <Link href="/history" className="text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">← Back to History</Link>
 
       <div className="eyebrow mt-8">Statistical Analysis</div>
-      <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 font-[family-name:var(--font-disp)] uppercase">
-        The <span className="text-[var(--amber)]">GOAT</span> Debate
+      <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 font-[family-name:var(--font-disp)] uppercase flex items-center gap-4 flex-wrap">
+        <span>The <span className="text-[var(--amber)]">GOAT</span> Debate</span>
       </h1>
       <p className="text-[var(--text-secondary)] text-lg max-w-[640px] mb-10 leading-[1.65]">
         A mathematically rigorous, dual-Elo rating system evaluating every race since 1950.

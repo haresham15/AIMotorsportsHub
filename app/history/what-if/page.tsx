@@ -44,7 +44,7 @@ export default function WhatIfPage() {
       <Link href="/history" className="text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors w-fit">← Back to History</Link>
       
       <div className="eyebrow mt-8">AI + Machine Learning</div>
-      <div className="flex items-center gap-4 mb-2">
+      <div className="flex items-center gap-4 mb-2 flex-wrap">
         <div className="w-12 h-12 rounded-xl bg-[var(--amber)]/15 flex items-center justify-center border border-[var(--amber)]/25">
           <FastForward className="w-6 h-6 text-[var(--amber)]" />
         </div>

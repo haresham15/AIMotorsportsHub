@@ -8,7 +8,9 @@ export default async function ModelsPage() {
   return <main className="max-w-[1200px] mx-auto px-6 py-12">
     <Link href="/" className="text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">← Back to Hub</Link>
     <div className="eyebrow mt-8">Predictive AI</div>
-    <h1 className="text-4xl md:text-5xl font-extrabold mt-2 mb-2 tracking-tight font-[family-name:var(--font-disp)] uppercase">Model Performance</h1>
+    <h1 className="text-4xl md:text-5xl font-extrabold mt-2 mb-2 tracking-tight font-[family-name:var(--font-disp)] uppercase flex items-center gap-4 flex-wrap">
+      <span>Model Performance</span>
+    </h1>
     <p className="text-[var(--text-secondary)] mb-8 text-lg max-w-[640px] leading-[1.65]">Evaluation results exported by the race-outcome training pipeline.</p>
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
       <div className="card glass rounded-[var(--radius-lg)] p-5">
