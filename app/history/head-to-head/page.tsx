@@ -32,9 +32,13 @@ export default async function HeadToHeadPage({
   }
 
   return (
-    <main className="max-w-[1200px] mx-auto px-6 py-12">
+    <main className="max-w-[800px] mx-auto px-6 py-12">
       <Link href="/history" className="text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">← Back to History</Link>
-      <h1 className="text-4xl md:text-5xl font-extrabold mt-6 mb-8 tracking-tight">Driver Head-to-Head</h1>
+      <div className="eyebrow mt-8">Historical Archive</div>
+      <h1 className="text-4xl md:text-5xl font-extrabold mt-2 mb-4 tracking-tight font-[family-name:var(--font-disp)] uppercase">Driver Head-to-Head</h1>
+      <p className="text-[var(--text-secondary)] text-[18px] max-w-[640px] mb-12 leading-[1.65]">
+        Compare two drivers across every race they both started. Analyze their head-to-head record, points scored, and race-by-race finishes.
+      </p>
 
       <div className="card glass rounded-[var(--radius-xl)] p-8 mb-8">
         <form method="GET" action="/history/head-to-head" className="flex flex-col md:flex-row gap-6 items-end">

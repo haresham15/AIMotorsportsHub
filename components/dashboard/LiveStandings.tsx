@@ -195,7 +195,7 @@ export default function LiveStandings({
     <div className="px-2">
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-emerald-500/12 flex items-center justify-center text-emerald-400">
+          <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-[var(--surface-raised)] border border-[var(--border-subtle)] text-[var(--text-secondary)] shadow-sm flex items-center justify-center">
             <BarChart3 size={16} />
           </div>
           <h2 className="font-[family-name:var(--font-disp)] uppercase text-2xl font-extrabold tracking-[-0.01em]">Live Timing</h2>

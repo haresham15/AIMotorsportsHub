@@ -14,7 +14,7 @@ export default function WhereToWatch({ series }: WhereToWatchProps) {
   return (
     <div className="card glass p-6 rounded-[var(--radius-xl)]">
       <div className="flex items-center gap-2.5 mb-4">
-        <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-red-500/12 flex items-center justify-center text-red-400">
+        <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-[var(--surface-raised)] border border-[var(--border-subtle)] text-[var(--text-secondary)] shadow-sm flex items-center justify-center">
           <Tv size={16} />
         </div>
         <h2 className="font-[family-name:var(--font-disp)] uppercase text-2xl font-extrabold tracking-[-0.01em] m-0">Where to Watch</h2>

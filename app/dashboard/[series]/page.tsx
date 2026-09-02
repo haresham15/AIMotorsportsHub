@@ -152,11 +152,11 @@ export default function SeriesDashboard() {
         </div>
 
         {/* ===== MAIN CONTENT GRID ===== */}
-        <div className="grid grid-cols-1 gap-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* Missing Live Data Banner (Non-F1) */}
           {series !== 'f1' && !isScanningActive && (
-            <div className="animate-fade-in-up delay-100">
+            <div className="animate-fade-in-up delay-100 lg:col-span-3">
               <div className="card glass-hover px-6 py-4 rounded-[var(--radius-xl)] flex justify-between items-center bg-[var(--bg-card)] border border-[var(--border-subtle)]">
                 <div>
                   <h3 className="m-0 text-sm font-semibold">Missing Live Data?</h3>
@@ -173,8 +173,8 @@ export default function SeriesDashboard() {
             <BroadcastScanner onScan={setCvData} onClose={() => { setIsScanningActive(false); setCvData([]); }} />
           </Modal>
 
-          {/* Standings Table (Borderless integration) */}
-          <div className="animate-fade-in-up delay-150">
+          {/* Standings Table (Spans 2 columns on large screens) */}
+          <div className="animate-fade-in-up delay-150 lg:col-span-2">
             <LiveStandings 
               series={series} 
               sessionKey={selectedSessionKey}
@@ -184,22 +184,25 @@ export default function SeriesDashboard() {
             />
           </div>
 
-          {/* Championship Standings */}
-          <div className="animate-fade-in-up delay-200">
-            {series === 'f1' && standingsData && (
-              <ChampionshipStandings 
-                drivers={standingsData.driverStandings} 
-                constructors={standingsData.constructorStandings} 
-              />
-            )}
-          </div>
+          {/* Right Column: Championship Standings & Fantasy Game */}
+          <div className="flex flex-col gap-8 lg:col-span-1">
+            <div className="animate-fade-in-up delay-200 h-[500px]">
+              {series === 'f1' && standingsData && (
+                <ChampionshipStandings 
+                  drivers={standingsData.driverStandings} 
+                  constructors={standingsData.constructorStandings} 
+                />
+              )}
+            </div>
 
-          {/* Secondary Information Grid */}
-          <div className="animate-fade-in-up delay-200 mb-6">
-            <FantasyGame series={series} round={selectedRound} />
+            <div className="animate-fade-in-up delay-200">
+              <FantasyGame series={series} round={selectedRound} />
+            </div>
           </div>
+        </div>
 
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-6 mt-4 pt-10 border-t border-[var(--border-subtle)]">
+        {/* Secondary Information Grid */}
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-6 mt-8 pt-10 border-t border-[var(--border-subtle)]">
             <div className="animate-fade-in-up delay-200">
               <MySupported series={series} />
             </div>

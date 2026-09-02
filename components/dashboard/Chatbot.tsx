@@ -84,7 +84,7 @@ export default function Chatbot({ series, contextData }: ChatbotProps) {
       {/* Header */}
       <div className="flex items-center justify-between mb-4 shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-blue-500/12 flex items-center justify-center text-blue-400">
+          <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-[var(--surface-raised)] border border-[var(--border-subtle)] text-[var(--text-secondary)] shadow-sm flex items-center justify-center">
             <Bot size={16} />
           </div>
           <div>

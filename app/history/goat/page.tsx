@@ -46,7 +46,7 @@ export default function GoatDebatePage() {
   };
 
   return (
-    <main className="max-w-[1200px] mx-auto px-6 py-12">
+    <main className="max-w-[800px] mx-auto px-6 py-12">
       <Link href="/history" className="text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">← Back to History</Link>
 
       <div className="eyebrow mt-8">Statistical Analysis</div>

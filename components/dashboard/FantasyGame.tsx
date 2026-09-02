@@ -217,7 +217,7 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
   return (
     <div className="card glass rounded-[var(--radius-xl)] p-6">
       <div className="flex items-center gap-2.5 mb-5">
-        <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-yellow-500/12 flex items-center justify-center text-yellow-500">
+        <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-[var(--surface-raised)] border border-[var(--border-subtle)] text-[var(--text-secondary)] shadow-sm flex items-center justify-center">
           <Trophy size={16} />
         </div>
         <div>
@@ -256,7 +256,7 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
                 {(['p1', 'p2', 'p3'] as const).map((pos, idx) => (
                   <div key={pos} className="flex items-center gap-3">
                     <div 
-                      className={`w-7 h-7 rounded-full flex items-center justify-center font-extrabold text-xs shrink-0 ${idx === 0 ? 'bg-[#fbbf24] text-black' : idx === 1 ? 'bg-[#94a3b8] text-white' : 'bg-[#b45309] text-white'}`}
+                      className={`w-7 h-7 rounded-full flex items-center justify-center font-extrabold text-xs shrink-0 ${idx === 0 ? 'bg-[var(--amber)] text-black' : idx === 1 ? 'bg-slate-400 text-white' : 'bg-amber-700 text-white'}`}
                     >
                       {idx + 1}
                     </div>

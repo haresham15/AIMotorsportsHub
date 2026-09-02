@@ -12,7 +12,7 @@ interface TrackSpec {
   points: Point2D[]
 }
 
-function catmullRomLoop(controlPoints: Point2D[], pointsPerSegment = 24): Point2D[] {
+function catmullRomLoop(controlPoints: Point2D[], pointsPerSegment = 100): Point2D[] {
   const points: Point2D[] = []
   for (let index = 0; index < controlPoints.length; index++) {
     const p0 = controlPoints[(index - 1 + controlPoints.length) % controlPoints.length]
@@ -33,6 +33,61 @@ function catmullRomLoop(controlPoints: Point2D[], pointsPerSegment = 24): Point2
   return points
 }
 
+function normalizeCoordinates(points: Point2D[]): Point2D[] {
+  if (points.length === 0) return points;
+
+  // 1. Find bounding box
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  for (const p of points) {
+    if (p.x < minX) minX = p.x;
+    if (p.x > maxX) maxX = p.x;
+    if (p.y < minY) minY = p.y;
+    if (p.y > maxY) maxY = p.y;
+  }
+
+  // 2. Scale to fit within a 1000x1000 box while preserving aspect ratio
+  const width = maxX - minX;
+  const height = maxY - minY;
+  const maxDim = Math.max(width, height);
+  const scale = 800 / (maxDim || 1); // use 800 to leave some padding
+
+  const scaled = points.map(p => ({
+    x: (p.x - minX) * scale,
+    y: (p.y - minY) * scale
+  }));
+
+  // 3. Center at (500, 500)
+  const scaledWidth = width * scale;
+  const scaledHeight = height * scale;
+  const offsetX = 500 - (scaledWidth / 2);
+  const offsetY = 500 - (scaledHeight / 2);
+
+  const centered = scaled.map(p => ({
+    x: p.x + offsetX,
+    y: p.y + offsetY
+  }));
+
+  // 4. Rotation (optional) - let's align the start/finish straight to be roughly horizontal.
+  const lookahead = Math.floor(centered.length * 0.05) || 1;
+  const dx = centered[lookahead].x - centered[0].x;
+  const dy = centered[lookahead].y - centered[0].y;
+  let angle = Math.atan2(dy, dx);
+  const rotationAngle = -angle;
+
+  const cosTh = Math.cos(rotationAngle);
+  const sinTh = Math.sin(rotationAngle);
+
+  // Rotate around (500,500)
+  return centered.map(p => {
+    const rx = p.x - 500;
+    const ry = p.y - 500;
+    return {
+      x: 500 + (rx * cosTh - ry * sinTh),
+      y: 500 + (rx * sinTh + ry * cosTh)
+    };
+  });
+}
+
 function offsetLoop(line: Point2D[], distance: number): Point2D[] {
   const pointCount = line.length - 1
   const result: Point2D[] = []
@@ -49,8 +104,9 @@ function offsetLoop(line: Point2D[], distance: number): Point2D[] {
 }
 
 function geometry(spec: TrackSpec): TrackGeometry {
-  const referenceLine = catmullRomLoop(spec.points)
-  const width = spec.width ?? (spec.type === 'circuit' || spec.type === 'street' ? 7 : 12)
+  const rawLine = catmullRomLoop(spec.points, 100)
+  const referenceLine = normalizeCoordinates(rawLine)
+  const width = spec.width ?? (spec.type === 'circuit' || spec.type === 'street' ? 12 : 24)
   return {
     name: spec.name,
     country: spec.country ?? 'United States',

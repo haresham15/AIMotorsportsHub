@@ -34,25 +34,22 @@ export default function ReplayLeaderboard({ data, frame, selectedDrivers, onSele
   }
 
   return (
-    <div className="replay-leaderboard">
-      <div className="replay-leaderboard__header">
-        <span className="replay-leaderboard__title">STANDINGS</span>
-        <span className="replay-leaderboard__subtitle">
+    <div className="card glass absolute top-4 right-4 w-72 max-h-[calc(100vh-2rem)] flex flex-col rounded-[var(--radius-lg)] overflow-hidden z-10 shadow-xl backdrop-blur-xl">
+      <div className="flex items-center justify-between p-4 bg-[var(--surface-sunken)] border-b border-[var(--border-subtle)] shrink-0">
+        <span className="text-sm font-extrabold tracking-widest text-white">STANDINGS</span>
+        <span className="text-xs font-semibold text-[var(--text-muted)] bg-[var(--surface-highlight)] px-2 py-1 rounded-[var(--radius-sm)]">
           LAP {frame.lap}/{data.totalLaps}
         </span>
       </div>
 
-      <div className="replay-leaderboard__list">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
         {sorted.map(([code, d]) => {
           const driver = data.drivers.find(dr => dr.code === code)
-          const color = data.driverColors[code] || '#3b82f6'
+          const color = data.driverColors[code] || 'var(--color-amber)'
           const tyreInfo = TYRE_COMPOUNDS[d.tyre] || TYRE_COMPOUNDS['MEDIUM']
           const isSelected = selectedDrivers.includes(code)
           const gap = d.position === 1
             ? 'LEADER'
-            // Time gap = distance delta / speed. Uses the driver's own speed
-            // in km/h converted to m/s as a proxy for catch-up rate.
-            // Falls back to leader speed to avoid division by zero.
             : (() => {
                 const leaderLap = sorted[0]?.[1]?.lap || 1;
                 if (leaderLap - d.lap >= 1) {
@@ -61,9 +58,6 @@ export default function ReplayLeaderboard({ data, frame, selectedDrivers, onSele
                 }
 
                 const distDelta = leaderDist - d.dist;
-                // Use a fixed average speed (e.g. 200 km/h = ~55.5 m/s) for time gap
-                // conversion to keep the gap strictly proportional to distance and
-                // perfectly stable across braking zones.
                 const avgSpeedMs = 200 / 3.6;
                 const gapSeconds = distDelta / avgSpeedMs;
                 return `+${Math.max(0, gapSeconds).toFixed(1)}s`;
@@ -72,40 +66,48 @@ export default function ReplayLeaderboard({ data, frame, selectedDrivers, onSele
           return (
             <div
               key={code}
-              className={`replay-leaderboard__entry ${isSelected ? 'replay-leaderboard__entry--selected' : ''} ${d.inPit ? 'replay-leaderboard__entry--pit' : ''} ${d.retired ? 'replay-leaderboard__entry--retired' : ''}`}
+              className={`flex items-center h-10 px-3 cursor-pointer border-b border-[var(--border-subtle)] hover:bg-[var(--surface-highlight)] transition-colors group
+                ${isSelected ? 'bg-[var(--surface-elevated)] !border-l-2 !border-l-[var(--color-amber)]' : 'border-l-2 border-l-transparent'}
+                ${d.inPit ? 'opacity-70' : ''}
+                ${d.retired ? 'opacity-40 grayscale' : ''}
+              `}
               onClick={e => handleClick(code, e)}
               style={{ '--driver-color': color } as React.CSSProperties}
             >
               {/* Position */}
-              <span className="replay-leaderboard__pos">{d.position}</span>
+              <span className="w-6 text-xs font-bold text-[var(--text-muted)]">{d.position}</span>
 
               {/* Color bar */}
-              <span className="replay-leaderboard__color-bar" style={{ background: color }} />
+              <span className="w-1 h-6 rounded-[var(--radius-sm)] mr-3" style={{ background: color }} />
 
               {/* Driver code */}
-              <span className="replay-leaderboard__code">{code}</span>
+              <span className="w-10 text-sm font-bold font-mono text-white tracking-wide">{code}</span>
 
               {/* Tyre indicator */}
-              <span className="replay-leaderboard__tyre" style={{ background: tyreInfo.color }} title={`${tyreInfo.label} (${d.tyreLife} laps)`}>
+              <span 
+                className="flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold text-black ml-1" 
+                style={{ background: tyreInfo.color }} 
+                title={`${tyreInfo.label} (${d.tyreLife} laps)`}
+              >
                 {tyreInfo.abbr}
               </span>
 
               {/* DRS */}
               {d.drs >= 10 && (
-                <span className="replay-leaderboard__drs">DRS</span>
+                <span className="ml-2 text-[10px] font-bold text-green-400 bg-green-500/10 px-1 rounded">DRS</span>
               )}
 
               {/* Status / Gap */}
-              <span className="replay-leaderboard__gap">
+              <span className="ml-auto text-xs font-mono font-semibold text-[var(--text-secondary)]">
                 {d.inPit ? (
-                  <span className="replay-leaderboard__pit-badge">PIT</span>
+                  <span className="text-amber-500 font-bold bg-amber-500/10 px-1.5 py-0.5 rounded-[var(--radius-sm)]">PIT</span>
                 ) : d.retired ? (
-                  <span className="replay-leaderboard__out-badge">FIN</span>
+                  <span className="text-red-500 font-bold bg-red-500/10 px-1.5 py-0.5 rounded-[var(--radius-sm)]">FIN</span>
                 ) : gap}
               </span>
 
               {/* Speed */}
-              <span className="replay-leaderboard__speed">{d.speed}</span>
+              <span className="w-10 ml-3 text-xs font-mono font-bold text-right text-[var(--text-muted)] group-hover:text-white transition-colors">{d.speed}</span>
             </div>
           )
         })}

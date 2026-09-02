@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 export default function DataMethodologyPage() {
   return (
-    <main className="max-w-[1200px] mx-auto px-6 py-12">
+    <main className="max-w-[800px] mx-auto px-6 py-12">
       <Link href="/about" className="text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">← Back to About</Link>
       <div className="eyebrow mt-8">Transparency</div>
       <h1 className="text-4xl md:text-5xl font-extrabold mt-2 mb-8 tracking-tight font-[family-name:var(--font-disp)] uppercase">Data & Methodology</h1>

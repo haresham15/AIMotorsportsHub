@@ -40,7 +40,7 @@ export default function WhatIfPage() {
   };
 
   return (
-    <main className="max-w-[1000px] mx-auto px-6 py-12 min-h-[calc(100vh-200px)] flex flex-col">
+    <main className="max-w-[800px] mx-auto px-6 py-12 min-h-[calc(100vh-200px)] flex flex-col">
       <Link href="/history" className="text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors w-fit">← Back to History</Link>
       
       <div className="eyebrow mt-8">AI + Machine Learning</div>

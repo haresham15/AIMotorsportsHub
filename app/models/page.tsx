@@ -5,7 +5,7 @@ import ModelPerformanceCharts, { OutcomeMetrics } from '@/components/models/Mode
 
 export default async function ModelsPage() {
   const metrics = JSON.parse(await fs.readFile(path.join(process.cwd(), 'public/models/advanced_outcomes.json'), 'utf8')) as OutcomeMetrics
-  return <main className="max-w-[1200px] mx-auto px-6 py-12">
+  return <main className="max-w-[800px] mx-auto px-6 py-12">
     <Link href="/" className="text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">← Back to Hub</Link>
     <div className="eyebrow mt-8">Predictive AI</div>
     <h1 className="text-4xl md:text-5xl font-extrabold mt-2 mb-2 tracking-tight font-[family-name:var(--font-disp)] uppercase flex items-center gap-4 flex-wrap">

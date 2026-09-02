@@ -101,16 +101,108 @@ export function offsetPolyline(line: Point2D[], dist: number): Point2D[] {
 
 // ═══════════════════════════════════════════════════════════════════════
 // TRACK LOOKUP & REGISTRY
+
+// ── Utility: generate smooth curves ──────────────────────────────────
+function lerp(a: number, b: number, t: number): number {
+  return a + (b - a) * t;
+}
+
+export function cubicBezier(
+  p0: Point2D, p1: Point2D, p2: Point2D, p3: Point2D, steps: number
+): Point2D[] {
+  const pts: Point2D[] = [];
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    const u = 1 - t;
+    const x = u * u * u * p0.x + 3 * u * u * t * p1.x + 3 * u * t * t * p2.x + t * t * t * p3.x;
+    const y = u * u * u * p0.y + 3 * u * u * t * p1.y + 3 * u * t * t * p2.y + t * t * t * p3.y;
+    pts.push({ x, y });
+  }
+  return pts;
+}
+
+/** Generate a smooth closed loop from control points using Catmull-Rom spline */
+export function catmullRomLoop(controlPoints: Point2D[], pointsPerSegment = 40): Point2D[] {
+  const n = controlPoints.length;
+  const result: Point2D[] = [];
+
+  for (let i = 0; i < n; i++) {
+    const p0 = controlPoints[(i - 1 + n) % n];
+    const p1 = controlPoints[i];
+    const p2 = controlPoints[(i + 1) % n];
+    const p3 = controlPoints[(i + 2) % n];
+
+    for (let j = 0; j < pointsPerSegment; j++) {
+      const t = j / pointsPerSegment;
+      const t2 = t * t;
+      const t3 = t2 * t;
+
+      const x = 0.5 * (
+        (2 * p1.x) +
+        (-p0.x + p2.x) * t +
+        (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 +
+        (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3
+      );
+      const y = 0.5 * (
+        (2 * p1.y) +
+        (-p0.y + p2.y) * t +
+        (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 +
+        (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3
+      );
+      result.push({ x, y });
+    }
+  }
+
+  if (result.length > 0) {
+    result.push({ ...result[0] });
+  }
+  return result;
+}
+
+/** Offset a polyline by a fixed distance (positive = left, negative = right) */
+export function offsetPolyline(line: Point2D[], dist: number): Point2D[] {
+  const n = line.length;
+  if (n < 2) return line;
+
+  const isClosed = line[0].x === line[n - 1].x && line[0].y === line[n - 1].y;
+  const ptsToProcess = isClosed ? n - 1 : n;
+
+  const result: Point2D[] = [];
+  for (let i = 0; i < ptsToProcess; i++) {
+    let prev, next;
+    if (isClosed) {
+      prev = line[(i - 1 + ptsToProcess) % ptsToProcess];
+      next = line[(i + 1) % ptsToProcess];
+    } else {
+      prev = i === 0 ? line[0] : line[i - 1];
+      next = i === ptsToProcess - 1 ? line[ptsToProcess - 1] : line[i + 1];
+    }
+
+    const dx = next.x - prev.x;
+    const dy = next.y - prev.y;
+    const len = Math.sqrt(dx * dx + dy * dy) || 1;
+    const nx = -dy / len;
+    const ny = dx / len;
+    result.push({
+      x: line[i].x + nx * dist,
+      y: line[i].y + ny * dist,
+    });
+  }
+
+  if (isClosed && result.length > 0) {
+    result.push({ ...result[0] });
+  }
+  return result;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// TRACK LOOKUP & REGISTRY
 // ═══════════════════════════════════════════════════════════════════════
 
 export const TRACK_REGISTRY = generatedTracks as Record<string, TrackGeometry>;
 
 /** Look up a circuit geometry by circuit name (fuzzy match), with series fallback */
 export function getTrackForCircuit(circuitName?: string, seriesId?: string): TrackGeometry {
-  if (seriesId === 'nascar' || seriesId?.startsWith('nascar-')) {
-    const nascarTrack = getNascarTrack(circuitName);
-    if (nascarTrack) return nascarTrack;
-  }
   if (circuitName) {
     const lower = circuitName.toLowerCase();
     const venues = Object.entries(TRACK_REGISTRY).sort(([a], [b]) => b.length - a.length);
@@ -120,6 +212,12 @@ export function getTrackForCircuit(circuitName?: string, seriesId?: string): Tra
       }
     }
   }
+  
+  if (seriesId === 'nascar' || seriesId?.startsWith('nascar-')) {
+    const nascarTrack = getNascarTrack(circuitName);
+    if (nascarTrack) return nascarTrack;
+  }
+
   // Fallback
   return getTrackForSeries(seriesId || 'f1');
 }

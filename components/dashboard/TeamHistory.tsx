@@ -20,7 +20,7 @@ export default function TeamHistory({ series }: TeamHistoryProps) {
   return (
     <div className="card glass p-6 rounded-[var(--radius-xl)]">
       <div className="flex items-center gap-2.5 mb-5">
-        <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-amber-500/12 flex items-center justify-center text-amber-500">
+        <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-[var(--surface-raised)] border border-[var(--border-subtle)] text-[var(--text-secondary)] shadow-sm flex items-center justify-center">
           <Trophy size={16} />
         </div>
         <div>

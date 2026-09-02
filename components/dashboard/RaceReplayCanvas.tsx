@@ -3,6 +3,7 @@
 import { useRef, useEffect, useCallback, useState } from 'react'
 import type { ReplayData, RaceFrame, PlaybackState, Point2D } from '@/lib/replayTypes'
 import { REPLAY_FPS, TRACK_STATUS_MAP, TYRE_COMPOUNDS } from '@/lib/replayTypes'
+import { COLORS } from '@/lib/theme'
 
 interface Props {
   data: ReplayData
@@ -87,7 +88,7 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
     const toScreen = (p: Point2D) => ({ x: p.x * scale + tx, y: h - (p.y * scale + ty) })
 
     /* background */
-    cacheCtx.fillStyle = '#060a13'
+    cacheCtx.fillStyle = COLORS.graphite950
     cacheCtx.fillRect(0, 0, w, h)
 
     /* subtle grid */
@@ -139,9 +140,9 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
         const sec3 = ref.slice(s2End)
         if (sec3.length > 0 && n > 0) sec3.push(ref[0])
 
-        drawLine(sec1, '#ef4444', 6) // Sector 1 Red
+        drawLine(sec1, COLORS.flagRed, 6) // Sector 1 Red
         drawLine(sec2, '#06b6d4', 6) // Sector 2 Teal
-        drawLine(sec3, '#eab308', 6) // Sector 3 Yellow
+        drawLine(sec3, COLORS.amber, 6) // Sector 3 Yellow
       }
     }
 
@@ -170,20 +171,20 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
         const b = toScreen({ x: p.x - nx * sfLength, y: p.y - ny * sfLength })
         
         cacheCtx.beginPath(); cacheCtx.moveTo(a.x, a.y); cacheCtx.lineTo(b.x, b.y)
-        cacheCtx.strokeStyle = '#ffffff'; cacheCtx.lineWidth = 4; cacheCtx.stroke()
+        cacheCtx.strokeStyle = COLORS.textPrimary; cacheCtx.lineWidth = 4; cacheCtx.stroke()
       }
     } else {
       const ref = data.trackGeometry.referenceLine
       if (ref.length > 2) {
         const startP = toScreen(ref[0])
         const endP = toScreen(ref[ref.length - 1])
-        cacheCtx.strokeStyle = '#4ade80'; cacheCtx.lineWidth = 3
+        cacheCtx.strokeStyle = COLORS.greenFlag; cacheCtx.lineWidth = 3
         cacheCtx.beginPath(); cacheCtx.moveTo(startP.x, startP.y - 40); cacheCtx.lineTo(startP.x, startP.y + 40); cacheCtx.stroke()
-        cacheCtx.strokeStyle = '#f87171'
+        cacheCtx.strokeStyle = COLORS.flagRed
         cacheCtx.beginPath(); cacheCtx.moveTo(endP.x, endP.y - 40); cacheCtx.lineTo(endP.x, endP.y + 40); cacheCtx.stroke()
-        cacheCtx.fillStyle = '#4ade80'; cacheCtx.font = '10px Inter'; cacheCtx.textAlign = 'center'
+        cacheCtx.fillStyle = COLORS.greenFlag; cacheCtx.font = '10px Inter'; cacheCtx.textAlign = 'center'
         cacheCtx.fillText('START', startP.x, startP.y - 48)
-        cacheCtx.fillStyle = '#f87171'
+        cacheCtx.fillStyle = COLORS.flagRed
         cacheCtx.fillText('FINISH', endP.x, endP.y - 48)
       }
     }
@@ -245,7 +246,7 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
     const driverEntries = Object.entries(frame.drivers)
     for (const [code, d] of driverEntries) {
       const sp = toScreen({ x: d.x, y: d.y })
-      const color = data.driverColors[code] || '#3b82f6'
+      const color = data.driverColors[code] || COLORS.textPrimary
       const [r, g, b] = hexToRgb(color)
       const isSelected = playback.selectedDrivers.includes(code)
       const isLeader = d.position <= 3
@@ -280,7 +281,7 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
 
       /* car dot */
       const radius = isSelected ? 7 : (d.inPit ? 4 : 5.5)
-      const tyreColor = TYRE_COMPOUNDS[d.tyre]?.color || '#ffffff'
+      const tyreColor = TYRE_COMPOUNDS[d.tyre]?.color || COLORS.textPrimary
       
       ctx.beginPath(); ctx.arc(sp.x, sp.y, radius, 0, Math.PI * 2)
       ctx.fillStyle = d.inPit ? `rgba(${r},${g},${b},0.4)` : color
@@ -289,7 +290,7 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
 
       /* label */
       if (isSelected || playback.showDriverLabels) {
-        ctx.fillStyle = '#fff'; ctx.font = 'bold 9px "JetBrains Mono", monospace'; ctx.textAlign = 'center'
+        ctx.fillStyle = COLORS.textPrimary; ctx.font = 'bold 9px "JetBrains Mono", monospace'; ctx.textAlign = 'center'
         ctx.fillText(code, sp.x, sp.y - (isSelected ? 16 : 14))
       }
 
@@ -302,21 +303,21 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
         
         // throttle (green)
         ctx.fillStyle = 'rgba(255,255,255,0.1)'; ctx.fillRect(bx, by, barW, barH)
-        ctx.fillStyle = '#22c55e'; ctx.fillRect(bx, by, barW * (d.throttle / 100), barH)
+        ctx.fillStyle = COLORS.greenFlag; ctx.fillRect(bx, by, barW * (d.throttle / 100), barH)
         
         // brake (red)
         ctx.fillStyle = 'rgba(255,255,255,0.1)'; ctx.fillRect(bx, by + 4, barW, barH)
-        ctx.fillStyle = '#ef4444'; ctx.fillRect(bx, by + 4, barW * (d.brake / 100), barH)
+        ctx.fillStyle = COLORS.flagRed; ctx.fillRect(bx, by + 4, barW * (d.brake / 100), barH)
         
         // gear
-        ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 8px "JetBrains Mono", monospace'; ctx.textAlign = 'center'
+        ctx.fillStyle = COLORS.textSecondary; ctx.font = 'bold 8px "JetBrains Mono", monospace'; ctx.textAlign = 'center'
         ctx.fillText(`G${d.gear}`, sp.x, by + 15)
       }
 
       /* DRS indicator */
       if (d.drs >= 10) {
         ctx.beginPath(); ctx.arc(sp.x + (isSelected ? 9 : 7), sp.y - (isSelected ? 9 : 7), 2.5, 0, Math.PI * 2)
-        ctx.fillStyle = '#22c55e'; ctx.fill()
+        ctx.fillStyle = COLORS.greenFlag; ctx.fill()
       }
     }
 
@@ -329,7 +330,7 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
     }
 
     /* HUD: lap + time */
-    ctx.fillStyle = '#f1f5f9'; ctx.font = 'bold 13px Inter'; ctx.textAlign = 'left'
+    ctx.fillStyle = COLORS.textPrimary; ctx.font = 'bold 13px Inter'; ctx.textAlign = 'left'
     const lapStr = `LAP ${frame.lap}/${data.totalLaps}`
     ctx.fillText(lapStr, 16, h - 16)
 
@@ -340,11 +341,11 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
     const timeStr = hrs > 0
       ? `${hrs}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
       : `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
-    ctx.fillStyle = '#94a3b8'; ctx.font = '12px "JetBrains Mono", monospace'
+    ctx.fillStyle = COLORS.textSecondary; ctx.font = '12px "JetBrains Mono", monospace'
     ctx.fillText(timeStr, 16, h - 36)
 
     /* speed indicator */
-    ctx.fillStyle = '#64748b'; ctx.font = '11px Inter'; ctx.textAlign = 'right'
+    ctx.fillStyle = COLORS.textMuted; ctx.font = '11px Inter'; ctx.textAlign = 'right'
     ctx.fillText(`${playback.speed}x`, w - 16, h - 16)
   }, [data, playback, getTransform])
 

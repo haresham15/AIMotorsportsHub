@@ -70,7 +70,7 @@ export default function StrategyPredictor() {
     <div className="card glass rounded-[var(--radius-xl)] p-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-purple-500/12 flex items-center justify-center text-purple-400">
+          <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-[var(--surface-raised)] border border-[var(--border-subtle)] text-[var(--text-secondary)] shadow-sm flex items-center justify-center">
             <BrainCircuit size={16} />
           </div>
           <div>

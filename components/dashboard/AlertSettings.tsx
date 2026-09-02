@@ -68,7 +68,7 @@ export default function AlertSettings() {
   return (
     <div className="card glass rounded-[var(--radius-xl)] p-6">
       <div className="flex items-center gap-2.5 mb-5">
-        <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-indigo-500/12 flex items-center justify-center text-indigo-400">
+        <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-[var(--surface-raised)] border border-[var(--border-subtle)] text-[var(--text-secondary)] shadow-sm flex items-center justify-center">
           <Bell size={16} />
         </div>
         <div>
