@@ -103,8 +103,14 @@ function offsetLoop(line: Point2D[], distance: number): Point2D[] {
   return result
 }
 
+import generatedNascarTracks from './generatedNascarTracks.json'
+
 function geometry(spec: TrackSpec): TrackGeometry {
-  const rawLine = catmullRomLoop(spec.points, 100)
+  const accuratePoints = (generatedNascarTracks as Record<string, Point2D[]>)[spec.name]
+  const rawLine = accuratePoints && accuratePoints.length > 0 
+    ? accuratePoints 
+    : catmullRomLoop(spec.points, 100)
+    
   const referenceLine = normalizeCoordinates(rawLine)
   const width = spec.width ?? (spec.type === 'circuit' || spec.type === 'street' ? 12 : 24)
   return {

@@ -227,8 +227,6 @@ export default function SeriesDashboard() {
             </div>
           </div>
           {series === 'f1' && <div className="animate-fade-in-up"><DriverSimilarityMap /></div>}
-
-        </div>
       </main>
 
       {/* ===== FLOATING CHATBOT WIDGET ===== */}

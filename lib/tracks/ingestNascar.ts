@@ -197,7 +197,7 @@ function normalizeCoordinates(points: Point2D[]): Point2D[] {
 }
 
 async function fetchFromOverpass(query: string) {
-  const url = 'https://overpass.kumi.systems/api/interpreter';
+  const url = 'https://overpass-api.de/api/interpreter';
   for(let i = 0; i < 3; i++) {
     try {
       const res = await fetch(`${url}?data=${encodeURIComponent(query)}`, {

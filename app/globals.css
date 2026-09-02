@@ -855,6 +855,7 @@ body::before {
   padding: 8px 10px;
   display: flex;
   flex-direction: column;
+}
 /* ── Responsive ───────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .replay-leaderboard {
