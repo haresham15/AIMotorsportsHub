@@ -108,9 +108,9 @@ export default function SeriesDashboard() {
 
             {/* Live/Simulated Status Pill */}
             <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/5 border border-[var(--border-subtle)] text-xs font-mono">
-              <span className={`w-2 h-2 rounded-full ${series === 'f1' || series.startsWith('nascar-') ? 'bg-[var(--green-flag)] shadow-[0_0_8px_var(--green-flag)] animate-pulse' : 'bg-[var(--amber)] shadow-[0_0_8px_var(--amber)]'}`} />
+              <span className={`w-2 h-2 rounded-full ${series === 'f1' || series === 'nascar' || series.startsWith('nascar-') ? 'bg-[var(--green-flag)] shadow-[0_0_8px_var(--green-flag)] animate-pulse' : 'bg-[var(--amber)] shadow-[0_0_8px_var(--amber)]'}`} />
               <span className="text-[var(--text-secondary)] font-medium">
-                {series === 'f1' || series.startsWith('nascar-') ? 'LIVE TELEMETRY' : 'SIMULATION ENGINE'}
+                {series === 'f1' || series === 'nascar' || series.startsWith('nascar-') ? 'LIVE TELEMETRY' : 'SIMULATION ENGINE'}
               </span>
             </div>
           </div>
@@ -133,7 +133,7 @@ export default function SeriesDashboard() {
       <main className="max-w-[1280px] mx-auto px-6 pt-8 pb-20">
         
         {/* Roadmap Indicator for Non-Live Series */}
-        {series !== 'f1' && !series.startsWith('nascar-') && (
+        {series !== 'f1' && series !== 'nascar' && !series.startsWith('nascar-') && (
           <div className="animate-fade-in-up w-full bg-[var(--graphite-900)] border border-[var(--amber-dim)] rounded-[var(--radius-lg)] p-4 mb-6 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-[rgba(255,176,32,0.1)] flex items-center justify-center text-[var(--amber)]">
@@ -276,7 +276,7 @@ export default function SeriesDashboard() {
         <div className="animate-fade-in-up flex flex-col gap-6 mb-8">
           <AiSummary series={series} />
           
-          {(series === 'f1' || series.startsWith('nascar-')) && scheduleData && (
+          {(series === 'f1' || series === 'nascar' || series.startsWith('nascar-')) && scheduleData && (
             <RoundNavigator 
               rounds={scheduleData.rounds}
               series={series}
@@ -318,7 +318,7 @@ export default function SeriesDashboard() {
             <LiveStandings 
               series={series} 
               sessionKey={selectedSessionKey}
-              dataSource={isScanningActive ? 'cv' : series === 'f1' || series.startsWith('nascar-') ? 'live' : 'mock'} 
+              dataSource={isScanningActive ? 'cv' : series === 'f1' || series === 'nascar' || series.startsWith('nascar-') ? 'live' : 'mock'} 
               externalData={cvData}
               replayData={replayStandings}
               selectedDriverCode={focusedDriverCode}

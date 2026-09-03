@@ -19,7 +19,7 @@ interface SeriesDataResult {
 }
 
 export function useSeriesData(series: string): SeriesDataResult {
-  const isNascar = series.startsWith('nascar-')
+  const isNascar = series === 'nascar' || series.startsWith('nascar-')
   const [scheduleData, setScheduleData] = useState<ScheduleData | null>(null)
   const [standingsData, setStandingsData] = useState<{driverStandings: DriverStanding[], constructorStandings: ConstructorStanding[]} | null>(null)
   const [selectedYear, setSelectedYear] = useState(() => isNascar ? '2025' : new Date().getFullYear().toString())
@@ -68,9 +68,10 @@ export function useSeriesData(series: string): SeriesDataResult {
     } else if (isNascar) {
       const fetchNascarData = async () => {
         try {
+          const nascarParam = series === 'nascar' ? 'nascar-cup' : series
           const [scheduleRes, standingsRes] = await Promise.all([
-            fetch(`/api/nascar/schedule?year=${queryYear}&series=${series}`),
-            fetch(`/api/nascar/standings?year=${queryYear}&series=${series}`)
+            fetch(`/api/nascar/schedule?year=${queryYear}&series=${nascarParam}`),
+            fetch(`/api/nascar/standings?year=${queryYear}&series=${nascarParam}`)
           ])
 
           const schedule = await scheduleRes.json()

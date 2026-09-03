@@ -22,13 +22,14 @@ function getFallbackData(series: string): RaceData[] {
   return INITIAL_DATA.filter((entry) => {
     const entrySeries = entry.drivers?.series_id
     return entrySeries === series ||
-      (series.startsWith('nascar-') && entrySeries === 'nascar') ||
+      ((series === 'nascar' || series.startsWith('nascar-')) && entrySeries === 'nascar') ||
       (series === 'f1' && entrySeries === 'f1')
   })
 }
 
 function formatMockLap(series: string): string {
-  const baseMs = series.startsWith('nascar-') ? 50_000 : 90_000
+  const isNascar = series === 'nascar' || series.startsWith('nascar-')
+  const baseMs = isNascar ? 50_000 : 90_000
   const lapMs = baseMs + (Math.random() * 2000 - 1000)
   const mins = Math.floor(lapMs / 60000)
   const secs = ((lapMs % 60000) / 1000).toFixed(3)
@@ -126,13 +127,14 @@ export default function LiveStandings({
 
       fetchLiveF1Data()
       intervalId = setInterval(fetchLiveF1Data, 10000)
-    } else if (dataSource === 'live' && series.startsWith('nascar-')) {
+    } else if (dataSource === 'live' && (series === 'nascar' || series.startsWith('nascar-'))) {
       const fetchLiveNascarData = async () => {
         if (isFetchingRef.current) return
         isFetchingRef.current = true
 
         try {
-          const response = await fetch(`/api/nascar/live?series=${encodeURIComponent(series)}`)
+          const nascarParam = series === 'nascar' ? 'nascar-cup' : series
+          const response = await fetch(`/api/nascar/live?series=${encodeURIComponent(nascarParam)}`)
 
           if (!response.ok) {
             applyFallback()
@@ -228,7 +230,7 @@ export default function LiveStandings({
     }
   }
 
-  const liveLabel = series.startsWith('nascar-') ? 'LIVE (NASCAR)' : 'LIVE (OPENF1)'
+  const liveLabel = (series === 'nascar' || series.startsWith('nascar-')) ? 'LIVE (NASCAR)' : 'LIVE (OPENF1)'
 
   return (
     <div className="px-2">
@@ -275,7 +277,7 @@ export default function LiveStandings({
           <table className="w-full text-left border-collapse table-auto">
             <thead>
               <tr className="border-b border-[var(--border-subtle)]">
-                {['Pos', 'Driver', 'Gap', 'Speed / Status', series.startsWith('nascar-') ? 'Mfg' : 'Tire'].map((header) => (
+                {['Pos', 'Driver', 'Gap', 'Speed / Status', (series === 'nascar' || series.startsWith('nascar-')) ? 'Mfg' : 'Tire'].map((header) => (
                   <th key={header} className="pb-3 px-3 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--text-muted)] whitespace-nowrap">
                     {header}
                   </th>
@@ -370,7 +372,7 @@ export default function LiveStandings({
                         {entry.last_lap}
                       </td>
                       <td className="p-3">
-                        {series.startsWith('nascar-') && entry.manufacturer ? (
+                        {(series === 'nascar' || series.startsWith('nascar-')) && entry.manufacturer ? (
                            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-[0.04em] bg-white/10 text-white border border-white/20">
                              {entry.manufacturer}
                            </span>

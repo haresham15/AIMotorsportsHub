@@ -52,7 +52,8 @@ const NASCAR_CUP_2025 = [
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
   const year = searchParams.get('year') || '2025'
-  const series = searchParams.get('series') || 'nascar-cup'
+  const rawSeries = searchParams.get('series') || 'nascar-cup'
+  const series = rawSeries === 'nascar' ? 'nascar-cup' : rawSeries
   const seriesInfo = NASCAR_SERIES[series]
 
   if (!seriesInfo) {

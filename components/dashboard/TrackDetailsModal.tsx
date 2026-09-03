@@ -103,6 +103,32 @@ const CIRCUIT_SPECS: Record<string, {
     grip: 'Cold Surface / Low Tire Wake',
     wind: '5 km/h E (Desert Night)',
   },
+  'Phoenix Raceway': {
+    officialName: 'Phoenix Raceway',
+    lengthKm: 1.645,
+    turns: 4,
+    drsZones: 0,
+    lapRecord: '25.688s (140.144 mph)',
+    recordHolder: 'Ryan Blaney',
+    recordYear: 2023,
+    ambientTemp: 29,
+    trackTemp: 44,
+    grip: 'Low-Banked Asymmetrical Tri-Oval & Dogleg Apron',
+    wind: '9 km/h S (Sonoran Desert Breeze)',
+  },
+  'Daytona International Speedway': {
+    officialName: 'Daytona International Speedway',
+    lengthKm: 4.023,
+    turns: 4,
+    drsZones: 0,
+    lapRecord: '40.364s (210.364 mph)',
+    recordHolder: 'Bill Elliott',
+    recordYear: 1987,
+    ambientTemp: 26,
+    trackTemp: 39,
+    grip: '31° High-Banked Superspeedway Draft Pack',
+    wind: '16 km/h E (Atlantic Coast Wind)',
+  },
 };
 
 export default function TrackDetailsModal({

@@ -103,7 +103,10 @@ export function offsetPolyline(line: Point2D[], dist: number): Point2D[] {
 // TRACK LOOKUP & REGISTRY
 // ═══════════════════════════════════════════════════════════════════════
 
-export const TRACK_REGISTRY = generatedTracks as Record<string, TrackGeometry>;
+export const TRACK_REGISTRY: Record<string, TrackGeometry> = {
+  ...(generatedTracks as Record<string, TrackGeometry>),
+  ...NASCAR_TRACK_REGISTRY,
+};
 
 /** Look up a circuit geometry by circuit name (fuzzy match), with series fallback */
 export function getTrackForCircuit(circuitName?: string, seriesId?: string): TrackGeometry {
@@ -113,6 +116,10 @@ export function getTrackForCircuit(circuitName?: string, seriesId?: string): Tra
   }
 
   if (circuitName) {
+    // Check NASCAR tracks first if circuitName matches a NASCAR venue
+    const nascarTrack = getNascarTrack(circuitName);
+    if (nascarTrack) return nascarTrack;
+
     const lower = circuitName.toLowerCase();
     const venues = Object.entries(TRACK_REGISTRY).sort(([a], [b]) => b.length - a.length);
     for (const [venue, geometry] of venues) {
