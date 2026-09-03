@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { SERIES_MAP } from '@/lib/data'
+import { SERIES, SERIES_MAP } from '@/lib/data'
 import AiSummary from '@/components/dashboard/AiSummary'
 import MySupported from '@/components/dashboard/MySupported'
 import LiveStandings from '@/components/dashboard/LiveStandings'
@@ -17,10 +17,9 @@ import AlertSettings from '@/components/dashboard/AlertSettings'
 import BroadcastScanner from '@/components/dashboard/BroadcastScanner'
 import RoundNavigator from '@/components/dashboard/RoundNavigator'
 import ChampionshipStandings from '@/components/dashboard/ChampionshipStandings'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, ChevronDown } from 'lucide-react'
 import { useSeriesData } from '@/lib/hooks/useSeriesData'
 import { RaceData, CVData, Round, DriverStanding, ConstructorStanding } from '@/lib/types'
-import AuthButton from '@/components/AuthButton'
 import Modal from '@/components/ui/Modal'
 import PodiumProbability from '@/components/dashboard/PodiumProbability'
 import DriverSimilarityMap from '@/components/dashboard/DriverSimilarityMap'
@@ -61,36 +60,59 @@ export default function SeriesDashboard() {
 
   return (
     <div className={`min-h-screen relative series-${series}`}>
-      {/* ===== NAVBAR ===== */}
-      <nav className="glass-nav sticky top-0 z-50 px-6">
-        <div className="max-w-[1280px] mx-auto flex justify-between items-center h-[68px]">
+      {/* ===== RACE CONTROL SUB-BAR ===== */}
+      <div className="bg-[rgba(20,23,28,0.75)] backdrop-blur-md border-b border-[var(--border-subtle)] px-6 py-3 sticky top-[68px] z-40">
+        <div className="max-w-[1280px] mx-auto flex flex-wrap justify-between items-center gap-3">
           <div className="flex items-center gap-3">
-            <Link href="/" className="logo no-underline text-[var(--text-primary)]">
-              <span className="dot"></span>
-              <span className="hide-mobile">APEXIS</span>
-            </Link>
-            <span className="text-[var(--text-muted)] text-xl font-extralight">/</span>
-            <div className="flex items-center gap-2">
-              <span className="text-lg">{seriesInfo.icon}</span>
-              <span className="text-base font-semibold text-[var(--text-primary)] tracking-[-0.01em]">
-                {seriesInfo.name}
+            {/* Series Switcher Pill */}
+            <div className="relative group">
+              <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-[var(--border-subtle)] transition-colors cursor-pointer text-sm font-semibold text-[var(--text-primary)]">
+                <span className="text-base">{seriesInfo.icon}</span>
+                <span>{seriesInfo.name}</span>
+                <ChevronDown size={14} className="text-[var(--text-muted)] group-hover:text-white transition-colors" />
+              </button>
+
+              {/* Series Switcher Dropdown */}
+              <div className="absolute left-0 top-full mt-1.5 w-60 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl shadow-2xl p-1.5 hidden group-hover:block z-50 animate-fade-in-up">
+                <div className="text-[10px] font-mono text-[var(--text-muted)] uppercase tracking-wider px-3 py-1">Select Motorsport</div>
+                {SERIES.map((s) => (
+                  <Link
+                    key={s.id}
+                    href={`/dashboard/${s.id}`}
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-colors no-underline ${
+                      s.id === series
+                        ? 'bg-[var(--surface-elevated)] text-[var(--amber)] font-bold'
+                        : 'text-[var(--text-secondary)] hover:bg-white/5 hover:text-[var(--text-primary)]'
+                    }`}
+                  >
+                    <span>{s.icon}</span>
+                    <span>{s.name}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            {/* Live/Simulated Status Pill */}
+            <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/5 border border-[var(--border-subtle)] text-xs font-mono">
+              <span className={`w-2 h-2 rounded-full ${series === 'f1' || series.startsWith('nascar-') ? 'bg-[var(--green-flag)] shadow-[0_0_8px_var(--green-flag)] animate-pulse' : 'bg-[var(--amber)] shadow-[0_0_8px_var(--amber)]'}`} />
+              <span className="text-[var(--text-secondary)] font-medium">
+                {series === 'f1' || series.startsWith('nascar-') ? 'LIVE TELEMETRY' : 'SIMULATION ENGINE'}
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5">
-            <AuthButton />
-            <Link href="/" className="btn-ghost flex items-center gap-1.5 no-underline">
-              <ArrowLeft size={14} />
-              <span className="hide-mobile">Back</span>
+          <div className="flex items-center gap-3">
+            <Link href="/" className="btn-ghost text-xs flex items-center gap-1.5 no-underline py-1.5 px-3">
+              <ArrowLeft size={13} />
+              <span>Paddock Hub</span>
             </Link>
           </div>
         </div>
-      </nav>
+      </div>
 
       {/* Series color accent bar */}
       <div 
-        className="h-[2px] opacity-50"
+        className="h-[2px] opacity-70"
         style={{ background: seriesInfo.gradient }} 
       />
 

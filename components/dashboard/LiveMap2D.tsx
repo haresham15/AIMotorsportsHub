@@ -8,7 +8,7 @@ import RaceReplayCanvas from './RaceReplayCanvas'
 import ReplayControls from './ReplayControls'
 import ReplayLeaderboard from './ReplayLeaderboard'
 import DriverTelemetryPanel from './DriverTelemetryPanel'
-import { Radio, AlertTriangle } from 'lucide-react'
+import { Radio, AlertTriangle, Flag, ListOrdered, Tag, Eye } from 'lucide-react'
 import Loader from '@/components/ui/Loader'
 
 // Helper to run simulation — prefers Web Worker for off-main-thread
@@ -65,8 +65,8 @@ export default function LiveMap2D({ series, round = 1, sessionKey = null, sessio
     speed: 1,
     selectedDrivers: [],
     showLeaderboard: true,
-    showWeather: true,
-    showDriverLabels: false,
+    showWeather: false,
+    showDriverLabels: true,
     showDrsZones: true,
   })
 
@@ -135,7 +135,6 @@ export default function LiveMap2D({ series, round = 1, sessionKey = null, sessio
             const track = {
               ...baseTrack,
               referenceLine: normalizedLine,
-              // Overwrite these to avoid drawing incorrect offset geometry
               innerEdge: [],
               outerEdge: []
             }
@@ -204,13 +203,51 @@ export default function LiveMap2D({ series, round = 1, sessionKey = null, sessio
     setPlayback(prev => ({ ...prev, selectedDrivers: codes }))
   }, [])
 
-  // Reset frame index when replay data changes (e.g., switching circuits/sessions)
-  // to prevent the scrubber from being stuck at a stale position.
+  // Reset frame index when replay data changes
   useEffect(() => {
     if (replayData) {
       setPlayback(prev => ({ ...prev, frameIndex: 0, isPlaying: false }))
     }
   }, [replayData])
+
+  // Keyboard navigation for playback controls
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement)?.tagName)) {
+        return;
+      }
+
+      if (e.code === 'Space') {
+        e.preventDefault();
+        setPlayback(prev => ({ ...prev, isPlaying: !prev.isPlaying }));
+      } else if (e.code === 'ArrowLeft') {
+        e.preventDefault();
+        setPlayback(prev => ({ ...prev, frameIndex: Math.max(0, prev.frameIndex - 200) }));
+      } else if (e.code === 'ArrowRight') {
+        e.preventDefault();
+        setPlayback(prev => ({
+          ...prev,
+          frameIndex: prev.frameIndex + 200
+        }));
+      } else if (e.key === 'l' || e.key === 'L') {
+        setPlayback(prev => ({ ...prev, showDriverLabels: !prev.showDriverLabels }));
+      } else if (e.key === 's' || e.key === 'S') {
+        setPlayback(prev => ({ ...prev, showLeaderboard: !prev.showLeaderboard }));
+      } else if (e.key === 'f' || e.key === 'F') {
+        const container = document.querySelector('.replay-wrapper');
+        if (container) {
+          if (!document.fullscreenElement) {
+            container.requestFullscreen?.().catch(() => {});
+          } else {
+            document.exitFullscreen?.().catch(() => {});
+          }
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // ── Current frame ──────────────────────────────────────────────
   const currentFrame: RaceFrame | null = useMemo(() => {
@@ -224,47 +261,85 @@ export default function LiveMap2D({ series, round = 1, sessionKey = null, sessio
   // ── Loading state ──────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="replay-wrapper flex items-center justify-center min-h-[400px]">
-        <Loader text="Initializing Race Replay…" subtext="Loading real circuit telemetry…" />
+      <div className="replay-wrapper flex items-center justify-center min-h-[500px]">
+        <Loader text="Initializing Race Replay…" subtext="Loading circuit geometry & telemetry…" />
       </div>
     )
   }
 
   if (error || !replayData) {
     return (
-      <div className="replay-wrapper">
-        <div className="replay-error">
-          <AlertTriangle size={28} />
-          <span>{error || 'Failed to load replay data'}</span>
+      <div className="replay-wrapper flex items-center justify-center min-h-[500px]">
+        <div className="replay-error text-center p-6">
+          <AlertTriangle size={32} className="mx-auto mb-2 text-[var(--flag-red)]" />
+          <span className="font-semibold text-sm">{error || 'Failed to load replay data'}</span>
         </div>
       </div>
     )
   }
 
+  // Track status indicator details
+  const trackStatus = currentFrame?.trackStatus || '1'
+  const flagDetails = (() => {
+    switch (trackStatus) {
+      case '2':
+        return { label: 'YELLOW FLAG', color: 'bg-amber-500/20 text-amber-300 border-amber-500/40', dot: 'bg-amber-400' }
+      case '4':
+        return { label: 'SAFETY CAR', color: 'bg-orange-500/20 text-orange-300 border-orange-500/40', dot: 'bg-orange-400' }
+      case '5':
+        return { label: 'RED FLAG', color: 'bg-red-500/20 text-red-300 border-red-500/40', dot: 'bg-red-500' }
+      case '6':
+        return { label: 'VSC ACTIVE', color: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40', dot: 'bg-yellow-400' }
+      default:
+        return { label: 'TRACK CLEAR', color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30', dot: 'bg-emerald-400' }
+    }
+  })()
+
   return (
     <div className="replay-wrapper">
-      {/* Header */}
+      {/* ── Header: Paddock Bar ──────────────────────────────────────── */}
       <div className="replay-header">
-        <div className="replay-header__left">
-          <Radio size={14} className="replay-header__icon" />
-          <span className="replay-header__title">
-            {replayData.sessionInfo.circuitName}
-          </span>
-          <span className="replay-header__meta">
+        <div className="replay-header__left flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Radio size={14} className="replay-header__icon text-[var(--amber)]" />
+            <span className="font-mono font-bold text-sm tracking-wide text-white uppercase">
+              {replayData.sessionInfo.circuitName}
+            </span>
+          </div>
+
+          <span className="text-white/20">|</span>
+
+          <span className="text-xs font-medium text-[var(--text-muted)]">
             {replayData.sessionInfo.country} • {replayData.sessionInfo.sessionType}
           </span>
         </div>
-        <div className="replay-header__right">
+
+        {/* Center: Track Condition Flag */}
+        <div className="hidden sm:flex items-center gap-2">
+          <span className={`px-2.5 py-0.5 rounded-full border text-[11px] font-mono font-bold flex items-center gap-1.5 shadow-sm ${flagDetails.color}`}>
+            <span className={`w-2 h-2 rounded-full ${flagDetails.dot} shadow-[0_0_8px_currentColor] animate-pulse`} />
+            {flagDetails.label}
+          </span>
+        </div>
+
+        {/* Right: Quick Source Tag & Shortcut Hints */}
+        <div className="replay-header__right flex items-center gap-3">
+          <span className="hidden lg:inline-flex items-center gap-1.5 text-[10px] font-mono text-[var(--text-muted)] bg-white/5 border border-white/5 px-2.5 py-1 rounded-md">
+            <kbd className="px-1 py-0.2 bg-black/40 rounded border border-white/10 text-white font-bold">Space</kbd> Play
+            <span className="text-white/20">•</span>
+            <kbd className="px-1 py-0.2 bg-black/40 rounded border border-white/10 text-white font-bold">S</kbd> Standings
+          </span>
+
           <span className={`replay-header__source replay-header__source--${dataSource}`}>
-            {dataSource === 'api' ? 'HISTORICAL DATA' : dataSource === 'openf1' ? 'REAL CIRCUIT SIM' : 'SIMULATION'}
+            {dataSource === 'api' ? 'HISTORICAL TELEMETRY' : dataSource === 'openf1' ? 'REAL CIRCUIT SIM' : 'SIMULATION ENGINE'}
           </span>
         </div>
       </div>
 
-      {/* Main content area */}
-      <div className="replay-body">
-        {/* Canvas */}
-        <div className="replay-canvas-container">
+      {/* ── Center Stage: Canvas & Right Dock ────────────────────────── */}
+      <div className="replay-body flex-1 relative flex min-h-0 overflow-hidden">
+        {/* Canvas Area (100% focused) */}
+        <div className="replay-canvas-container flex-1 relative min-w-0 h-full overflow-hidden bg-black/40">
           <RaceReplayCanvas
             data={replayData}
             playback={playback}
@@ -272,7 +347,7 @@ export default function LiveMap2D({ series, round = 1, sessionKey = null, sessio
             onDriverSelect={handleDriverSelect}
           />
 
-          {/* Telemetry panel (floats over canvas) */}
+          {/* Compact Driver Telemetry HUD (docked bottom-left when focused) */}
           {selectedDriver && (
             <DriverTelemetryPanel
               data={replayData}
@@ -281,20 +356,35 @@ export default function LiveMap2D({ series, round = 1, sessionKey = null, sessio
               onClose={() => handleDriverSelect([])}
             />
           )}
+
+          {/* Collapsed Standings Pill (if user collapsed the right dock) */}
+          {!playback.showLeaderboard && (
+            <button
+              onClick={() => handlePlaybackChange({ showLeaderboard: true })}
+              className="absolute top-3 right-3 z-20 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black/80 hover:bg-black border border-white/10 hover:border-[var(--amber)] text-xs font-mono text-white shadow-xl backdrop-blur-md cursor-pointer transition-all"
+              title="Expand Standings Dock (S)"
+            >
+              <ListOrdered size={14} className="text-[var(--amber)]" />
+              <span>Show Standings</span>
+            </button>
+          )}
         </div>
 
-        {/* Leaderboard */}
+        {/* Right Dock: Dedicated Leaderboard Sidebar */}
         {playback.showLeaderboard && (
-          <ReplayLeaderboard
-            data={replayData}
-            frame={currentFrame}
-            selectedDrivers={playback.selectedDrivers}
-            onSelect={handleDriverSelect}
-          />
+          <aside className="w-68 sm:w-76 h-full border-l border-[var(--border-subtle)] bg-[rgba(11,14,19,0.95)] backdrop-blur-xl flex flex-col shrink-0 z-10 animate-fade-in transition-all">
+            <ReplayLeaderboard
+              data={replayData}
+              frame={currentFrame}
+              selectedDrivers={playback.selectedDrivers}
+              onSelect={handleDriverSelect}
+              onClose={() => handlePlaybackChange({ showLeaderboard: false })}
+            />
+          </aside>
         )}
       </div>
 
-      {/* Controls */}
+      {/* ── Bottom Deck: Docked Transport Controls ───────────────────── */}
       <ReplayControls
         playback={playback}
         data={replayData}

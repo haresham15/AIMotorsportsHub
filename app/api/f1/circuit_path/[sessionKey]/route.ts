@@ -45,7 +45,9 @@ export async function GET(
 
     const url = `https://api.openf1.org/v1/location?${queryParams.toString()}`
     const locRes = await fetch(url)
-    if (!locRes.ok) throw new Error('Failed to fetch location')
+    if (!locRes.ok) {
+      return NextResponse.json({ error: `OpenF1 location lookup returned status ${locRes.status}` }, { status: locRes.status === 429 ? 429 : 502 })
+    }
     const locData = await locRes.json()
 
     if (!locData || locData.length === 0) {
