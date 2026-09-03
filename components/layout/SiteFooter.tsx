@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { openSuggestionsModal } from '@/components/SuggestionsModal';
 
 export default function SiteFooter() {
   return (
@@ -28,8 +31,14 @@ export default function SiteFooter() {
             <h4 className="font-mono text-[11px] tracking-[0.1em] uppercase text-[var(--text-muted)] mb-[var(--sp-4)]">
               Resources
             </h4>
+            <Link href="/guide" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">
+              User Guide
+            </Link>
+            <Link href="/faq" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">
+              FAQ
+            </Link>
             <Link href="/about/data" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">
-              Data & Methodology
+              Data &amp; Methodology
             </Link>
             <Link href="/developers" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">
               Developer API
@@ -37,13 +46,19 @@ export default function SiteFooter() {
           </div>
           <div>
             <h4 className="font-mono text-[11px] tracking-[0.1em] uppercase text-[var(--text-muted)] mb-[var(--sp-4)]">
-              About
+              Community &amp; About
             </h4>
-            <Link href="/legacy" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">
-              Legacy
-            </Link>
             <Link href="/about" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">
               About Apexis
+            </Link>
+            <button
+              onClick={openSuggestionsModal}
+              className="block text-left text-[14px] text-amber-400 font-semibold mb-[var(--sp-3)] hover:text-amber-300 transition-colors cursor-pointer bg-transparent border-none p-0"
+            >
+              Suggestions Box
+            </button>
+            <Link href="/legacy" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">
+              Legacy
             </Link>
             <a href="https://github.com/haresham15/AIMotorsportsHub" target="_blank" rel="noopener noreferrer" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">
               GitHub

@@ -298,7 +298,7 @@ export default function LiveStandings({
                     <tr 
                       key={entry.driver_id} 
                       onClick={() => onSelectDriver?.(isSelected ? null : entry.driver_id)}
-                      className={`border-b border-white/5 transition-colors duration-200 cursor-pointer ${
+                      className={`row-interactive border-b border-white/5 transition-all duration-150 cursor-pointer ${
                         isSelected 
                           ? 'bg-white/10 !border-l-2 !border-l-[var(--amber)]' 
                           : isFollowed 
@@ -308,7 +308,7 @@ export default function LiveStandings({
                       title={`${entry.drivers?.name || entry.driver_id} ${isFollowed ? '(Followed Driver) ' : ''}- Click to focus in Race Replay`}
                     >
                       <td className="p-3">
-                        <span className={`font-mono font-extrabold text-[14px] ${entry.position <= 3 ? 'text-[#fbbf24]' : 'text-[var(--text-primary)]'}`}>
+                        <span className={`font-tech font-extrabold text-[15px] ${entry.position <= 3 ? 'text-[#fbbf24]' : 'text-[var(--text-primary)]'}`}>
                           {entry.position}
                         </span>
                       </td>

@@ -54,6 +54,9 @@
 
   /* Typography */
   --font-disp: "Big Shoulders Display", sans-serif;
+  --font-tech: "Chakra Petch", monospace, sans-serif;
+  --font-condensed: "Barlow Condensed", sans-serif;
+  --font-outfit: "Outfit", sans-serif;
 }
 
 /* ========== BASE RESET ========== */
@@ -1001,3 +1004,143 @@ body::before {
   border-color: rgba(59,130,246,0.4);
   color: var(--accent-blue);
 }
+
+/* ==========================================================================
+   MOTORSPORT ANIMATIONS, KEYFRAMES & FLUID MICRO-INTERACTIONS
+   ========================================================================== */
+
+/* Typography Utilities */
+.font-tech {
+  font-family: var(--font-tech);
+}
+.font-condensed {
+  font-family: var(--font-condensed);
+}
+.font-outfit {
+  font-family: var(--font-outfit);
+}
+
+/* Fluid Card Hover */
+.card-interactive {
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), 
+              border-color 0.22s ease, 
+              box-shadow 0.22s ease,
+              background-color 0.22s ease;
+  will-change: transform, box-shadow;
+}
+
+.card-interactive:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 176, 32, 0.35);
+  box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.6), 
+              0 0 18px -4px rgba(255, 176, 32, 0.14);
+}
+
+/* Leaderboard Interactive Row */
+.row-interactive {
+  position: relative;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.row-interactive::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0px;
+  background-color: var(--amber);
+  transition: width 0.18s cubic-bezier(0.2, 0, 0, 1);
+  border-radius: 4px 0 0 4px;
+}
+
+.row-interactive:hover::before {
+  width: 3px;
+}
+
+.row-interactive:hover {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+/* Fluid Telemetry Pedals */
+.telemetry-bar-fluid {
+  transition: width 0.12s cubic-bezier(0.2, 0, 0, 1);
+  will-change: width;
+}
+
+/* Gear Indicator Pop */
+@keyframes gear-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.18); text-shadow: 0 0 12px rgba(255, 176, 32, 0.8); }
+  100% { transform: scale(1); }
+}
+
+.gear-pop-active {
+  animation: gear-pop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Radar & Telemetry Scanning Line */
+@keyframes radar-sweep {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.animate-radar-sweep {
+  animation: radar-sweep 2.5s linear infinite;
+  transform-origin: center center;
+}
+
+/* Starting Lights Sequence Keyframes */
+@keyframes lights-countdown {
+  0%, 15% { background-color: #222730; box-shadow: none; }
+  20%, 90% { background-color: #EF4444; box-shadow: 0 0 14px #EF4444, inset 0 0 4px #FCA5A5; }
+  92%, 100% { background-color: #10B981; box-shadow: 0 0 18px #10B981, inset 0 0 4px #A7F3D0; }
+}
+
+/* Tachometer RPM Shift Lights Pulse */
+@keyframes rpm-shift-pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; filter: drop-shadow(0 0 8px currentColor); }
+}
+
+.rpm-pulse-fast {
+  animation: rpm-shift-pulse 0.2s ease-in-out infinite;
+}
+
+/* Subtle Carbon Fiber Skeleton Shimmer */
+@keyframes carbon-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton-carbon {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  background-size: 200% 100%;
+  animation: carbon-shimmer 1.8s ease-in-out infinite;
+}
+
+/* Live Beacon Indicator Pulse */
+@keyframes beacon-pulse {
+  0% { transform: scale(0.95); opacity: 0.8; box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6); }
+  70% { transform: scale(1.05); opacity: 1; box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+  100% { transform: scale(0.95); opacity: 0.8; box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+.live-beacon-active {
+  animation: beacon-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Micro-Pill Interaction */
+.pill-interactive {
+  transition: all 0.16s ease;
+}
+.pill-interactive:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.15);
+}
+

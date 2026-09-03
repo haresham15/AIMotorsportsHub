@@ -81,8 +81,8 @@ export default function ReplayLeaderboard({ data, frame, selectedDrivers, onSele
           return (
             <div
               key={code}
-              className={`flex items-center h-8 px-2.5 cursor-pointer hover:bg-white/5 transition-colors group text-xs
-                ${isSelected ? 'bg-white/10 !border-l-2 !border-l-[var(--amber)]' : 'border-l-2 border-l-transparent'}
+              className={`row-interactive flex items-center h-8 px-2.5 cursor-pointer hover:bg-white/5 transition-all duration-150 group text-xs
+                ${isSelected ? 'bg-white/10 !border-l-2 !border-l-[var(--amber)] shadow-inner' : 'border-l-2 border-l-transparent'}
                 ${d.inPit ? 'opacity-70 bg-amber-500/5' : ''}
                 ${d.retired ? 'opacity-35 grayscale' : ''}
               `}

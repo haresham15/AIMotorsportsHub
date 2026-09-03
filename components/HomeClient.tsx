@@ -114,8 +114,8 @@ export default function HomeClient() {
         .eyebrow { font-family: var(--font-mono); font-size: 12px; color: var(--amber); font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: var(--sp-3); }
         .section-head h2 { font-family: var(--font-disp); font-weight: 800; font-size: clamp(30px,4vw,48px); letter-spacing: -0.005em; text-transform: uppercase; max-width: 640px; }
         .series-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 1px; background: var(--border-subtle); border: 1px solid var(--border-subtle); margin-top: var(--sp-7); }
-        .series-card { background: var(--bg-card); padding: var(--sp-6); display: flex; flex-direction: column; justify-content: space-between; position: relative; border-left: 4px solid var(--s-color); transition: all .2s; }
-        .series-card:hover { background: var(--bg-card-hover); }
+        .series-card { background: var(--bg-card); padding: var(--sp-6); display: flex; flex-direction: column; justify-content: space-between; position: relative; border-left: 4px solid var(--s-color); transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.22s ease, box-shadow 0.22s ease; }
+        .series-card:hover { background: var(--bg-card-hover); transform: translateY(-2px); box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.45), 0 0 16px -3px var(--s-color); }
         .series-mark { font-family: var(--font-disp); font-size: 38px; font-weight: 800; letter-spacing: 0.01em; color: var(--s-color); }
         .series-card.featured { grid-column: 1 / -1; }
         .series-card.featured .series-mark { font-size: 68px; }

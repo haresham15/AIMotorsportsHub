@@ -8,6 +8,9 @@ import RaceReplayCanvas from './RaceReplayCanvas'
 import ReplayControls from './ReplayControls'
 import ReplayLeaderboard from './ReplayLeaderboard'
 import DriverTelemetryPanel from './DriverTelemetryPanel'
+import DriverProfileModal from './DriverProfileModal'
+import TrackDetailsModal from './TrackDetailsModal'
+import RaceControlModal from './RaceControlModal'
 import { Radio, AlertTriangle, Flag, ListOrdered, Tag, Eye } from 'lucide-react'
 import Loader from '@/components/ui/Loader'
 
@@ -75,6 +78,10 @@ export default function LiveMap2D({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [dataSource, setDataSource] = useState<'api' | 'simulation' | 'openf1'>('simulation')
+  const [inspectDriverCode, setInspectDriverCode] = useState<string | null>(null)
+  const [isTrackModalOpen, setIsTrackModalOpen] = useState(false)
+  const [isRaceControlModalOpen, setIsRaceControlModalOpen] = useState(false)
+  const [customTrackName, setCustomTrackName] = useState<string | null>(null)
 
   const [playback, setPlayback] = useState<PlaybackState>({
     frameIndex: 0,
@@ -173,9 +180,11 @@ export default function LiveMap2D({
 
         if (cancelled) return
 
-        if (json.source === 'simulation' || !json.frames) {
-          console.log(`[LiveMap2D] No API data for ${series}, using fallback simulation`)
-          const track = getTrackForCircuit(circuitName, series)
+        const effectiveCircuitName = customTrackName || circuitName;
+
+        if (json.source === 'simulation' || !json.frames || customTrackName) {
+          console.log(`[LiveMap2D] Loading simulation for ${series} on ${effectiveCircuitName}`)
+          const track = getTrackForCircuit(effectiveCircuitName, series)
           const simData = await generateReplayDataAsync(series, track, driversList, sessionType)
           if (cancelled) return
           setReplayData(simData)
@@ -185,7 +194,7 @@ export default function LiveMap2D({
           }
         } else {
           console.log(`[LiveMap2D] Loaded API data for ${series}: ${json.frames.length} frames`)
-          const track = json.trackGeometry ? { ...getTrackForCircuit(circuitName, series), ...json.trackGeometry } : getTrackForCircuit(circuitName, series)
+          const track = json.trackGeometry ? { ...getTrackForCircuit(effectiveCircuitName, series), ...json.trackGeometry } : getTrackForCircuit(effectiveCircuitName, series)
           const loadedData = { ...json, trackGeometry: track }
           setReplayData(loadedData)
           setDataSource('api')
@@ -194,9 +203,10 @@ export default function LiveMap2D({
           }
         }
       } catch (err) {
-        console.warn(`[LiveMap2D] Fetch failed for ${series}, using simulation:`, err)
+        const effectiveCircuitName = customTrackName || circuitName;
+        console.warn(`[LiveMap2D] Fetch failed for ${series}, using simulation on ${effectiveCircuitName}:`, err)
         if (cancelled) return
-        const track = getTrackForCircuit(circuitName, series)
+        const track = getTrackForCircuit(effectiveCircuitName, series)
         const fallbackDrivers = driverStandings && driverStandings.length > 0 ? driverStandings.map(d => ({
           code: d.code || d.lastName.substring(0,3).toUpperCase(),
           name: d.firstName + ' ' + d.lastName,
@@ -219,7 +229,7 @@ export default function LiveMap2D({
 
     loadData()
     return () => { cancelled = true }
-  }, [series, round, sessionKey, circuitName, country, driverStandings, sessionType])
+  }, [series, round, sessionKey, circuitName, country, driverStandings, sessionType, customTrackName])
 
   // ── Playback state handler ─────────────────────────────────────
   const lastSyncTimeRef = useRef(0)
@@ -357,26 +367,32 @@ export default function LiveMap2D({
       {/* ── Header: Paddock Bar ──────────────────────────────────────── */}
       <div className="replay-header">
         <div className="replay-header__left flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <Radio size={14} className="replay-header__icon text-[var(--amber)]" />
-            <span className="font-mono font-bold text-sm tracking-wide text-white uppercase">
+          <button
+            onClick={() => setIsTrackModalOpen(true)}
+            className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 hover:border-amber-400/40 text-left transition-all cursor-pointer group"
+            title="View Circuit Dossier & Switch Track"
+          >
+            <Radio size={14} className="replay-header__icon text-[var(--amber)] group-hover:scale-110 transition-transform" />
+            <span className="font-mono font-bold text-sm tracking-wide text-white uppercase group-hover:text-amber-300">
               {replayData.sessionInfo.circuitName}
             </span>
-          </div>
-
-          <span className="text-white/20">|</span>
-
-          <span className="text-xs font-medium text-[var(--text-muted)]">
-            {replayData.sessionInfo.country} • {replayData.sessionInfo.sessionType}
-          </span>
+            <span className="text-white/20">|</span>
+            <span className="text-xs font-medium text-[var(--text-muted)] group-hover:text-white/80">
+              {replayData.sessionInfo.country} • {replayData.sessionInfo.sessionType}
+            </span>
+          </button>
         </div>
 
         {/* Center: Track Condition Flag */}
         <div className="hidden sm:flex items-center gap-2">
-          <span className={`px-2.5 py-0.5 rounded-full border text-[11px] font-mono font-bold flex items-center gap-1.5 shadow-sm ${flagDetails.color}`}>
-            <span className={`w-2 h-2 rounded-full ${flagDetails.dot} shadow-[0_0_8px_currentColor] animate-pulse`} />
-            {flagDetails.label}
-          </span>
+          <button
+            onClick={() => setIsRaceControlModalOpen(true)}
+            className={`px-3 py-1 rounded-full border text-[11px] font-mono font-bold flex items-center gap-1.5 shadow-sm cursor-pointer hover:scale-105 transition-all ${flagDetails.color}`}
+            title="View FIA Race Control Directives"
+          >
+            <span className={`w-2 h-2 rounded-full ${flagDetails.dot} shadow-[0_0_8px_currentColor] live-beacon-active`} />
+            <span>{flagDetails.label}</span>
+          </button>
         </div>
 
         {/* Right: Quick Source Tag & Shortcut Hints */}
@@ -411,6 +427,7 @@ export default function LiveMap2D({
               frame={currentFrame}
               driverCode={selectedDriver}
               onClose={() => handleDriverSelect([])}
+              onInspect={(code) => setInspectDriverCode(code)}
             />
           )}
 
@@ -446,6 +463,41 @@ export default function LiveMap2D({
         playback={playback}
         data={replayData}
         onChange={handlePlaybackChange}
+      />
+
+      {/* ── Specialized Pop-up Modals ───────────────────────────────── */}
+      <DriverProfileModal
+        driverCode={inspectDriverCode}
+        isOpen={!!inspectDriverCode}
+        onClose={() => setInspectDriverCode(null)}
+        telemetry={
+          inspectDriverCode && currentFrame?.drivers[inspectDriverCode]
+            ? {
+                speed: currentFrame.drivers[inspectDriverCode].speed,
+                gear: currentFrame.drivers[inspectDriverCode].gear,
+                throttle: currentFrame.drivers[inspectDriverCode].throttle,
+                brake: currentFrame.drivers[inspectDriverCode].brake,
+                tyre: currentFrame.drivers[inspectDriverCode].tyre,
+                tyreLife: currentFrame.drivers[inspectDriverCode].tyreLife,
+                drs: currentFrame.drivers[inspectDriverCode].drs >= 10,
+                position: currentFrame.drivers[inspectDriverCode].position,
+              }
+            : undefined
+        }
+      />
+
+      <TrackDetailsModal
+        isOpen={isTrackModalOpen}
+        onClose={() => setIsTrackModalOpen(false)}
+        circuitName={replayData.sessionInfo.circuitName}
+        country={replayData.sessionInfo.country}
+        onSelectTrack={(trackName) => setCustomTrackName(trackName)}
+      />
+
+      <RaceControlModal
+        isOpen={isRaceControlModalOpen}
+        onClose={() => setIsRaceControlModalOpen(false)}
+        trackStatus={currentFrame?.trackStatus || '1'}
       />
     </div>
   )

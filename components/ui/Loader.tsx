@@ -1,56 +1,69 @@
-'use client'
+'use client';
 
-import React from 'react'
+import React from 'react';
+import MotorsportLoader from './MotorsportLoader';
 
 interface LoaderProps {
-  text?: string
-  subtext?: string
-  size?: 'xs' | 'sm' | 'md' | 'lg'
-  fullScreen?: boolean
-  inline?: boolean
+  text?: string;
+  subtext?: string;
+  size?: 'xs' | 'sm' | 'md' | 'lg';
+  variant?: 'starting-lights' | 'tachometer' | 'radar' | 'spinner';
+  fullScreen?: boolean;
+  inline?: boolean;
 }
 
-export default function Loader({ text, subtext, size = 'md', fullScreen = false, inline = false }: LoaderProps) {
-  const sizeClasses = {
-    xs: 'w-4 h-4 border-2',
-    sm: 'w-6 h-6 border-2',
-    md: 'w-10 h-10 border-3',
-    lg: 'w-16 h-16 border-4'
-  }
+export default function Loader({
+  text,
+  subtext,
+  size = 'md',
+  variant,
+  fullScreen = false,
+  inline = false,
+}: LoaderProps) {
+  // If explicitly requested as inline or tiny, render compact spinner
+  if (inline || size === 'xs' || size === 'sm') {
+    const sizeClasses = {
+      xs: 'w-3.5 h-3.5 border',
+      sm: 'w-5 h-5 border-2',
+      md: 'w-7 h-7 border-2',
+      lg: 'w-10 h-10 border-2',
+    };
 
-  const content = (
-    <div className={`flex items-center justify-center ${inline ? 'gap-2 flex-row' : 'flex-col gap-4'}`}>
-      {/* Apexis Stylized Spinner */}
-      <div className="relative flex items-center justify-center">
-        <div className={`rounded-full border-t-[var(--amber)] border-r-[var(--flag-red)] border-b-transparent border-l-transparent animate-spin ${sizeClasses[size]}`}></div>
-        <div className={`absolute rounded-full border-t-transparent border-r-transparent border-b-[var(--accent-blue)] border-l-[var(--green-flag)] animate-spin-slow opacity-60 ${sizeClasses[size]}`} style={{ width: '80%', height: '80%' }}></div>
-      </div>
-      
-      {/* Text Output */}
-      {text && (
-        <div className={inline ? '' : 'text-center'}>
-          <p className="font-[family-name:var(--font-disp)] uppercase font-bold tracking-widest text-[var(--text-primary)] text-sm m-0">
+    const spinnerContent = (
+      <div className={`flex items-center justify-center ${inline ? 'gap-2 flex-row' : 'flex-col gap-2'}`}>
+        <div className="relative flex items-center justify-center">
+          <div className={`rounded-full border-amber-500/20 border-t-[var(--amber)] animate-spin ${sizeClasses[size]}`} />
+        </div>
+        {text && (
+          <span className="font-mono text-xs text-[var(--text-secondary)] font-medium">
             {text}
-          </p>
-          {subtext && (
-            <p className="text-[11px] text-[var(--text-muted)] mt-1 font-medium m-0">
-              {subtext}
-            </p>
-          )}
-        </div>
-      )}
-    </div>
-  )
-
-  if (fullScreen) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--bg-primary)]/80 backdrop-blur-sm">
-        <div className="glass p-8 rounded-[var(--radius-xl)]">
-          {content}
-        </div>
+          </span>
+        )}
       </div>
-    )
+    );
+
+    if (fullScreen) {
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--bg-primary)]/80 backdrop-blur-sm">
+          <div className="glass p-6 rounded-[var(--radius-xl)] border border-white/10">
+            {spinnerContent}
+          </div>
+        </div>
+      );
+    }
+    return spinnerContent;
   }
 
-  return content
+  // Otherwise, render broadcast-grade MotorsportLoader!
+  const chosenVariant = variant || (text?.toLowerCase().includes('replay') || text?.toLowerCase().includes('circuit') ? 'starting-lights' : 'tachometer');
+
+  return (
+    <MotorsportLoader
+      variant={chosenVariant}
+      text={text}
+      subtext={subtext}
+      size={size === 'lg' ? 'lg' : 'md'}
+      fullScreen={fullScreen}
+    />
+  );
 }
