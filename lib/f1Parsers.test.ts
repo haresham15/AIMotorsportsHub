@@ -11,6 +11,7 @@ describe('F1 parsers', () => {
     const race = { date:'2026-06-07', time:'14:00:00Z', FirstPractice:{date:'2026-06-05T10:00:00Z'} }
     expect(getRaceStatus(race, new Date('2026-06-04'))).toBe('upcoming')
     expect(getRaceStatus(race, new Date('2026-06-06'))).toBe('live')
+    expect(getRaceStatus(race, new Date('2026-06-07T15:00:00Z'))).toBe('live')
     expect(getRaceStatus(race, new Date('2026-06-08'))).toBe('completed')
   })
 })

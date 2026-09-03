@@ -107,6 +107,11 @@ export const TRACK_REGISTRY = generatedTracks as Record<string, TrackGeometry>;
 
 /** Look up a circuit geometry by circuit name (fuzzy match), with series fallback */
 export function getTrackForCircuit(circuitName?: string, seriesId?: string): TrackGeometry {
+  if (seriesId === 'nascar' || seriesId?.startsWith('nascar-')) {
+    const nascarTrack = getNascarTrack(circuitName);
+    if (nascarTrack) return nascarTrack;
+  }
+
   if (circuitName) {
     const lower = circuitName.toLowerCase();
     const venues = Object.entries(TRACK_REGISTRY).sort(([a], [b]) => b.length - a.length);
@@ -115,11 +120,6 @@ export function getTrackForCircuit(circuitName?: string, seriesId?: string): Tra
         return geometry;
       }
     }
-  }
-  
-  if (seriesId === 'nascar' || seriesId?.startsWith('nascar-')) {
-    const nascarTrack = getNascarTrack(circuitName);
-    if (nascarTrack) return nascarTrack;
   }
 
   // Fallback

@@ -5,7 +5,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { webhookUrl, series, eventType, message, data } = body;
 
-    if (!webhookUrl || !webhookUrl.startsWith('https://discord.com/api/webhooks/')) {
+    const isValidWebhook = typeof webhookUrl === 'string' &&
+      /^https:\/\/(?:ptb\.|canary\.)?discord(?:app)?\.com\/api\/webhooks\//i.test(webhookUrl)
+
+    if (!isValidWebhook) {
       return NextResponse.json({ error: "Invalid or missing webhookUrl" }, { status: 400 });
     }
 
@@ -14,19 +17,24 @@ export async function POST(request: NextRequest) {
     if (series === 'f1') color = 0xff2800; // F1 Red
     if (eventType === 'SAFETY_CAR') color = 0xfbbf24; // Yellow
 
+    const rawFields = data && typeof data === 'object' ? Object.entries(data) : []
+    const fields = rawFields
+      .slice(0, 25)
+      .map(([key, value]) => ({
+        name: (key || 'Detail').slice(0, 256),
+        value: String(value ?? '--').slice(0, 1024) || '--',
+        inline: true
+      }))
+
     const embed = {
-      title: `🚨 ${series ? series.toUpperCase() : 'Motorsport'} Alert: ${eventType}`,
-      description: message,
+      title: `🚨 ${series ? series.toUpperCase() : 'Motorsport'} Alert: ${eventType}`.slice(0, 256),
+      description: String(message || '').slice(0, 4096),
       color,
       timestamp: new Date().toISOString(),
       footer: {
         text: 'Apexis - Live Updates'
       },
-      fields: data ? Object.entries(data).map(([key, value]) => ({
-        name: key,
-        value: String(value),
-        inline: true
-      })) : []
+      fields
     };
 
     const payload = {

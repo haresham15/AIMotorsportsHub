@@ -20,21 +20,22 @@ export async function GET(
     return NextResponse.json({ error: 'Invalid series requested.' }, { status: 400 });
   }
 
-  const year = searchParams.get('year') || '2024';
-  const round = searchParams.get('round') || '1';
-  const session = searchParams.get('session') || 'race';
+  const yearParam = searchParams.get('year') || '2024';
+  const roundParam = searchParams.get('round') || '1';
+  const sessionParam = searchParams.get('session') || 'race';
 
-  // Prevent path traversal by sanitizing inputs to their basenames
-  const cleanYear = path.basename(year);
-  const cleanRound = path.basename(round);
-  const cleanSession = path.basename(session);
+  const parsedYear = parseInt(yearParam, 10);
+  const parsedRound = parseInt(roundParam, 10);
+  const safeYear = Number.isInteger(parsedYear) && parsedYear >= 1950 && parsedYear <= 2100 ? parsedYear : 2024;
+  const safeRound = Number.isInteger(parsedRound) && parsedRound >= 1 && parsedRound <= 100 ? parsedRound : 1;
+  const safeSession = /^[a-zA-Z0-9_-]+$/.test(sessionParam) ? sessionParam.toLowerCase() : 'race';
 
   // Construct the path to the pre-computed JSON
-  const filename = `${cleanYear}_round${cleanRound}_${cleanSession}.json`;
-  const filePath = path.join(process.cwd(), 'public', 'replay-data', series, filename);
+  const filename = `${safeYear}_round${safeRound}_${safeSession}.json`;
+  const filePath = path.resolve(process.cwd(), 'public', 'replay-data', series, filename);
   
   // Extra layer of protection: ensure the resolved path still targets our public directory
-  const publicDir = path.join(process.cwd(), 'public', 'replay-data');
+  const publicDir = path.resolve(process.cwd(), 'public', 'replay-data');
   if (!filePath.startsWith(publicDir)) {
     return NextResponse.json({ error: 'Invalid file path.' }, { status: 400 });
   }
@@ -53,11 +54,11 @@ export async function GET(
     return NextResponse.json(
       {
         source: 'simulation',
-        message: `No pre-computed data for ${series} ${year} round ${round} (${session}). Using client-side simulation.`,
+        message: `No pre-computed data for ${series} ${safeYear} round ${safeRound} (${safeSession}). Using client-side simulation.`,
         series,
-        year: parseInt(year),
-        round: parseInt(round),
-        session,
+        year: safeYear,
+        round: safeRound,
+        session: safeSession,
       },
       { status: 200 }
     );

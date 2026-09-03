@@ -1,8 +1,6 @@
 'use client'
 
-import { useState } from 'react'
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
-
 import { Round } from '@/lib/types'
 
 interface Props {
@@ -88,7 +86,7 @@ export default function RoundNavigator({
 
           <button 
             className="round-nav__btn" 
-            onClick={handleNext}
+            onClick={handleNext} 
             disabled={selectedRound >= rounds.length}
           >
             <ChevronRight size={16} />

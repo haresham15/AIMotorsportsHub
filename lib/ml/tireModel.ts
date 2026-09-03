@@ -2,6 +2,7 @@ import * as tf from '@tensorflow/tfjs'
 
 export class TireDegradationModel {
   private model: tf.Sequential
+  private isTrained = false
 
   constructor() {
     this.model = tf.sequential()
@@ -44,6 +45,7 @@ export class TireDegradationModel {
 
     xs.dispose()
     ys.dispose()
+    this.isTrained = true
   }
 
   /**
@@ -76,7 +78,7 @@ export class TireDegradationModel {
    */
   async simulateTireDelta(originalPitLap: number, newPitLap: number, compound: 'SOFT' | 'MEDIUM' | 'HARD'): Promise<number> {
     // Ensure model is trained (for serverless environments)
-    if (!this.model.optimizer) {
+    if (!this.isTrained) {
       await this.train();
     }
     

@@ -7,6 +7,7 @@ describe('race simulator track math', () => {
     const drivers = [{code:'TST',name:'Test Driver',number:1,team:'Test',color:'#fff'}]
     const monaco = generateReplayData('f1', tracks['Monte Carlo'] as any, drivers, 'Qualifying')
     expect(monaco.totalLaps).toBe(3)
+    expect(monaco.sessionInfo.sessionType).toBe('Qualifying')
     expect(tracks['Monte Carlo'].totalLaps).toBe(78)
     expect(tracks.Monza.totalLaps).toBe(53)
     expect(tracks['Monte Carlo'].lengthKm).not.toBe(tracks.Monza.lengthKm)

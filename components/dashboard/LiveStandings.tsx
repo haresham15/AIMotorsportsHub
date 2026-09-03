@@ -132,10 +132,14 @@ export default function LiveStandings({
           tire_compound: 'Unknown',
           drivers: { name: entry.driver_id, series_id: series },
         }))
-        setRaceData(nextRaceData)
-        onLiveStandingsUpdate?.(nextRaceData)
+        queueMicrotask(() => {
+          setRaceData(nextRaceData)
+          onLiveStandingsUpdate?.(nextRaceData)
+          setLoading(false)
+        })
+      } else {
+        setLoading(false)
       }
-      setLoading(false)
     } else {
       const fallback = getFallbackData(series)
       setRaceData(fallback)
@@ -163,7 +167,8 @@ export default function LiveStandings({
             const nextGap = position === 1
               ? 'Interval'
               : `+${Math.max(0, entry._absoluteTime - leaderTime).toFixed(3)}`
-            const { _absoluteTime, ...rest } = entry
+            const rest = { ...entry }
+            delete (rest as { _absoluteTime?: number })._absoluteTime
             return { ...rest, position, gap_to_leader: nextGap, last_lap: formatMockLap(series) } as RaceData
           })
 

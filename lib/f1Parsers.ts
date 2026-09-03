@@ -9,7 +9,8 @@ export function parseStandings(driverData: any, constructorData: any) {
 
 export function getRaceStatus(race: { date: string; time?: string; FirstPractice?: { date?: string } }, now: Date) {
   const raceDate = new Date(`${race.date}T${race.time || '00:00:00Z'}`)
-  if (now > raceDate) return 'completed'
-  if (now >= new Date(race.FirstPractice?.date || raceDate) && now <= raceDate) return 'live'
+  const raceEnd = new Date(raceDate.getTime() + 3 * 60 * 60 * 1000)
+  if (now > raceEnd) return 'completed'
+  if (now >= new Date(race.FirstPractice?.date || raceDate)) return 'live'
   return 'upcoming'
 }

@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     // Step 1: Intent Extraction
     const extractionPrompt = `
@@ -39,12 +39,8 @@ export async function POST(request: NextRequest) {
     const extractionResult = await model.generateContent(extractionPrompt);
     let extractedText = extractionResult.response.text().trim();
     
-    // Clean up potential markdown formatting
-    if (extractedText.startsWith("\`\`\`json")) {
-      extractedText = extractedText.substring(7, extractedText.length - 3);
-    } else if (extractedText.startsWith("\`\`\`")) {
-      extractedText = extractedText.substring(3, extractedText.length - 3);
-    }
+    // Clean up potential markdown formatting cleanly
+    extractedText = extractedText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
     
     let intent;
     try {
@@ -57,12 +53,24 @@ export async function POST(request: NextRequest) {
     // Step 2: Retrieval
     const db = getDb();
     
-    // Find Race
-    const race = db.prepare(`SELECT raceId, name, year FROM races WHERE year = ? AND name LIKE ? LIMIT 1`)
-                   .get(intent.year, `%${intent.raceName}%`) as any;
+    // Find Race: search race name, circuit name, location, or country
+    const racePattern = `%${intent.raceName}%`;
+    const race = db.prepare(`
+      SELECT r.raceId, r.name, r.year 
+      FROM races r
+      LEFT JOIN circuits c ON r.circuitId = c.circuitId
+      WHERE r.year = ? AND (c.location LIKE ? OR c.name LIKE ? OR r.name LIKE ? OR c.country LIKE ?)
+      ORDER BY 
+        CASE 
+          WHEN c.location LIKE ? THEN 1 
+          WHEN c.name LIKE ? THEN 2 
+          WHEN r.name LIKE ? THEN 3 
+          ELSE 4 
+        END ASC
+      LIMIT 1
+    `).get(intent.year, racePattern, racePattern, racePattern, racePattern, racePattern, racePattern, racePattern) as any;
                    
     if (!race) {
-      // Try just matching year if raceName is tricky, or search circuits
       return NextResponse.json({ error: `Could not find a race matching ${intent.raceName} in ${intent.year}.` }, { status: 404 });
     }
 

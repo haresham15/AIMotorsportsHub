@@ -27,7 +27,10 @@ def fetch_tire_data(year, round_idx):
         laps = session.laps
         
         # Filter for valid racing laps (no safety cars, in/out laps)
-        laps = laps.pick_quicklaps()
+        laps = laps.pick_quicklaps().copy()
+        
+        # Convert LapTime timedelta to seconds
+        laps['LapTime (s)'] = laps['LapTime'].dt.total_seconds()
         
         # We need Stint length, LapTime, and LapNumber for fuel correction
         df = laps[['Compound', 'TyreLife', 'LapNumber', 'LapTime (s)']].dropna()

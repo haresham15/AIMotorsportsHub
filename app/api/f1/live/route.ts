@@ -47,19 +47,25 @@ export async function GET(request: Request) {
 
   try {
     // We fetch positions, drivers, stints, intervals, and race control in parallel
-    // Using safeFetch for secondary data to prevent total failure if one endpoint goes down
+    // Using safeFetch for all data to prevent unhandled exceptions if OpenF1 is unreachable
     const [positions, drivers, stints, intervals] = await Promise.all([
-      fetch(`https://api.openf1.org/v1/position?session_key=${sessionKey}`).then(res => res.json()), // Critical
+      safeFetch<OpenF1Position>(`https://api.openf1.org/v1/position?session_key=${sessionKey}`),
       safeFetch<OpenF1Driver>(`https://api.openf1.org/v1/drivers?session_key=${sessionKey}`),
       safeFetch<OpenF1Stint>(`https://api.openf1.org/v1/stints?session_key=${sessionKey}`),
       safeFetch<OpenF1Interval>(`https://api.openf1.org/v1/intervals?session_key=${sessionKey}`)
     ]);
 
-    // Group by driver to get latest position
+    if (!Array.isArray(positions) || positions.length === 0) {
+      return NextResponse.json([]);
+    }
+
+    // Group by driver to get latest position chronologically
     const latestPositions = new Map<number, OpenF1Position>();
     positions.forEach((p: OpenF1Position) => {
-      // OpenF1 returns an array of position records over time. We want the latest for each driver.
-      latestPositions.set(p.driver_number, p);
+      const existing = latestPositions.get(p.driver_number);
+      if (!existing || new Date(p.date).getTime() >= new Date(existing.date).getTime()) {
+        latestPositions.set(p.driver_number, p);
+      }
     });
 
     // Group intervals
@@ -92,7 +98,7 @@ export async function GET(request: Request) {
       return {
         driver_id: p.driver_number.toString(),
         position: p.position,
-        gap_to_leader: interval ? `+${interval.gap_to_leader}s` : '0.0s',
+        gap_to_leader: p.position === 1 ? 'LEADER' : (interval?.gap_to_leader !== undefined ? `+${interval.gap_to_leader}s` : '--'),
         last_lap: 'N/A', // OpenF1 laps endpoint is heavy, skipping for now
         tire_compound: stint?.compound || 'Unknown',
         drivers: driver ? {

@@ -10,6 +10,16 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'driver1 and driver2 are required' }, { status: 400 });
   }
 
+  if (driver1 === driver2) {
+    return NextResponse.json({ error: 'driver1 and driver2 must be different drivers' }, { status: 400 });
+  }
+
+  const d1 = parseInt(driver1, 10);
+  const d2 = parseInt(driver2, 10);
+  if (Number.isNaN(d1) || Number.isNaN(d2)) {
+    return NextResponse.json({ error: 'driver1 and driver2 must be valid driver IDs' }, { status: 400 });
+  }
+
   const db = getDb();
   
   const commonRaces = db.prepare(`

@@ -204,6 +204,8 @@ interface DriverSimState {
   inPit: boolean;
   pitTimer: number;
   nextPitLap: number;
+  plannedPitLaps: number[];
+  pitStopIndex: number;
   retired: boolean;
   position: number;
   gear: number;
@@ -286,20 +288,20 @@ export function generateReplayData(
     const startOffset = idx * config.gridSpreadFactor * lapDistWorld;
     const tyre = config.tyreCompounds[rng.int(0, config.tyreCompounds.length - 1)];
 
-    // Determine next pit stop lap.
-    // pitStopLaps in SeriesConfig are specified at full race distance,
-    // so we proportionally scale them to the actual totalLaps.
-    let nextPitLap = Infinity;
-    if (config.pitStopLaps.length > 0) {
-      const pitIdx = idx % config.pitStopLaps.length;
-      const basePitLap = config.pitStopLaps[pitIdx] + rng.int(-2, 2);
-      // Scale relative to a reference full-race distance.
-      // Use the max of configured pit laps as the reference to avoid
-      // collapsing all pits to lap 1-2 when totalLaps is small.
-      const refDistance = Math.max(track.totalLaps || totalLaps, ...config.pitStopLaps) + 10;
-      nextPitLap = Math.min(Math.round(basePitLap * totalLaps / refDistance), totalLaps - 1);
-      nextPitLap = Math.max(2, nextPitLap);
+    // Determine planned pit stop laps.
+    // Scale all pit stop laps to actual totalLaps with driver-specific variance (+/- 1-2 laps)
+    const refDistance = Math.max(track.totalLaps || totalLaps, ...config.pitStopLaps) + 10;
+    const plannedPitLaps: number[] = [];
+    if (config.pitStopLaps.length > 0 && totalLaps > 5) {
+      for (const baseLap of config.pitStopLaps) {
+        const offset = rng.int(-2, 2);
+        const scaledLap = Math.min(Math.round((baseLap + offset) * totalLaps / refDistance), totalLaps - 1);
+        if (scaledLap >= 2 && (plannedPitLaps.length === 0 || scaledLap > plannedPitLaps[plannedPitLaps.length - 1] + 3)) {
+          plannedPitLaps.push(scaledLap);
+        }
+      }
     }
+    const nextPitLap = plannedPitLaps.length > 0 ? plannedPitLaps[0] : Infinity;
 
     return {
       code: driver.code,
@@ -311,7 +313,9 @@ export function generateReplayData(
       tyreLife: 0,
       inPit: false,
       pitTimer: 0,
-      nextPitLap: nextPitLap,
+      nextPitLap,
+      plannedPitLaps,
+      pitStopIndex: 0,
       retired: false,
       position: idx + 1,
       gear: 1,
@@ -383,7 +387,10 @@ export function generateReplayData(
           ds.tyreLife = 0;
           // Change tyre compound
           ds.tyre = config.tyreCompounds[rng.int(0, config.tyreCompounds.length - 1)];
-          ds.nextPitLap = Infinity; // Already pitted
+          ds.pitStopIndex++;
+          ds.nextPitLap = ds.pitStopIndex < ds.plannedPitLaps.length
+            ? ds.plannedPitLaps[ds.pitStopIndex]
+            : Infinity;
         }
         continue; // Don't move while in pit
       }
@@ -559,7 +566,7 @@ export function generateReplayData(
       country: track.country,
       year: new Date().getFullYear(),
       round: 1,
-      sessionType: 'Race',
+      sessionType: sessionType,
     },
   };
 }

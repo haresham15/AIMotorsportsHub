@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import type { ReplayData, RaceFrame, DriverInfo } from '@/lib/replayTypes'
+import type { ReplayData, RaceFrame } from '@/lib/replayTypes'
 import { TYRE_COMPOUNDS } from '@/lib/replayTypes'
 
 interface Props {
@@ -21,6 +21,8 @@ export default function ReplayLeaderboard({ data, frame, selectedDrivers, onSele
   if (!frame) return null
 
   const leaderDist = sorted[0]?.[1]?.dist ?? 0
+  const leaderLap = sorted[0]?.[1]?.lap ?? 1
+  const leaderRelDist = sorted[0]?.[1]?.relDist ?? 0
 
   const handleClick = (code: string, e: React.MouseEvent) => {
     if (e.shiftKey) {
@@ -44,23 +46,21 @@ export default function ReplayLeaderboard({ data, frame, selectedDrivers, onSele
 
       <div className="flex-1 overflow-y-auto overflow-x-hidden">
         {sorted.map(([code, d]) => {
-          const driver = data.drivers.find(dr => dr.code === code)
           const color = data.driverColors[code] || 'var(--color-amber)'
           const tyreInfo = TYRE_COMPOUNDS[d.tyre] || TYRE_COMPOUNDS['MEDIUM']
           const isSelected = selectedDrivers.includes(code)
           const gap = d.position === 1
             ? 'LEADER'
             : (() => {
-                const leaderLap = sorted[0]?.[1]?.lap || 1;
-                if (leaderLap - d.lap >= 1) {
-                  const lapsBehind = leaderLap - d.lap;
+                const lapsBehind = leaderLap - d.lap - (d.relDist > leaderRelDist ? 1 : 0);
+                if (lapsBehind >= 1) {
                   return `+${lapsBehind} LAP${lapsBehind > 1 ? 'S' : ''}`;
                 }
 
-                const distDelta = leaderDist - d.dist;
+                const distDelta = Math.max(0, leaderDist - d.dist);
                 const avgSpeedMs = 200 / 3.6;
                 const gapSeconds = distDelta / avgSpeedMs;
-                return `+${Math.max(0, gapSeconds).toFixed(1)}s`;
+                return `+${gapSeconds.toFixed(1)}s`;
               })()
 
           return (

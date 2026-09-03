@@ -151,7 +151,8 @@ export default function LiveMap2D({ series, round = 1, sessionKey = null, sessio
         }
 
         // Fallback: try fetching pre-computed Python data
-        const res = await fetch(`/api/replay/${series}?year=2024&round=${round}&session=race`)
+        const sessionParam = encodeURIComponent(sessionType?.toLowerCase() || 'race')
+        const res = await fetch(`/api/replay/${series}?year=2024&round=${round}&session=${sessionParam}`)
         const json = await res.json()
 
         if (cancelled) return
@@ -192,7 +193,7 @@ export default function LiveMap2D({ series, round = 1, sessionKey = null, sessio
 
     loadData()
     return () => { cancelled = true }
-  }, [series, round, sessionKey, circuitName, country, driverStandings])
+  }, [series, round, sessionKey, circuitName, country, driverStandings, sessionType])
 
   // ── Playback state handler ─────────────────────────────────────
   const handlePlaybackChange = useCallback((partial: Partial<PlaybackState>) => {
