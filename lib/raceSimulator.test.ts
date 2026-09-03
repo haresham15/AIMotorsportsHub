@@ -17,4 +17,41 @@ describe('race simulator track math', () => {
     expect(replay.frames).toEqual([])
     expect(replay.totalLaps).toBe(0)
   })
+
+  it('generates dynamic gears, throttle, and braking throughout a lap', () => {
+    const drivers = [{ code: 'ANT', name: 'Andrea Kimi Antonelli', number: 12, team: 'Mercedes', color: '#00D2BE' }]
+    const replay = generateReplayData('f1', tracks['Zandvoort'] as any, drivers, 'Race')
+    expect(replay.frames.length).toBeGreaterThan(100)
+
+    const gears = new Set<number>()
+    let minThrottle = 100
+    let maxThrottle = 0
+    let maxBrake = 0
+    let minSpeed = Infinity
+    let maxSpeed = -Infinity
+
+    // Sample across the first full lap (~1800 frames at 25 FPS for 72s lap)
+    for (const frame of replay.frames.slice(0, 1800)) {
+      const d = frame.drivers['ANT']
+      if (!d) continue
+      gears.add(d.gear)
+      minThrottle = Math.min(minThrottle, d.throttle)
+      maxThrottle = Math.max(maxThrottle, d.throttle)
+      maxBrake = Math.max(maxBrake, d.brake)
+      minSpeed = Math.min(minSpeed, d.speed)
+      maxSpeed = Math.max(maxSpeed, d.speed)
+    }
+
+    expect(gears.size).toBeGreaterThanOrEqual(4)
+    expect(gears.has(3)).toBe(true)
+    expect(gears.has(7)).toBe(true)
+    expect(gears.has(8)).toBe(true)
+    // Throttle must drop to 0% during braking zones
+    expect(minThrottle).toBe(0)
+    expect(maxThrottle).toBeGreaterThanOrEqual(95)
+    // Brake must activate in deceleration zones
+    expect(maxBrake).toBeGreaterThanOrEqual(70)
+    // Speed must vary between corners and straights
+    expect(maxSpeed - minSpeed).toBeGreaterThan(100)
+  })
 })

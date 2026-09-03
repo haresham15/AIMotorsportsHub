@@ -51,6 +51,7 @@ interface SeriesConfig {
   driverCount: number;
   gridSpreadFactor: number;   // how spread out cars are at start (0-1)
   defaultLaps: number | null; // series-specific lap count override (null = use track.totalLaps)
+  targetAvgSpeedKmh?: number; // target average speed in km/h for realistic physics
 }
 
 // Maximum frames to generate before downsampling FPS.
@@ -63,6 +64,7 @@ const SERIES_CONFIGS: Record<string, SeriesConfig> = {
     baseSpeedFactor: 1.0,
     speedVariation: 0.025,
     lapTimeSeconds: 90,
+    targetAvgSpeedKmh: 225,
     pitStopDurationS: 25,
     pitStopLaps: [15, 35],
     tyreCompounds: ['SOFT', 'MEDIUM', 'HARD'],
@@ -214,6 +216,88 @@ interface DriverSimState {
   brake: number;
 }
 
+// ── Track Velocity & Telemetry Physics Engine ──────────────────────────
+
+interface TrackSpeedProfile {
+  speeds: Float32Array;
+  sampleDist: number;
+  trackLength: number;
+}
+
+function computeTrackSpeedProfile(
+  track: TrackGeometry,
+  cumDists: number[],
+  baseSpeedWorld: number,
+  worldUnitsPerMetre: number
+): TrackSpeedProfile {
+  const trackLength = cumDists[cumDists.length - 1];
+  const N = 360;
+  const sampleDist = trackLength / N;
+  const rawApexSpeeds = new Float32Array(N);
+
+  const delta = Math.max(12, trackLength * 0.008);
+
+  for (let i = 0; i < N; i++) {
+    const s = (i / N) * trackLength;
+    const pPrev = positionAtDistance(track.referenceLine, cumDists, (s - delta + trackLength) % trackLength);
+    const pCurr = positionAtDistance(track.referenceLine, cumDists, s);
+    const pNext = positionAtDistance(track.referenceLine, cumDists, (s + delta) % trackLength);
+
+    const v1x = pCurr.x - pPrev.x, v1y = pCurr.y - pPrev.y;
+    const v2x = pNext.x - pCurr.x, v2y = pNext.y - pCurr.y;
+
+    const th1 = Math.atan2(v1y, v1x);
+    const th2 = Math.atan2(v2y, v2x);
+    let dTh = Math.abs(th2 - th1);
+    if (dTh > Math.PI) dTh = 2 * Math.PI - dTh;
+
+    const curvature = dTh / delta;
+    const normalizedCurv = Math.min(1, curvature * 22);
+    // Straight = 1.38 (~340 km/h), sharp corner = 0.32 (~80 km/h)
+    const factor = 1.38 - 1.06 * Math.pow(normalizedCurv, 0.70);
+    rawApexSpeeds[i] = baseSpeedWorld * factor;
+  }
+
+  // Braking and Acceleration limits in world units
+  const aBrake = 46 * worldUnitsPerMetre; // ~4.7g braking capability
+  const aAccel = 11 * worldUnitsPerMetre; // ~1.1g acceleration capability
+
+  const speeds = new Float32Array(rawApexSpeeds);
+
+  // Backward pass for braking zones
+  for (let pass = 0; pass < 2; pass++) {
+    for (let i = N - 1; i >= 0; i--) {
+      const prev = (i - 1 + N) % N;
+      const maxAllowed = Math.sqrt(speeds[i] * speeds[i] + 2 * aBrake * sampleDist);
+      if (speeds[prev] > maxAllowed) {
+        speeds[prev] = maxAllowed;
+      }
+    }
+  }
+
+  // Forward pass for acceleration zones
+  for (let pass = 0; pass < 2; pass++) {
+    for (let i = 0; i < N; i++) {
+      const next = (i + 1) % N;
+      const maxAllowed = Math.sqrt(speeds[i] * speeds[i] + 2 * aAccel * sampleDist);
+      if (speeds[next] > maxAllowed) {
+        speeds[next] = maxAllowed;
+      }
+    }
+  }
+
+  return { speeds, sampleDist, trackLength };
+}
+
+function sampleSpeedProfile(profile: TrackSpeedProfile, dist: number): number {
+  const normDist = ((dist % profile.trackLength) + profile.trackLength) % profile.trackLength;
+  const idx = (normDist / profile.trackLength) * profile.speeds.length;
+  const i0 = Math.floor(idx) % profile.speeds.length;
+  const i1 = (i0 + 1) % profile.speeds.length;
+  const t = idx - Math.floor(idx);
+  return profile.speeds[i0] * (1 - t) + profile.speeds[i1] * t;
+}
+
 export function generateReplayData(
   seriesId: string,
   track: TrackGeometry,
@@ -252,8 +336,18 @@ export function generateReplayData(
   const worldUnitsPerMetre = trackLength / trackLengthMetres;
   const lapDistWorld = trackLength;
 
+  // Dynamic lap time calculation based on track length and realistic series speeds
+  const targetAvgSpeedKmh = config.targetAvgSpeedKmh || (track.lengthKm ? 220 : 200);
+  const targetSpeedMps = targetAvgSpeedKmh / 3.6;
+  const effectiveLapTimeSeconds = track.lengthKm && track.lengthKm > 0.5
+    ? Math.max(15, Math.round(trackLengthMetres / targetSpeedMps))
+    : config.lapTimeSeconds;
+
   // Base speed in world units per second
-  const baseSpeedWorld = lapDistWorld / config.lapTimeSeconds * config.baseSpeedFactor;
+  const baseSpeedWorld = (lapDistWorld / effectiveLapTimeSeconds) * config.baseSpeedFactor;
+
+  // Compute realistic track velocity & braking profile
+  const speedProfile = computeTrackSpeedProfile(track, cumDists, baseSpeedWorld, worldUnitsPerMetre);
 
   // ── Dynamic lap count: use series config, then track data, then fallback ──
   let totalLaps = config.defaultLaps ?? track.totalLaps ?? 50;
@@ -270,11 +364,11 @@ export function generateReplayData(
 
   // ── Frame budget: downsample FPS for very long races to stay under
   // MAX_FRAMES, rather than truncating the number of laps.
-  const rawFrameCount = totalLaps * config.lapTimeSeconds * REPLAY_FPS;
+  const rawFrameCount = totalLaps * effectiveLapTimeSeconds * REPLAY_FPS;
   const effectiveFPS = rawFrameCount > MAX_FRAMES
-    ? Math.max(5, Math.floor(MAX_FRAMES / (totalLaps * config.lapTimeSeconds)))
+    ? Math.max(5, Math.floor(MAX_FRAMES / (totalLaps * effectiveLapTimeSeconds)))
     : REPLAY_FPS;
-  const totalFrames = totalLaps * config.lapTimeSeconds * effectiveFPS;
+  const totalFrames = totalLaps * effectiveLapTimeSeconds * effectiveFPS;
   const dt = 1 / effectiveFPS;
 
   // Initialize driver states
@@ -303,12 +397,33 @@ export function generateReplayData(
     }
     const nextPitLap = plannedPitLaps.length > 0 ? plannedPitLaps[0] : Infinity;
 
+    const initialTrackDist = ((-startOffset % lapDistWorld) + lapDistWorld) % lapDistWorld;
+    const initialSpeed = sampleSpeedProfile(speedProfile, initialTrackDist) * speedMult;
+    const initialSpeedKmh = (initialSpeed / worldUnitsPerMetre) * 3.6;
+    let initialGear = 1;
+    if (seriesId === 'nascar' || seriesId?.startsWith('nascar-')) {
+      if (initialSpeedKmh < 90) initialGear = 2;
+      else if (initialSpeedKmh < 150) initialGear = 3;
+      else if (initialSpeedKmh < 220) initialGear = 4;
+      else initialGear = 5;
+    } else if (seriesId === 'formula-e') {
+      initialGear = 1;
+    } else {
+      if (initialSpeedKmh < 105) initialGear = 2;
+      else if (initialSpeedKmh < 145) initialGear = 3;
+      else if (initialSpeedKmh < 190) initialGear = 4;
+      else if (initialSpeedKmh < 235) initialGear = 5;
+      else if (initialSpeedKmh < 275) initialGear = 6;
+      else if (initialSpeedKmh < 310) initialGear = 7;
+      else initialGear = 8;
+    }
+
     return {
       code: driver.code,
       dist: -startOffset,  // negative = behind start line
       lap: 1,
       baseSpeed: baseSpeedWorld * speedMult,
-      currentSpeed: baseSpeedWorld * speedMult,
+      currentSpeed: initialSpeed,
       tyre,
       tyreLife: 0,
       inPit: false,
@@ -318,9 +433,9 @@ export function generateReplayData(
       pitStopIndex: 0,
       retired: false,
       position: idx + 1,
-      gear: 1,
+      gear: initialGear,
       drs: 0,
-      throttle: 100,
+      throttle: 98,
       brake: 0,
     };
   });
@@ -392,6 +507,11 @@ export function generateReplayData(
             ? ds.plannedPitLaps[ds.pitStopIndex]
             : Infinity;
         }
+        ds.currentSpeed = 0;
+        ds.gear = 0;
+        ds.throttle = 0;
+        ds.brake = 100;
+        ds.drs = 0;
         continue; // Don't move while in pit
       }
 
@@ -400,40 +520,48 @@ export function generateReplayData(
         const lapProgress = (ds.dist % lapDistWorld) / lapDistWorld;
         if (lapProgress > 0.85 && lapProgress < 0.95) {
           ds.inPit = true;
-          // FIX: pitTimer is decremented by `dt` each frame, so it should be
-          // set to the actual pit stop duration in seconds (with some variance).
-          // Previously this was `pitStopDurationS / REPLAY_FPS` which made
-          // pit stops ~0.04s instead of ~25s.
           ds.pitTimer = config.pitStopDurationS * rng.range(0.9, 1.1);
+          ds.currentSpeed = 0;
+          ds.gear = 0;
+          ds.throttle = 0;
+          ds.brake = 100;
+          ds.drs = 0;
           continue;
         }
       }
 
-      // Speed calculation
-      let speed = ds.baseSpeed;
+      // Track distance
+      const trackDist = ((ds.dist % lapDistWorld) + lapDistWorld) % lapDistWorld;
+
+      // Speed calculation from physics profile
+      const driverPace = ds.baseSpeed / baseSpeedWorld;
+      let targetSpeed = sampleSpeedProfile(speedProfile, trackDist) * driverPace;
 
       // SC slows everyone down
       if (scActive) {
-        speed *= 0.6;
+        targetSpeed = Math.min(targetSpeed, baseSpeedWorld * 0.6);
       }
 
       // Tyre degradation effect (clamped to prevent negative/zero speed)
       const degradation = Math.max(0.85, 1 - (ds.tyreLife * 0.002));
-      speed *= degradation;
+      targetSpeed *= degradation;
 
-      // Random variation per frame (simulates track features / overtaking)
-      speed *= rng.range(0.97, 1.03);
+      // Random micro-variation per frame (simulates driver throttle control)
+      targetSpeed *= rng.range(0.99, 1.01);
 
       // For drag racing: acceleration curve
       if (seriesId === 'top-fuel') {
         const elapsed = t;
-        // Simulate 0-330mph acceleration profile
         const accCurve = Math.min(1, elapsed / 2.5);
-        speed = ds.baseSpeed * accCurve * accCurve;
+        targetSpeed = ds.baseSpeed * accCurve * accCurve;
       }
 
-      // Clamp speed to prevent NaN/Infinity from propagating to canvas
-      ds.currentSpeed = Number.isFinite(speed) ? speed : ds.baseSpeed;
+      // Smooth acceleration / deceleration towards target speed
+      const speedDiff = targetSpeed - ds.currentSpeed;
+      const maxRate = (speedDiff < 0 ? 46 : 11) * worldUnitsPerMetre;
+      ds.currentSpeed += Math.sign(speedDiff) * Math.min(Math.abs(speedDiff), maxRate * dt);
+      ds.currentSpeed = Number.isFinite(ds.currentSpeed) ? ds.currentSpeed : targetSpeed;
+
       ds.dist += ds.currentSpeed * dt;
 
       // Update lap count
@@ -450,16 +578,61 @@ export function generateReplayData(
       }
 
       // Simulated telemetry values
-      const lapFraction = (ds.dist % lapDistWorld) / lapDistWorld;
-      ds.gear = Math.min(8, Math.max(1, Math.floor(speed / (baseSpeedWorld * 0.15)) + 1));
-      ds.throttle = ds.inPit ? 30 : Math.round(rng.range(85, 100));
-      ds.brake = ds.inPit ? 50 : (rng.next() > 0.85 ? Math.round(rng.range(40, 100)) : 0);
+      const speedKmh = (ds.currentSpeed / worldUnitsPerMetre) * 3.6;
+      const lookaheadDist = Math.max(25, lapDistWorld * 0.015);
+      const speedAheadWorld = sampleSpeedProfile(speedProfile, trackDist + lookaheadDist) * driverPace;
+      const speedAheadKmh = (speedAheadWorld / worldUnitsPerMetre) * 3.6;
+      const deltaAhead = speedAheadKmh - speedKmh;
 
-      // DRS simulation
-      if (config.hasDRS && !scActive) {
-        ds.drs = (lapFraction > 0.3 && lapFraction < 0.4) || (lapFraction > 0.8 && lapFraction < 0.9) ? 12 : 0;
+      // Dynamic Gear shifting
+      if (seriesId === 'nascar' || seriesId?.startsWith('nascar-')) {
+        if (speedKmh < 90) ds.gear = 2;
+        else if (speedKmh < 150) ds.gear = 3;
+        else if (speedKmh < 220) ds.gear = 4;
+        else ds.gear = 5;
+      } else if (seriesId === 'formula-e') {
+        ds.gear = 1;
       } else {
+        if (speedKmh < 105) ds.gear = 2;
+        else if (speedKmh < 145) ds.gear = 3;
+        else if (speedKmh < 190) ds.gear = 4;
+        else if (speedKmh < 235) ds.gear = 5;
+        else if (speedKmh < 275) ds.gear = 6;
+        else if (speedKmh < 310) ds.gear = 7;
+        else ds.gear = 8;
+      }
+
+      // Dynamic Throttle & Brake Pedals
+      if (deltaAhead < -14) {
+        // Heavy braking zone
+        ds.throttle = 0;
+        ds.brake = Math.min(100, Math.max(70, Math.round(Math.abs(deltaAhead) * 2.8)));
         ds.drs = 0;
+      } else if (deltaAhead < -4) {
+        // Trail braking turning into apex
+        ds.throttle = 0;
+        ds.brake = Math.min(65, Math.max(15, Math.round(Math.abs(deltaAhead) * 2.2)));
+        ds.drs = 0;
+      } else if (deltaAhead < 4 && speedKmh < 165) {
+        // Corner apex: partial throttle balancing car
+        ds.brake = 0;
+        ds.throttle = Math.min(55, Math.max(30, Math.round(35 + (speedKmh / 165) * 15)));
+        ds.drs = 0;
+      } else {
+        // Accelerating on exit or full speed down straight
+        ds.brake = 0;
+        if (speedKmh > 265 || deltaAhead >= 0) {
+          ds.throttle = Math.round(rng.range(96, 100));
+        } else {
+          ds.throttle = Math.min(95, Math.round(55 + (speedKmh / 265) * 40));
+        }
+
+        // DRS simulation on high-speed straights
+        if (config.hasDRS && !scActive && ds.gear >= 7 && ds.throttle >= 95) {
+          ds.drs = 12;
+        } else {
+          ds.drs = 0;
+        }
       }
     }
 
