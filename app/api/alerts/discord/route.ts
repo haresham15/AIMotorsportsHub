@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       }))
 
     const embed = {
-      title: `🚨 ${series ? series.toUpperCase() : 'Motorsport'} Alert: ${eventType}`.slice(0, 256),
+      title: `[ALERT] ${series ? series.toUpperCase() : 'Motorsport'}: ${eventType}`.slice(0, 256),
       description: String(message || '').slice(0, 4096),
       color,
       timestamp: new Date().toISOString(),

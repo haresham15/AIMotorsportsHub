@@ -105,7 +105,9 @@ export default async function RaceResultPage({ params }: PageProps) {
             </Link>
             <span className="text-[var(--text-muted)] text-xl font-extralight">/</span>
             <div className="flex items-center gap-2">
-              <span className="text-lg">{seriesInfo.icon}</span>
+              <span className="font-mono font-black text-xs px-1.5 py-0.5 rounded bg-white/10 text-white border border-white/15 uppercase tracking-wider">
+                {seriesInfo.shortName}
+              </span>
               <span className="text-base font-semibold text-[var(--text-primary)] tracking-[-0.01em]">
                 {seriesInfo.name}
               </span>

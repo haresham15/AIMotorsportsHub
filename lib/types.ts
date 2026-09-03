@@ -20,6 +20,8 @@ export interface RaceData {
   team_name?: string
   laps_completed?: number
   pit_status?: string
+  drs_active?: boolean
+  team_color?: string
   drivers?: {
     name: string
     series_id?: string

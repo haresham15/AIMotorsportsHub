@@ -4,12 +4,14 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import AuthButton from '@/components/AuthButton';
-import { Menu, X, ChevronRight, Activity, Database, Sparkles, BookOpen, Info } from 'lucide-react';
+import { Menu, X, ChevronRight, Activity, Database, Sparkles, BookOpen, Info, User } from 'lucide-react';
 import { SERIES_MAP } from '@/lib/data';
+import { useUserProfile } from '@/lib/userPreferences';
 
 export default function SiteHeader() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { isLoggedIn } = useUserProfile();
 
   // Check if we are on a series dashboard
   const isDashboard = pathname?.startsWith('/dashboard/');
@@ -18,6 +20,7 @@ export default function SiteHeader() {
 
   const navLinks = [
     { href: '/#series', label: 'Series', icon: Activity },
+    ...(isLoggedIn ? [{ href: '/profile', label: 'Profile', icon: User }] : []),
     { href: '/history', label: 'History', icon: Database },
     { href: '/models', label: 'Models', icon: Sparkles },
     { href: '/legacy', label: 'Legacy', icon: BookOpen },
@@ -38,7 +41,9 @@ export default function SiteHeader() {
           {currentSeries && (
             <div className="hidden sm:flex items-center gap-2 text-sm text-[var(--text-muted)] border-l border-[var(--border-subtle)] pl-3 ml-1">
               <ChevronRight size={14} className="text-[var(--text-muted)]" />
-              <span className="text-base">{currentSeries.icon}</span>
+              <span className="font-mono font-black text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-white border border-white/15 uppercase tracking-wider">
+                {currentSeries.shortName}
+              </span>
               <span className="font-semibold text-[var(--text-primary)] tracking-wide">
                 {currentSeries.name}
               </span>
@@ -91,8 +96,10 @@ export default function SiteHeader() {
       {mobileMenuOpen && (
         <div className="md:hidden bg-[rgba(11,13,16,0.96)] backdrop-blur-2xl border-b border-[var(--border-subtle)] px-6 py-6 animate-fade-in-up">
           {currentSeries && (
-            <div className="mb-4 pb-4 border-b border-[var(--border-subtle)] flex items-center gap-2">
-              <span className="text-xl">{currentSeries.icon}</span>
+            <div className="mb-4 pb-4 border-b border-[var(--border-subtle)] flex items-center gap-3">
+              <span className="font-mono font-black text-xs px-2 py-1 rounded bg-white/10 text-white border border-white/15 uppercase tracking-wider">
+                {currentSeries.shortName}
+              </span>
               <div>
                 <div className="text-xs font-mono text-[var(--amber)] font-bold uppercase tracking-wider">Active Series</div>
                 <div className="text-base font-bold text-[var(--text-primary)]">{currentSeries.name}</div>
@@ -132,7 +139,7 @@ export default function SiteHeader() {
                   onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] hover:text-white hover:border-[var(--amber)] transition-colors"
                 >
-                  <span>{item.icon}</span>
+                  <span className="font-mono font-black text-[10px] px-1 py-0.5 rounded bg-white/10 text-white border border-white/15 uppercase">{item.shortName}</span>
                   <span className="truncate">{item.name}</span>
                 </Link>
               ))}

@@ -17,12 +17,14 @@ import AlertSettings from '@/components/dashboard/AlertSettings'
 import BroadcastScanner from '@/components/dashboard/BroadcastScanner'
 import RoundNavigator from '@/components/dashboard/RoundNavigator'
 import ChampionshipStandings from '@/components/dashboard/ChampionshipStandings'
-import { ArrowLeft, ChevronDown } from 'lucide-react'
+import { ArrowLeft, ChevronDown, AlertCircle, ShieldCheck, Check, Flame, Star } from 'lucide-react'
 import { useSeriesData } from '@/lib/hooks/useSeriesData'
 import { RaceData, CVData, Round, DriverStanding, ConstructorStanding } from '@/lib/types'
 import Modal from '@/components/ui/Modal'
 import PodiumProbability from '@/components/dashboard/PodiumProbability'
 import DriverSimilarityMap from '@/components/dashboard/DriverSimilarityMap'
+import { useUserProfile } from '@/lib/userPreferences'
+import { toast } from 'sonner'
 
 export default function SeriesDashboard() {
   const params = useParams()
@@ -43,11 +45,23 @@ export default function SeriesDashboard() {
   const [isScanningActive, setIsScanningActive] = useState(false)
   const [cvData, setCvData] = useState<CVData[]>([])
   const [liveRaceData, setLiveRaceData] = useState<RaceData[]>([])
+  const [replayStandings, setReplayStandings] = useState<RaceData[] | null>(null)
+  const [focusedDriverCode, setFocusedDriverCode] = useState<string | null>(null)
+  const { profile, isLoggedIn, followedDrivers, isCheckedInForRound, checkIn } = useUserProfile()
+
+  // Clear replay state on round/session change to avoid stale cross-circuit sync
+  useEffect(() => {
+    setReplayStandings(null)
+    setFocusedDriverCode(null)
+  }, [series, selectedRound, selectedSessionKey, selectedYear])
+
+  // Unified active standings: Replay takes absolute precedence when active
+  const activeTelemetryData = (replayStandings && replayStandings.length > 0) ? replayStandings : liveRaceData
 
   if (!seriesInfo) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-        <div className="text-5xl">🚫</div>
+        <AlertCircle size={48} className="text-[var(--text-muted)] opacity-60" />
         <div className="text-[var(--text-primary)] text-xl font-semibold">
           Series not found
         </div>
@@ -67,7 +81,7 @@ export default function SeriesDashboard() {
             {/* Series Switcher Pill */}
             <div className="relative group">
               <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-[var(--border-subtle)] transition-colors cursor-pointer text-sm font-semibold text-[var(--text-primary)]">
-                <span className="text-base">{seriesInfo.icon}</span>
+                <span className="font-mono font-black text-xs px-1.5 py-0.5 rounded bg-white/10 text-white border border-white/15 uppercase tracking-wider">{seriesInfo.shortName}</span>
                 <span>{seriesInfo.name}</span>
                 <ChevronDown size={14} className="text-[var(--text-muted)] group-hover:text-white transition-colors" />
               </button>
@@ -85,7 +99,7 @@ export default function SeriesDashboard() {
                         : 'text-[var(--text-secondary)] hover:bg-white/5 hover:text-[var(--text-primary)]'
                     }`}
                   >
-                    <span>{s.icon}</span>
+                    <span className="font-mono font-black text-[10px] px-1 py-0.5 rounded bg-white/10 text-white border border-white/15 uppercase">{s.shortName}</span>
                     <span>{s.name}</span>
                   </Link>
                 ))}
@@ -133,6 +147,107 @@ export default function SeriesDashboard() {
           </div>
         )}
 
+        {/* ===== PADDOCK FAN HQ & RACE CHECK-IN BAR ===== */}
+        {isLoggedIn && profile ? (
+          <div className="animate-fade-in-up w-full bg-gradient-to-r from-[rgba(25,29,36,0.95)] via-[rgba(20,23,28,0.95)] to-[rgba(15,17,21,0.95)] border border-[var(--border-subtle)] rounded-[var(--radius-xl)] p-4 sm:p-5 mb-6 flex flex-wrap items-center justify-between gap-4 shadow-xl">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-[var(--amber)]/15 border border-[var(--amber)]/30 flex items-center justify-center font-mono font-bold text-sm text-[var(--amber)] shrink-0 shadow-[0_0_12px_rgba(255,176,32,0.2)]">
+                {profile.displayName.slice(0, 2).toUpperCase()}
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs font-mono font-bold text-[var(--amber)] uppercase tracking-wider flex items-center gap-1">
+                    <ShieldCheck size={13} />
+                    Paddock Fan HQ
+                  </span>
+                  <span className="text-xs text-[var(--text-muted)]">&bull;</span>
+                  <span className="text-xs font-bold text-white">Welcome, {profile.displayName}</span>
+                </div>
+                <div className="text-xs text-[var(--text-secondary)] mt-0.5 flex items-center gap-2 flex-wrap">
+                  {followedDrivers.length > 0 && (
+                    <span className="flex items-center gap-1 text-[var(--text-muted)]">
+                      <Star size={12} className="text-amber-400 fill-amber-400" />
+                      Following: {followedDrivers.map(d => d.name).slice(0, 2).join(', ')}
+                      {followedDrivers.length > 2 ? ` +${followedDrivers.length - 2}` : ''}
+                    </span>
+                  )}
+                  {profile.checkInStreak > 0 && (
+                    <span className="text-amber-400 font-mono text-[11px] font-bold flex items-center gap-0.5">
+                      <Flame size={12} className="fill-amber-400" />
+                      {profile.checkInStreak} Race Streak
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Check-In Action Button */}
+            <div className="flex items-center gap-3">
+              {(() => {
+                const currentRoundData = scheduleData?.rounds.find((r) => r.round === selectedRound)
+                const isCheckedIn = isCheckedInForRound(selectedRound, series)
+                const primaryDriver = followedDrivers.find(d => d.series === series) || followedDrivers[0]
+
+                if (isCheckedIn) {
+                  return (
+                    <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-mono text-xs font-bold shadow-sm">
+                      <Check size={15} className="text-emerald-400" />
+                      <span>CHECKED IN &bull; RD {selectedRound}</span>
+                    </div>
+                  )
+                }
+
+                return (
+                  <button
+                    onClick={() => {
+                      checkIn(
+                        selectedRound,
+                        series,
+                        currentRoundData?.name || `Round ${selectedRound}`,
+                        currentRoundData?.circuitName || 'Circuit',
+                        primaryDriver ? { code: primaryDriver.code, name: primaryDriver.name, team: primaryDriver.team } : undefined
+                      )
+                      toast.success(`Checked in for ${currentRoundData?.name || `Round ${selectedRound}`}! Fan streak updated.`)
+                    }}
+                    className="flex items-center gap-2 py-2 px-4 rounded-xl bg-[var(--amber)] hover:bg-amber-400 text-black font-extrabold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-md hover:shadow-[0_0_16px_rgba(255,176,32,0.3)]"
+                  >
+                    <Flame size={15} />
+                    <span>Check In for this Race</span>
+                  </button>
+                )
+              })()}
+
+              <Link
+                href="/profile"
+                className="py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-white no-underline transition-colors"
+              >
+                My Profile
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="animate-fade-in-up w-full bg-white/[0.03] border border-white/10 rounded-[var(--radius-xl)] p-4 mb-6 flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
+                <Star size={16} />
+              </div>
+              <div>
+                <div className="text-xs font-bold text-white">Browsing as Guest</div>
+                <div className="text-xs text-[var(--text-muted)]">
+                  Sign in with a Paddock Pass to check in to this race, follow your favorite drivers, and track telemetry across sessions.
+                </div>
+              </div>
+            </div>
+            <Link
+              href="/login"
+              className="btn-primary text-xs py-1.5 px-3.5 no-underline flex items-center gap-1.5"
+            >
+              <span>Unlock Paddock Pass</span>
+              &rarr;
+            </Link>
+          </div>
+        )}
+
         {/* ===== HERO MAP ===== */}
         <div className="animate-fade-in-up delay-100 w-full bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-[var(--radius-xl)] overflow-hidden mb-8">
           {(() => {
@@ -149,6 +264,9 @@ export default function SeriesDashboard() {
                 circuitName={currentRoundData?.circuitName}
                 country={currentRoundData?.country}
                 driverStandings={standingsData?.driverStandings}
+                onStandingsChange={setReplayStandings}
+                selectedDriverCode={focusedDriverCode}
+                onSelectDriver={setFocusedDriverCode}
               />
             )
           })()}
@@ -202,6 +320,9 @@ export default function SeriesDashboard() {
               sessionKey={selectedSessionKey}
               dataSource={isScanningActive ? 'cv' : series === 'f1' || series.startsWith('nascar-') ? 'live' : 'mock'} 
               externalData={cvData}
+              replayData={replayStandings}
+              selectedDriverCode={focusedDriverCode}
+              onSelectDriver={setFocusedDriverCode}
               onLiveStandingsUpdate={setLiveRaceData}
             />
           </div>
@@ -253,7 +374,7 @@ export default function SeriesDashboard() {
 
       {/* ===== FLOATING CHATBOT WIDGET ===== */}
       <div className="fixed bottom-6 right-6 z-[100]">
-        <Chatbot series={series} contextData={{ standingsData, cvData, liveRaceData }} />
+        <Chatbot series={series} contextData={{ standingsData, cvData, liveRaceData: activeTelemetryData }} />
       </div>
     </div>
   )

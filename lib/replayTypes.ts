@@ -182,3 +182,74 @@ export const TYRE_COMPOUNDS: Record<string, { label: string; color: string; abbr
   ALLWEATHER: { label: 'All Weather', color: '#8b5cf6', abbr: 'A' },
   STOCK:   { label: 'Stock',   color: '#d97706', abbr: 'T' },
 };
+
+/** Calculate gap to leader using fixed 200 km/h average speed per AGENTS.md */
+export function calculateReplayGap(
+  position: number,
+  driverDist: number,
+  driverLap: number,
+  driverRelDist: number,
+  leaderDist: number,
+  leaderLap: number,
+  leaderRelDist: number
+): string {
+  if (position === 1) return 'LEADER';
+
+  const lapsBehind = leaderLap - driverLap - (driverRelDist > leaderRelDist ? 1 : 0);
+  if (lapsBehind >= 1) {
+    return `+${lapsBehind} LAP${lapsBehind > 1 ? 'S' : ''}`;
+  }
+
+  const distDelta = Math.max(0, leaderDist - driverDist);
+  const avgSpeedMs = 200 / 3.6; // fixed average speed 200 km/h to prevent braking zone stutter
+  const gapSeconds = distDelta / avgSpeedMs;
+  return `+${gapSeconds.toFixed(1)}s`;
+}
+
+/** Convert a RaceFrame into unified RaceData[] for live standings sync */
+export function frameToRaceData(
+  frame: RaceFrame,
+  replayData: ReplayData,
+  series: string
+): import('@/lib/types').RaceData[] {
+  const sorted = Object.entries(frame.drivers)
+    .sort(([, a], [, b]) => a.position - b.position);
+
+  if (sorted.length === 0) return [];
+
+  const leaderDist = sorted[0]?.[1]?.dist ?? 0;
+  const leaderLap = sorted[0]?.[1]?.lap ?? 1;
+  const leaderRelDist = sorted[0]?.[1]?.relDist ?? 0;
+
+  return sorted.map(([code, d]) => {
+    const driverInfo = replayData.drivers.find((dr) => dr.code === code);
+    const gap = calculateReplayGap(
+      d.position,
+      d.dist,
+      d.lap,
+      d.relDist,
+      leaderDist,
+      leaderLap,
+      leaderRelDist
+    );
+
+    return {
+      driver_id: code,
+      car_number: driverInfo?.number ? String(driverInfo.number) : undefined,
+      position: d.position,
+      gap_to_leader: d.inPit ? 'PIT' : d.retired ? 'OUT' : gap,
+      last_lap: d.inPit ? 'PIT' : d.retired ? 'OUT' : `${d.speed} km/h`,
+      tire_compound: d.tyre || 'MEDIUM',
+      team_name: driverInfo?.team,
+      laps_completed: d.lap,
+      pit_status: d.inPit ? 'PIT' : 'TRACK',
+      drs_active: Boolean(d.drs && d.drs >= 10),
+      team_color: replayData.driverColors[code] || driverInfo?.color || '#ffffff',
+      drivers: {
+        name: driverInfo?.name || code,
+        series_id: series,
+      },
+    };
+  });
+}
+

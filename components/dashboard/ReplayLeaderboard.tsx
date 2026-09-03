@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import type { ReplayData, RaceFrame } from '@/lib/replayTypes'
-import { TYRE_COMPOUNDS } from '@/lib/replayTypes'
+import { TYRE_COMPOUNDS, calculateReplayGap } from '@/lib/replayTypes'
 import { X, Trophy, AlertCircle } from 'lucide-react'
 
 interface Props {
@@ -68,19 +68,15 @@ export default function ReplayLeaderboard({ data, frame, selectedDrivers, onSele
           const tyreInfo = TYRE_COMPOUNDS[d.tyre] || TYRE_COMPOUNDS['MEDIUM']
           const isSelected = selectedDrivers.includes(code)
 
-          const gap = d.position === 1
-            ? 'LEADER'
-            : (() => {
-                const lapsBehind = leaderLap - d.lap - (d.relDist > leaderRelDist ? 1 : 0);
-                if (lapsBehind >= 1) {
-                  return `+${lapsBehind} LAP${lapsBehind > 1 ? 'S' : ''}`;
-                }
-
-                const distDelta = Math.max(0, leaderDist - d.dist);
-                const avgSpeedMs = 200 / 3.6;
-                const gapSeconds = distDelta / avgSpeedMs;
-                return `+${gapSeconds.toFixed(1)}s`;
-              })()
+          const gap = calculateReplayGap(
+            d.position,
+            d.dist,
+            d.lap,
+            d.relDist,
+            leaderDist,
+            leaderLap,
+            leaderRelDist
+          )
 
           return (
             <div

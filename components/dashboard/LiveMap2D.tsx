@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo, useCallback } from 'react'
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react'
 import type { ReplayData, PlaybackState, RaceFrame, Point2D, TrackGeometry, DriverInfo } from '@/lib/replayTypes'
 import { getTrackForCircuit } from '@/lib/trackData'
 import { getDriverColor, SERIES_DRIVERS } from '@/lib/data'
@@ -37,6 +37,9 @@ const generateReplayDataAsync = async (series: string, track: TrackGeometry, dri
   }
 }
 
+import { frameToRaceData } from '@/lib/replayTypes'
+import type { RaceData } from '@/lib/types'
+
 interface LiveMap2DProps {
   series: string
   round?: number
@@ -51,9 +54,23 @@ interface LiveMap2DProps {
     constructorName: string;
   }>
   sessionType?: string
+  onStandingsChange?: (standings: RaceData[]) => void
+  selectedDriverCode?: string | null
+  onSelectDriver?: (code: string | null) => void
 }
 
-export default function LiveMap2D({ series, round = 1, sessionKey = null, sessionType = 'Race', circuitName, country, driverStandings }: LiveMap2DProps) {
+export default function LiveMap2D({
+  series,
+  round = 1,
+  sessionKey = null,
+  sessionType = 'Race',
+  circuitName,
+  country,
+  driverStandings,
+  onStandingsChange,
+  selectedDriverCode,
+  onSelectDriver,
+}: LiveMap2DProps) {
   const [replayData, setReplayData] = useState<ReplayData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -163,11 +180,18 @@ export default function LiveMap2D({ series, round = 1, sessionKey = null, sessio
           if (cancelled) return
           setReplayData(simData)
           setDataSource('simulation')
+          if (simData.frames.length > 0) {
+            onStandingsChange?.(frameToRaceData(simData.frames[0], simData, series))
+          }
         } else {
           console.log(`[LiveMap2D] Loaded API data for ${series}: ${json.frames.length} frames`)
           const track = json.trackGeometry ? { ...getTrackForCircuit(circuitName, series), ...json.trackGeometry } : getTrackForCircuit(circuitName, series)
-          setReplayData({ ...json, trackGeometry: track })
+          const loadedData = { ...json, trackGeometry: track }
+          setReplayData(loadedData)
           setDataSource('api')
+          if (loadedData.frames?.length > 0) {
+            onStandingsChange?.(frameToRaceData(loadedData.frames[0], loadedData, series))
+          }
         }
       } catch (err) {
         console.warn(`[LiveMap2D] Fetch failed for ${series}, using simulation:`, err)
@@ -185,6 +209,9 @@ export default function LiveMap2D({ series, round = 1, sessionKey = null, sessio
         if (cancelled) return
         setReplayData(simData)
         setDataSource('simulation')
+        if (simData.frames.length > 0) {
+          onStandingsChange?.(frameToRaceData(simData.frames[0], simData, series))
+        }
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -195,13 +222,27 @@ export default function LiveMap2D({ series, round = 1, sessionKey = null, sessio
   }, [series, round, sessionKey, circuitName, country, driverStandings, sessionType])
 
   // ── Playback state handler ─────────────────────────────────────
+  const lastSyncTimeRef = useRef(0)
+  const lastFrameIdxRef = useRef(-1)
+
+  // Synchronize external selection
+  useEffect(() => {
+    if (selectedDriverCode !== undefined) {
+      setPlayback(prev => ({
+        ...prev,
+        selectedDrivers: selectedDriverCode ? [selectedDriverCode] : []
+      }))
+    }
+  }, [selectedDriverCode])
+
   const handlePlaybackChange = useCallback((partial: Partial<PlaybackState>) => {
     setPlayback(prev => ({ ...prev, ...partial }))
   }, [])
 
   const handleDriverSelect = useCallback((codes: string[]) => {
     setPlayback(prev => ({ ...prev, selectedDrivers: codes }))
-  }, [])
+    onSelectDriver?.(codes.length === 1 ? codes[0] : null)
+  }, [onSelectDriver])
 
   // Reset frame index when replay data changes
   useEffect(() => {
@@ -255,6 +296,22 @@ export default function LiveMap2D({ series, round = 1, sessionKey = null, sessio
     const idx = Math.min(Math.floor(playback.frameIndex), replayData.frames.length - 1)
     return replayData.frames[idx] ?? null
   }, [replayData, playback.frameIndex])
+
+  // Throttle live standings sync to ~10 FPS (100ms) during playback, instant when paused/seeking
+  useEffect(() => {
+    if (!currentFrame || !replayData || !onStandingsChange) return
+
+    const now = performance.now()
+    const frameDiff = Math.abs(playback.frameIndex - lastFrameIdxRef.current)
+    const shouldSync = !playback.isPlaying || (now - lastSyncTimeRef.current >= 100) || frameDiff > 5
+
+    if (shouldSync) {
+      lastSyncTimeRef.current = now
+      lastFrameIdxRef.current = playback.frameIndex
+      const synced = frameToRaceData(currentFrame, replayData, series)
+      onStandingsChange(synced)
+    }
+  }, [currentFrame, replayData, onStandingsChange, series, playback.frameIndex, playback.isPlaying])
 
   const selectedDriver = playback.selectedDrivers.length === 1 ? playback.selectedDrivers[0] : null
 

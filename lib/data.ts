@@ -16,7 +16,7 @@ export const SERIES: SeriesInfo[] = [
     shortName: "F1",
     color: "#e10600",
     gradient: "linear-gradient(135deg, #e10600, #ff4444)",
-    icon: "🏎️",
+    icon: "F1",
     description: "The pinnacle of open-wheel racing",
   },
   {
@@ -25,7 +25,7 @@ export const SERIES: SeriesInfo[] = [
     shortName: "F2",
     color: "#0090ff",
     gradient: "linear-gradient(135deg, #0090ff, #38bdf8)",
-    icon: "🏁",
+    icon: "F2",
     description: "The proving ground for future F1 stars",
   },
   {
@@ -34,7 +34,7 @@ export const SERIES: SeriesInfo[] = [
     shortName: "F3",
     color: "#00c853",
     gradient: "linear-gradient(135deg, #00c853, #4ade80)",
-    icon: "🟢",
+    icon: "F3",
     description: "Where the next generation begins their journey",
   },
   {
@@ -43,7 +43,7 @@ export const SERIES: SeriesInfo[] = [
     shortName: "FE",
     color: "#14b8a6",
     gradient: "linear-gradient(135deg, #14b8a6, #06b6d4)",
-    icon: "⚡",
+    icon: "FE",
     description: "All-electric street racing at its best",
   },
   {
@@ -52,7 +52,7 @@ export const SERIES: SeriesInfo[] = [
     shortName: "NAS",
     color: "#f59e0b",
     gradient: "linear-gradient(135deg, #f59e0b, #fbbf24)",
-    icon: "🏟️",
+    icon: "NAS",
     description: "Stock car racing — America's motorsport",
   },
   {
@@ -61,7 +61,7 @@ export const SERIES: SeriesInfo[] = [
     shortName: "GTC",
     color: "#f97316",
     gradient: "linear-gradient(135deg, #f97316, #fb923c)",
-    icon: "🔶",
+    icon: "GTC",
     description: "GT sports car endurance and sprint racing",
   },
   {
@@ -70,7 +70,7 @@ export const SERIES: SeriesInfo[] = [
     shortName: "TF",
     color: "#a855f7",
     gradient: "linear-gradient(135deg, #a855f7, #c084fc)",
-    icon: "🔥",
+    icon: "TF",
     description: "10,000 HP machines conquering the quarter mile",
   },
 ];
@@ -83,7 +83,7 @@ const NASCAR_SUB_SERIES: SeriesInfo[] = [
     shortName: "CUP",
     color: "#f59e0b",
     gradient: "linear-gradient(135deg, #f59e0b, #fbbf24)",
-    icon: "🏆",
+    icon: "CUP",
     description: "The premier stock car racing series",
   },
   {
@@ -92,7 +92,7 @@ const NASCAR_SUB_SERIES: SeriesInfo[] = [
     shortName: "XFN",
     color: "#3b82f6",
     gradient: "linear-gradient(135deg, #3b82f6, #60a5fa)",
-    icon: "🏁",
+    icon: "XFN",
     description: "The proving ground for future Cup stars",
   },
   {
@@ -101,7 +101,7 @@ const NASCAR_SUB_SERIES: SeriesInfo[] = [
     shortName: "TRKS",
     color: "#10b981",
     gradient: "linear-gradient(135deg, #10b981, #34d399)",
-    icon: "🚛",
+    icon: "TRKS",
     description: "Short-track mayhem with full-size trucks",
   },
 ];
@@ -257,7 +257,7 @@ export const TEAM_HISTORY: Record<string, TeamHistoryEntry[]> = {
     {
       name: "Scuderia Ferrari",
       founded: "1929",
-      country: "🇮🇹 Italy",
+      country: "Italy",
       achievements: [
         "16 Constructors' Championships",
         "15 Drivers' Championships",
@@ -269,7 +269,7 @@ export const TEAM_HISTORY: Record<string, TeamHistoryEntry[]> = {
     {
       name: "McLaren Racing",
       founded: "1963",
-      country: "🇬🇧 United Kingdom",
+      country: "United Kingdom",
       achievements: [
         "8 Constructors' Championships",
         "12 Drivers' Championships",
@@ -280,7 +280,7 @@ export const TEAM_HISTORY: Record<string, TeamHistoryEntry[]> = {
     {
       name: "Red Bull Racing",
       founded: "2005",
-      country: "🇦🇹 Austria",
+      country: "Austria",
       achievements: [
         "6 Constructors' Championships",
         "7 Drivers' Championships",
@@ -291,7 +291,7 @@ export const TEAM_HISTORY: Record<string, TeamHistoryEntry[]> = {
     {
       name: "Mercedes-AMG Petronas",
       founded: "2010",
-      country: "🇩🇪 Germany",
+      country: "Germany",
       achievements: [
         "8 Constructors' Championships",
         "7 Drivers' Championships (Hamilton era)",
@@ -304,7 +304,7 @@ export const TEAM_HISTORY: Record<string, TeamHistoryEntry[]> = {
     {
       name: "Prema Racing",
       founded: "1983",
-      country: "🇮🇹 Italy",
+      country: "Italy",
       achievements: [
         "Multiple F2 Team Championships",
         "Developed F1 drivers like Leclerc, Schwartzman",
@@ -315,7 +315,7 @@ export const TEAM_HISTORY: Record<string, TeamHistoryEntry[]> = {
     {
       name: "ART Grand Prix",
       founded: "2004",
-      country: "🇫🇷 France",
+      country: "France",
       achievements: [
         "Multiple GP2/F2 Championships",
         "Alumni include Hamilton, Rosberg, Russell",
@@ -328,7 +328,7 @@ export const TEAM_HISTORY: Record<string, TeamHistoryEntry[]> = {
     {
       name: "Prema Racing",
       founded: "1983",
-      country: "🇮🇹 Italy",
+      country: "Italy",
       achievements: [
         "Dominant in F3 competition",
         "Consistent championship contender",
@@ -341,7 +341,7 @@ export const TEAM_HISTORY: Record<string, TeamHistoryEntry[]> = {
     {
       name: "Jaguar TCS Racing",
       founded: "2016",
-      country: "🇬🇧 United Kingdom",
+      country: "United Kingdom",
       achievements: ["Race winners", "Championship contender"],
       description:
         "Jaguar returned to top-level motorsport through Formula E, combining luxury brand heritage with electric innovation.",
@@ -349,7 +349,7 @@ export const TEAM_HISTORY: Record<string, TeamHistoryEntry[]> = {
     {
       name: "DS Penske",
       founded: "2014",
-      country: "🇫🇷 France",
+      country: "France",
       achievements: [
         "Formula E Champions",
         "Multiple race winners",
@@ -362,7 +362,7 @@ export const TEAM_HISTORY: Record<string, TeamHistoryEntry[]> = {
     {
       name: "Hendrick Motorsports",
       founded: "1984",
-      country: "🇺🇸 USA",
+      country: "USA",
       achievements: [
         "14 Cup Series Championships",
         "Most wins in NASCAR history",
@@ -373,7 +373,7 @@ export const TEAM_HISTORY: Record<string, TeamHistoryEntry[]> = {
     {
       name: "Joe Gibbs Racing",
       founded: "1992",
-      country: "🇺🇸 USA",
+      country: "USA",
       achievements: [
         "5 Cup Series Championships",
         "Consistent championship contender",
@@ -384,7 +384,7 @@ export const TEAM_HISTORY: Record<string, TeamHistoryEntry[]> = {
     {
       name: "Team Penske",
       founded: "1972",
-      country: "🇺🇸 USA",
+      country: "USA",
       achievements: [
         "NASCAR, IndyCar, and IMSA Championships",
         "Cross-discipline powerhouse",
@@ -397,7 +397,7 @@ export const TEAM_HISTORY: Record<string, TeamHistoryEntry[]> = {
     {
       name: "WRT (W Racing Team)",
       founded: "2009",
-      country: "🇧🇪 Belgium",
+      country: "Belgium",
       achievements: [
         "Multiple GT3 Championships",
         "24H Spa winners",
@@ -410,7 +410,7 @@ export const TEAM_HISTORY: Record<string, TeamHistoryEntry[]> = {
     {
       name: "John Force Racing",
       founded: "1986",
-      country: "🇺🇸 USA",
+      country: "USA",
       achievements: [
         "20+ NHRA Championships",
         "Winningest Funny Car team ever",
@@ -421,7 +421,7 @@ export const TEAM_HISTORY: Record<string, TeamHistoryEntry[]> = {
     {
       name: "Don Schumacher Racing",
       founded: "1998",
-      country: "🇺🇸 USA",
+      country: "USA",
       achievements: [
         "Multiple Top Fuel & Funny Car Championships",
         "Powerhouse multi-car team",
@@ -432,7 +432,7 @@ export const TEAM_HISTORY: Record<string, TeamHistoryEntry[]> = {
     {
       name: "Kalitta Motorsports",
       founded: "1959",
-      country: "🇺🇸 USA",
+      country: "USA",
       achievements: [
         "Top Fuel Championships",
         "Legacy of Connie Kalitta",

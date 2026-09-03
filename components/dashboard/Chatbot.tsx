@@ -19,7 +19,9 @@ export default function Chatbot({ series, contextData }: ChatbotProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [isStreaming, setIsStreaming] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
 
   const seriesInfo = SERIES_MAP[series]
 
@@ -27,37 +29,86 @@ export default function Chatbot({ series, contextData }: ChatbotProps) {
     if (isOpen) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
     }
-  }, [messages, isOpen])
+  }, [messages, isOpen, isStreaming])
+
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort()
+    }
+  }, [])
 
   const handleSendPrompt = async (promptText: string) => {
-    if (!promptText.trim() || loading) return
+    if (!promptText.trim()) return
+
+    // Cancel any previous transmission in progress to respond instantly
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+    const abortController = new AbortController()
+    abortControllerRef.current = abortController
 
     const userMessage: Message = { role: 'user', content: promptText }
     setMessages((prev) => [...prev, userMessage])
     setInput('')
     setLoading(true)
+    setIsStreaming(false)
 
     try {
       const response = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: promptText, series, contextData }),
+        signal: abortController.signal,
       })
 
-      const data = await response.json()
-      const assistantMessage: Message = {
-        role: 'assistant',
-        content: data.reply || 'Box box. Transmission unclear, please repeat.',
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
       }
-      setMessages((prev) => [...prev, assistantMessage])
-    } catch {
-      const errorMessage: Message = {
-        role: 'assistant',
-        content: 'Radio static: Could not reach race control. Please try again.',
+
+      const contentType = response.headers.get('content-type') || ''
+      if (contentType.includes('application/json')) {
+        const data = await response.json()
+        setMessages((prev) => [
+          ...prev,
+          { role: 'assistant', content: data.reply || 'Copy that. Transmission unclear, standing by.' },
+        ])
+        setLoading(false)
+      } else if (response.body) {
+        // Stream text token-by-token directly into chat feed
+        setMessages((prev) => [...prev, { role: 'assistant', content: '' }])
+        setLoading(false)
+        setIsStreaming(true)
+
+        const reader = response.body.getReader()
+        const decoder = new TextDecoder()
+        let accumulated = ''
+
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+          const chunk = decoder.decode(value, { stream: true })
+          accumulated += chunk
+          setMessages((prev) => {
+            const next = [...prev]
+            if (next.length > 0 && next[next.length - 1].role === 'assistant') {
+              next[next.length - 1] = { role: 'assistant', content: accumulated }
+            }
+            return next
+          })
+        }
+        setIsStreaming(false)
       }
-      setMessages((prev) => [...prev, errorMessage])
-    } finally {
+    } catch (err: any) {
+      if (err?.name === 'AbortError') return
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: 'Radio static: Could not reach race control. Please repeat.',
+        },
+      ])
       setLoading(false)
+      setIsStreaming(false)
     }
   }
 
@@ -167,6 +218,9 @@ export default function Chatbot({ series, contextData }: ChatbotProps) {
               >
                 <p className="whitespace-pre-wrap m-0 font-sans">
                   {msg.content}
+                  {msg.role === 'assistant' && idx === messages.length - 1 && isStreaming && (
+                    <span className="inline-block w-1.5 h-3 ml-1 bg-[var(--amber)] animate-pulse align-middle" />
+                  )}
                 </p>
               </div>
             </div>
@@ -174,8 +228,9 @@ export default function Chatbot({ series, contextData }: ChatbotProps) {
         )}
 
         {loading && (
-          <div className="flex flex-col items-start">
-            <span className="text-[9px] font-mono text-[var(--text-muted)] mb-1 px-1 uppercase tracking-wider">
+          <div className="flex flex-col items-start animate-fade-in">
+            <span className="text-[9px] font-mono text-[var(--text-muted)] mb-1 px-1 uppercase tracking-wider flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--green-flag)] animate-ping" />
               RADIO TRANSMISSION INCOMING...
             </span>
             <div className="bg-white/5 rounded-2xl rounded-bl-xs px-4 py-3 flex gap-1.5 items-center border border-[var(--border-subtle)]">

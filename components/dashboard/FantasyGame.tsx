@@ -200,8 +200,8 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
 
   const handleShare = () => {
     const text = score !== null 
-      ? `I scored ${score} pts in the ${series.toUpperCase()} Fantasy Game for Round ${round}! 🏆 Play now at Apexis!`
-      : `I just predicted my podium for ${series.toUpperCase()} Round ${round}! 🏆\n🥇 ${predictions.p1}\n🥈 ${predictions.p2}\n🥉 ${predictions.p3}\nPlay now at Apexis!`
+      ? `I scored ${score} pts in the ${series.toUpperCase()} Fantasy Game for Round ${round}! Play now at Apexis!`
+      : `I just predicted my podium for ${series.toUpperCase()} Round ${round}!\nP1: ${predictions.p1}\nP2: ${predictions.p2}\nP3: ${predictions.p3}\nPlay now at Apexis!`
       
     if (navigator.share) {
       navigator.share({ title: 'Apexis Fantasy', text })
@@ -303,15 +303,15 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
 
               <div className="flex gap-3 my-4">
                 <div className="text-center">
-                  <div className="text-2xl mb-1">🥇</div>
+                  <div className="font-mono font-black text-xs px-2.5 py-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 mb-1.5 tracking-wider">P1</div>
                   <div className="text-xs font-semibold">{predictions.p1}</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl mb-1">🥈</div>
+                  <div className="font-mono font-black text-xs px-2.5 py-1 rounded bg-slate-400/20 text-slate-200 border border-slate-400/40 mb-1.5 tracking-wider">P2</div>
                   <div className="text-xs font-semibold">{predictions.p2}</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl mb-1">🥉</div>
+                  <div className="font-mono font-black text-xs px-2.5 py-1 rounded bg-amber-700/20 text-amber-500 border border-amber-700/40 mb-1.5 tracking-wider">P3</div>
                   <div className="text-xs font-semibold">{predictions.p3}</div>
                 </div>
               </div>
