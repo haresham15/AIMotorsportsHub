@@ -73,6 +73,15 @@ export const SERIES: SeriesInfo[] = [
     icon: "TF",
     description: "10,000 HP machines conquering the quarter mile",
   },
+  {
+    id: "wec",
+    name: "World Endurance Championship",
+    shortName: "WEC",
+    color: "#005a9c",
+    gradient: "linear-gradient(135deg, #005a9c, #007bc4)",
+    icon: "WEC",
+    description: "The ultimate test of man and machine in endurance racing",
+  },
 ];
 
 // Sub-series that don't appear on the homepage but are valid dashboard routes
@@ -235,6 +244,23 @@ export const WATCH_LINKS: Record<
       url: "https://www.nhra.com/",
       platform: "Official",
     },
+  ],
+  wec: [
+    {
+      name: "FIA WEC TV",
+      url: "https://fiawec.tv/",
+      platform: "Official",
+    },
+    {
+      name: "MotorTrend+",
+      url: "https://www.motortrendondemand.com/",
+      platform: "US",
+    },
+    {
+      name: "Max / Eurosport",
+      url: "https://www.eurosport.com/",
+      platform: "Europe",
+    }
   ],
 };
 
@@ -439,6 +465,37 @@ export const TEAM_HISTORY: Record<string, TeamHistoryEntry[]> = {
       ],
       description:
         "Founded by drag racing legend Connie 'The Bounty Hunter' Kalitta, this team carries decades of quarter-mile heritage.",
+    },
+  ],
+  wec: [
+    {
+      name: "Toyota Gazoo Racing",
+      founded: "2012",
+      country: "Japan",
+      achievements: [
+        "Multiple Hypercar Championships",
+        "Le Mans 24H Winners",
+      ],
+      description: "The dominant force in modern endurance racing, mastering the hybrid era.",
+    },
+    {
+      name: "Ferrari AF Corse",
+      founded: "2023",
+      country: "Italy",
+      achievements: [
+        "Le Mans 24H Winners",
+      ],
+      description: "Ferrari's triumphant return to top-class sports car racing.",
+    },
+    {
+      name: "Porsche Penske Motorsport",
+      founded: "2023",
+      country: "Germany/USA",
+      achievements: [
+        "WEC Race Winners",
+        "IMSA Champions",
+      ],
+      description: "A powerhouse collaboration bringing Porsche's prototype legacy back to the world stage.",
     },
   ],
 };
@@ -650,6 +707,23 @@ export const SERIES_DRIVERS: Record<string, DriverInfo[]> = {
   'top-fuel': [
     { code: 'BFO', name: 'Brittany Force', number: 1, team: 'John Force Racing', color: '#FFD700' },
     { code: 'ANT', name: 'Antron Brown', number: 2, team: 'AB Motorsports', color: '#FF4500' },
+  ],
+  wec: [
+    { code: 'BUE', name: 'Sébastien Buemi', number: 8, team: 'Toyota Gazoo Racing', color: '#DF0000' },
+    { code: 'HAR', name: 'Brendon Hartley', number: 8, team: 'Toyota Gazoo Racing', color: '#DF0000' },
+    { code: 'HIR', name: 'Ryo Hirakawa', number: 8, team: 'Toyota Gazoo Racing', color: '#DF0000' },
+    { code: 'GIO', name: 'Antonio Giovinazzi', number: 51, team: 'Ferrari AF Corse', color: '#FF2800' },
+    { code: 'PIE', name: 'Alessandro Pier Guidi', number: 51, team: 'Ferrari AF Corse', color: '#FF2800' },
+    { code: 'CAL', name: 'James Calado', number: 51, team: 'Ferrari AF Corse', color: '#FF2800' },
+    { code: 'EST', name: 'Kevin Estre', number: 6, team: 'Porsche Penske', color: '#FFFFFF' },
+    { code: 'LOT', name: 'André Lotterer', number: 6, team: 'Porsche Penske', color: '#FFFFFF' },
+    { code: 'VAN', name: 'Laurens Vanthoor', number: 6, team: 'Porsche Penske', color: '#FFFFFF' },
+    { code: 'KOB', name: 'Kamui Kobayashi', number: 7, team: 'Toyota Gazoo Racing', color: '#DF0000' },
+    { code: 'DEV', name: 'Nyck de Vries', number: 7, team: 'Toyota Gazoo Racing', color: '#DF0000' },
+    { code: 'CON', name: 'Mike Conway', number: 7, team: 'Toyota Gazoo Racing', color: '#DF0000' },
+    { code: 'FUO', name: 'Antonio Fuoco', number: 50, team: 'Ferrari AF Corse', color: '#FF2800' },
+    { code: 'MOL', name: 'Miguel Molina', number: 50, team: 'Ferrari AF Corse', color: '#FF2800' },
+    { code: 'NIE', name: 'Nicklas Nielsen', number: 50, team: 'Ferrari AF Corse', color: '#FF2800' },
   ],
 };
 

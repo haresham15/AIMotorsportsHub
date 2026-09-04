@@ -103,9 +103,22 @@ export function offsetPolyline(line: Point2D[], dist: number): Point2D[] {
 // TRACK LOOKUP & REGISTRY
 // ═══════════════════════════════════════════════════════════════════════
 
+const DRAG_STRIP: TrackGeometry = {
+  name: 'Drag Strip',
+  country: 'USA',
+  lengthKm: 0.402,
+  totalLaps: 1,
+  type: 'drag',
+  innerEdge: [{ x: -400, y: -20 }, { x: 400, y: -20 }],
+  outerEdge: [{ x: -400, y: 20 }, { x: 400, y: 20 }],
+  referenceLine: [{ x: -400, y: 0 }, { x: 400, y: 0 }],
+  startFinishIdx: 0
+};
+
 export const TRACK_REGISTRY: Record<string, TrackGeometry> = {
   ...(generatedTracks as Record<string, TrackGeometry>),
   ...NASCAR_TRACK_REGISTRY,
+  'Drag Strip': DRAG_STRIP,
 };
 
 /** Look up a circuit geometry by circuit name (fuzzy match), with series fallback */
@@ -151,7 +164,8 @@ export function getTrackForSeries(seriesId: string): TrackGeometry {
     'f3': 'Monza',
     'formula-e': 'Monte Carlo',
     'gt-world-challenge': 'Spa-Francorchamps',
-    'top-fuel': 'Las Vegas'
+    'top-fuel': 'Drag Strip',
+    'wec': 'Spa-Francorchamps'
   };
 
   const targetVenue = fallbackMap[seriesId] || 'Sakhir';

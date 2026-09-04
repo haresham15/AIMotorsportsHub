@@ -260,7 +260,7 @@ export default function LiveStandings({
             }} />
             {isReplayActive ? (
               <span>
-                REPLAY SYNCED
+                {dataSource === 'cv' ? 'HYBRID (SIM + OCR)' : 'REPLAY SYNCED'}
                 {activeRaceData[0]?.laps_completed && (
                   <span className="font-mono text-[10px] text-emerald-300 font-bold ml-1.5 tabular-nums">
                     &bull; LAP {activeRaceData[0].laps_completed}

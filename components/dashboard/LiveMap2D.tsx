@@ -41,7 +41,7 @@ const generateReplayDataAsync = async (series: string, track: TrackGeometry, dri
 }
 
 import { frameToRaceData, findFrameIndexForTime } from '@/lib/replayTypes'
-import type { RaceData } from '@/lib/types'
+import type { RaceData, CVData } from '@/lib/types'
 
 interface LiveMap2DProps {
   series: string
@@ -63,6 +63,7 @@ interface LiveMap2DProps {
   isLiveSession?: boolean
   sessionStartTime?: string | null
   roundStatus?: string
+  cvData?: CVData[]
 }
 
 export default function LiveMap2D({
@@ -79,6 +80,7 @@ export default function LiveMap2D({
   isLiveSession = false,
   sessionStartTime = null,
   roundStatus,
+  cvData = [],
 }: LiveMap2DProps) {
   const [replayData, setReplayData] = useState<ReplayData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -448,9 +450,24 @@ export default function LiveMap2D({
       lastSyncTimeRef.current = now
       lastFrameIdxRef.current = playback.frameIndex
       const synced = frameToRaceData(currentFrame, replayData, series)
+
+      // HYBRID CV OVERRIDE: If we have CV OCR data, overwrite the simulated positions/gaps
+      if (cvData && cvData.length > 0) {
+        synced.forEach(driver => {
+          const cvMatch = cvData.find(cv => cv.driver_id === driver.driver_id)
+          if (cvMatch) {
+            driver.position = cvMatch.position
+            driver.gap_to_leader = cvMatch.gap_to_leader
+            driver.last_lap = 'LIVE (CV OCR)'
+          }
+        })
+        // Re-sort the array based on the new positions
+        synced.sort((a, b) => a.position - b.position)
+      }
+
       onStandingsChange(synced)
     }
-  }, [currentFrame, replayData, onStandingsChange, series, playback.frameIndex, playback.isPlaying])
+  }, [currentFrame, replayData, onStandingsChange, series, playback.frameIndex, playback.isPlaying, cvData])
 
   const selectedDriver = playback.selectedDrivers.length === 1 ? playback.selectedDrivers[0] : null
 
@@ -508,10 +525,10 @@ export default function LiveMap2D({
         <div className="replay-header__left flex items-center gap-3">
           <button
             onClick={() => setIsTrackModalOpen(true)}
-            className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 hover:border-amber-400/40 text-left transition-all cursor-pointer group"
+            className="flex items-center gap-2 px-2.5 py-1 bg-transparent hover:bg-white/10 border border-white/20 hover:border-amber-400/80 text-left transition-all cursor-pointer group rounded-none"
             title="View Circuit Dossier & Switch Track"
           >
-            <Radio size={14} className="replay-header__icon text-[var(--amber)] group-hover:scale-110 transition-transform" />
+            <Radio size={14} className="replay-header__icon text-[var(--amber)]" />
             <span className="font-mono font-bold text-sm tracking-wide text-white uppercase group-hover:text-amber-300">
               {replayData.sessionInfo.circuitName}
             </span>
@@ -528,18 +545,18 @@ export default function LiveMap2D({
             isBehindLive ? (
               <button
                 onClick={handleSyncToLive}
-                className="px-2.5 py-1 rounded-full border border-amber-500/40 bg-amber-500/15 text-amber-300 text-[11px] font-mono font-bold flex items-center gap-1.5 shadow-sm cursor-pointer hover:bg-amber-500/25 transition-all animate-pulse"
+                className="px-2.5 py-1 rounded-none border border-amber-500 bg-amber-500/20 text-amber-300 text-[11px] font-mono font-bold flex items-center gap-1.5 cursor-pointer hover:bg-amber-500/30 transition-all animate-pulse"
                 title="Behind live race time. Click to jump to current live action."
               >
-                <span className="w-2 h-2 rounded-full bg-amber-400" />
+                <span className="w-2 h-2 bg-amber-400" />
                 <span>DVR (-{formatLag(liveLagSeconds)}) • JUMP TO LIVE</span>
               </button>
             ) : (
               <div 
-                className="px-2.5 py-1 rounded-full border border-emerald-500/40 bg-emerald-500/15 text-emerald-400 text-[11px] font-mono font-bold flex items-center gap-1.5 shadow-[0_0_10px_rgba(16,185,129,0.25)]"
+                className="px-2.5 py-1 rounded-none border border-emerald-500 bg-emerald-500/20 text-emerald-400 text-[11px] font-mono font-bold flex items-center gap-1.5"
                 title="Synchronized with exact live race time"
               >
-                <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_#10b981] animate-pulse" />
+                <span className="w-2 h-2 bg-emerald-400 animate-pulse" />
                 <span>LIVE FEED</span>
               </div>
             )
@@ -547,20 +564,20 @@ export default function LiveMap2D({
 
           <button
             onClick={() => setIsRaceControlModalOpen(true)}
-            className={`px-3 py-1 rounded-full border text-[11px] font-mono font-bold flex items-center gap-1.5 shadow-sm cursor-pointer hover:scale-105 transition-all ${flagDetails.color}`}
+            className={`px-3 py-1 rounded-none border text-[11px] font-mono font-bold flex items-center gap-1.5 cursor-pointer hover:bg-white/5 transition-all ${flagDetails.color}`}
             title="View FIA Race Control Directives"
           >
-            <span className={`w-2 h-2 rounded-full ${flagDetails.dot} shadow-[0_0_8px_currentColor] live-beacon-active`} />
+            <span className={`w-2 h-2 ${flagDetails.dot} live-beacon-active`} />
             <span>{flagDetails.label}</span>
           </button>
         </div>
 
         {/* Right: Quick Source Tag & Shortcut Hints */}
         <div className="replay-header__right flex items-center gap-3">
-          <span className="hidden lg:inline-flex items-center gap-1.5 text-[10px] font-mono text-[var(--text-muted)] bg-white/5 border border-white/5 px-2.5 py-1 rounded-md">
-            <kbd className="px-1 py-0.2 bg-black/40 rounded border border-white/10 text-white font-bold">Space</kbd> Play
+          <span className="hidden lg:inline-flex items-center gap-1.5 text-[10px] font-mono text-[var(--text-muted)] bg-transparent border border-white/20 px-2.5 py-1 rounded-none">
+            <kbd className="px-1 py-0.2 bg-black/40 border border-white/20 text-white font-bold rounded-none">Space</kbd> Play
             <span className="text-white/20">•</span>
-            <kbd className="px-1 py-0.2 bg-black/40 rounded border border-white/10 text-white font-bold">S</kbd> Standings
+            <kbd className="px-1 py-0.2 bg-black/40 border border-white/20 text-white font-bold rounded-none">S</kbd> Standings
           </span>
 
           <span className={`replay-header__source replay-header__source--${dataSource}`}>
@@ -595,7 +612,7 @@ export default function LiveMap2D({
           {!playback.showLeaderboard && (
             <button
               onClick={() => handlePlaybackChange({ showLeaderboard: true })}
-              className="absolute top-3 right-3 z-20 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black/80 hover:bg-black border border-white/10 hover:border-[var(--amber)] text-xs font-mono text-white shadow-xl backdrop-blur-md cursor-pointer transition-all"
+              className="absolute top-3 right-3 z-20 flex items-center gap-2 px-3 py-1.5 bg-[#0b0e13] hover:bg-black border border-white/20 hover:border-[var(--amber)] text-xs font-mono text-white cursor-pointer transition-all rounded-none"
               title="Expand Standings Dock (S)"
             >
               <ListOrdered size={14} className="text-[var(--amber)]" />
@@ -606,7 +623,7 @@ export default function LiveMap2D({
 
         {/* Right Dock: Dedicated Leaderboard Sidebar */}
         {playback.showLeaderboard && (
-          <aside className="w-68 sm:w-76 h-full border-l border-[var(--border-subtle)] bg-[rgba(11,14,19,0.95)] backdrop-blur-xl flex flex-col shrink-0 z-10 animate-fade-in transition-all">
+          <aside className="w-68 sm:w-76 h-full border-l border-white/20 bg-[#0b0e13] flex flex-col shrink-0 z-10 transition-all">
             <ReplayLeaderboard
               data={replayData}
               frame={currentFrame}

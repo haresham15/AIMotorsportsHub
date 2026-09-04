@@ -20,7 +20,6 @@ import ChampionshipStandings from '@/components/dashboard/ChampionshipStandings'
 import { ArrowLeft, ChevronDown, AlertCircle, ShieldCheck, Check, Flame, Star } from 'lucide-react'
 import { useSeriesData } from '@/lib/hooks/useSeriesData'
 import { RaceData, CVData } from '@/lib/types'
-import Modal from '@/components/ui/Modal'
 import PodiumProbability from '@/components/dashboard/PodiumProbability'
 import DriverSimilarityMap from '@/components/dashboard/DriverSimilarityMap'
 import { useUserProfile } from '@/lib/userPreferences'
@@ -284,6 +283,7 @@ export default function SeriesDashboard() {
                 isLiveSession={isSessionLive}
                 sessionStartTime={sessionStartTime}
                 roundStatus={currentRoundData?.status}
+                cvData={cvData}
               />
             )
           })()}
@@ -311,8 +311,8 @@ export default function SeriesDashboard() {
         {/* ===== MAIN CONTENT GRID ===== */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* Missing Live Data Banner (Non-F1) */}
-          {series !== 'f1' && !isScanningActive && (
+          {/* Missing Live Data Banner (Non-Live Series) */}
+          {series !== 'f1' && series !== 'nascar' && !series.startsWith('nascar-') && !isScanningActive && (
             <div className="lg:col-span-3">
               <div className="console-panel px-5 py-3.5 flex justify-between items-center">
                 <div>
@@ -325,10 +325,13 @@ export default function SeriesDashboard() {
               </div>
             </div>
           )}
-          
-          <Modal isOpen={isScanningActive} onClose={() => { setIsScanningActive(false); setCvData([]); }} title="Broadcast Scanner">
-            <BroadcastScanner onScan={setCvData} onClose={() => { setIsScanningActive(false); setCvData([]); }} />
-          </Modal>
+          {isScanningActive && (
+            <BroadcastScanner 
+              series={series} 
+              onScan={setCvData} 
+              onClose={() => { setIsScanningActive(false); setCvData([]); }} 
+            />
+          )}
 
           {/* Standings Table (Spans 2 columns on large screens) */}
           <div className="lg:col-span-2">

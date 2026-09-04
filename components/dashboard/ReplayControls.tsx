@@ -67,9 +67,9 @@ export default function ReplayControls({
   }
 
   return (
-    <div className="w-full bg-[rgba(11,14,19,0.96)] backdrop-blur-xl border-t border-[var(--border-subtle)] flex flex-col shrink-0 z-20">
+    <div className="w-full bg-[#0b0e13] border-t border-white/20 flex flex-col shrink-0 z-20">
       {/* ── Top Scrubber Bar ────────────────────────────────────────── */}
-      <div className="relative h-2.5 w-full bg-[var(--surface-sunken)] group cursor-pointer border-b border-[var(--border-subtle)]/40 hover:h-3.5 transition-all">
+      <div className="relative h-2.5 w-full bg-[#1c1f26] group cursor-pointer border-b border-white/20">
         <input
           type="range"
           min="0"
@@ -89,14 +89,14 @@ export default function ReplayControls({
 
         {/* Scrubbing Thumb */}
         <div 
-          className="absolute top-1/2 -translate-y-1/2 -ml-2 w-3.5 h-3.5 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.8)] opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none" 
+          className="absolute top-0 bottom-0 -ml-[1px] w-[2px] bg-white opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none" 
           style={{ left: `${progress * 100}%` }} 
         />
 
         {/* Live Edge Line Indicator */}
         {isLiveSession && liveEdgeTime !== undefined && totalTime > 0 && (
           <div 
-            className="absolute top-0 bottom-0 w-[2px] bg-emerald-400 z-15 pointer-events-none shadow-[0_0_6px_#10b981]"
+            className="absolute top-0 bottom-0 w-[2px] bg-emerald-400 z-15 pointer-events-none"
             style={{ left: `${Math.min(100, (liveEdgeTime / totalTime) * 100)}%` }}
             title={`Live Race Edge (${fmtTime(liveEdgeTime)})`}
           />
@@ -124,7 +124,7 @@ export default function ReplayControls({
       <div className="flex flex-wrap items-center justify-between px-4 py-2.5 gap-3">
         {/* Left: Lap Pill & Time Readout */}
         <div className="flex items-center gap-2.5">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-xs font-mono font-bold text-white">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-transparent border border-white/20 text-xs font-mono font-bold text-white rounded-none">
             <span className="text-[10px] text-[var(--text-muted)] uppercase">LAP</span>
             <span className="text-[var(--amber)]">{currentFrame?.lap ?? 1}</span>
             <span className="text-[var(--text-muted)]">/</span>
@@ -142,7 +142,7 @@ export default function ReplayControls({
         <div className="flex items-center justify-center gap-1.5 sm:gap-2">
           {/* Jump to start */}
           <button
-            className="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            className="flex items-center justify-center w-8 h-8 text-[var(--text-muted)] hover:text-white hover:bg-white/10 transition-colors cursor-pointer rounded-none"
             title="Restart to beginning (R)"
             onClick={() => onChange({ frameIndex: 0, isPlaying: true, isLiveMode: false })}
           >
@@ -151,7 +151,7 @@ export default function ReplayControls({
 
           {/* Rewind 10s */}
           <button
-            className="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--text-secondary)] hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            className="flex items-center justify-center w-8 h-8 text-[var(--text-secondary)] hover:text-white hover:bg-white/10 transition-colors cursor-pointer rounded-none"
             title="Rewind 10s (←)"
             onClick={() => onChange({ frameIndex: Math.max(0, playback.frameIndex - REPLAY_FPS * 10), isLiveMode: false })}
           >
@@ -167,14 +167,14 @@ export default function ReplayControls({
                 onChange({ frameIndex: maxFrameIndex, isPlaying: true, speed: 1, isLiveMode: true })
               }
             }}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer border ${
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-mono font-bold transition-all cursor-pointer border rounded-none ${
               isLiveSession && !isBehindLive
-                ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.3)]'
+                ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
                 : isLiveSession && isBehindLive
-                ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 hover:bg-amber-500/30 shadow-[0_0_8px_rgba(245,158,11,0.2)]'
+                ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 hover:bg-amber-500/30'
                 : playback.isLiveMode
                 ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400'
-                : 'bg-white/5 border-white/10 text-[var(--text-muted)] hover:text-white hover:bg-white/10'
+                : 'bg-transparent border-white/20 text-[var(--text-muted)] hover:text-white hover:bg-white/10'
             }`}
             title={
               isBehindLive
@@ -184,9 +184,9 @@ export default function ReplayControls({
                 : 'Toggle live playback'
             }
           >
-            <span className={`w-2 h-2 rounded-full ${
+            <span className={`w-2 h-2 ${
               (isLiveSession && !isBehindLive) || playback.isLiveMode
-                ? 'bg-emerald-400 animate-pulse shadow-[0_0_6px_#10b981]'
+                ? 'bg-emerald-400 animate-pulse'
                 : isBehindLive
                 ? 'bg-amber-400'
                 : 'bg-white/40'
@@ -198,7 +198,7 @@ export default function ReplayControls({
 
           {/* Play / Pause */}
           <button
-            className="flex items-center justify-center w-10 h-10 rounded-xl bg-[var(--amber)] hover:bg-amber-300 text-black font-extrabold transition-all shadow-[0_0_16px_rgba(255,176,32,0.35)] hover:scale-105 cursor-pointer"
+            className="flex items-center justify-center w-10 h-10 bg-[var(--amber)] hover:bg-amber-300 text-black font-extrabold transition-all cursor-pointer rounded-none"
             title="Play / Pause (Space)"
             onClick={() => onChange({ isPlaying: !playback.isPlaying })}
           >
@@ -207,7 +207,7 @@ export default function ReplayControls({
 
           {/* Skip Forward 10s */}
           <button
-            className="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--text-secondary)] hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            className="flex items-center justify-center w-8 h-8 text-[var(--text-secondary)] hover:text-white hover:bg-white/10 transition-colors cursor-pointer rounded-none"
             title="Skip forward 10s (→)"
             onClick={() => onChange({ frameIndex: Math.min(maxFrameIndex, playback.frameIndex + REPLAY_FPS * 10) })}
           >
@@ -215,7 +215,7 @@ export default function ReplayControls({
           </button>
 
           {/* Speed Selector */}
-          <div className="flex items-center gap-1 ml-1 px-2 py-1 rounded-lg bg-white/5 border border-white/10">
+          <div className="flex items-center gap-1 ml-1 px-2 py-1 bg-transparent border border-white/20 rounded-none">
             <Gauge size={12} className="text-[var(--text-muted)]" />
             <select
               value={playback.speed}
@@ -235,10 +235,10 @@ export default function ReplayControls({
           {/* Driver Labels Toggle */}
           <button
             onClick={() => onChange({ showDriverLabels: !playback.showDriverLabels })}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-mono font-semibold transition-all cursor-pointer border ${
+            className={`flex items-center gap-1 px-2.5 py-1 text-xs font-mono font-semibold transition-all cursor-pointer border rounded-none ${
               playback.showDriverLabels
                 ? 'bg-[var(--amber)]/15 border-[var(--amber)]/40 text-[var(--amber)]'
-                : 'bg-white/5 border-white/5 text-[var(--text-muted)] hover:text-white hover:bg-white/10'
+                : 'bg-transparent border-white/20 text-[var(--text-muted)] hover:text-white hover:bg-white/10'
             }`}
             title="Toggle Driver Code Labels (L)"
           >
@@ -249,10 +249,10 @@ export default function ReplayControls({
           {/* DRS Zones Toggle */}
           <button
             onClick={() => onChange({ showDrsZones: !playback.showDrsZones })}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-mono font-semibold transition-all cursor-pointer border ${
+            className={`flex items-center gap-1 px-2.5 py-1 text-xs font-mono font-semibold transition-all cursor-pointer border rounded-none ${
               playback.showDrsZones
                 ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400'
-                : 'bg-white/5 border-white/5 text-[var(--text-muted)] hover:text-white hover:bg-white/10'
+                : 'bg-transparent border-white/20 text-[var(--text-muted)] hover:text-white hover:bg-white/10'
             }`}
             title="Toggle DRS Zones (D)"
           >
@@ -263,10 +263,10 @@ export default function ReplayControls({
           {/* Leaderboard Dock Toggle */}
           <button
             onClick={() => onChange({ showLeaderboard: !playback.showLeaderboard })}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-mono font-semibold transition-all cursor-pointer border ${
+            className={`flex items-center gap-1 px-2.5 py-1 text-xs font-mono font-semibold transition-all cursor-pointer border rounded-none ${
               playback.showLeaderboard
                 ? 'bg-blue-500/15 border-blue-500/40 text-blue-400'
-                : 'bg-white/5 border-white/5 text-[var(--text-muted)] hover:text-white hover:bg-white/10'
+                : 'bg-transparent border-white/20 text-[var(--text-muted)] hover:text-white hover:bg-white/10'
             }`}
             title="Toggle Standings Dock"
           >
@@ -277,7 +277,7 @@ export default function ReplayControls({
           {/* Fullscreen Toggle */}
           <button
             onClick={toggleFullscreen}
-            className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/5 border border-white/5 text-[var(--text-muted)] hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            className="flex items-center justify-center w-8 h-8 bg-transparent border border-white/20 text-[var(--text-muted)] hover:text-white hover:bg-white/10 transition-colors cursor-pointer rounded-none"
             title="Toggle Fullscreen (F)"
           >
             {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}

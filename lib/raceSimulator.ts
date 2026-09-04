@@ -191,6 +191,20 @@ const SERIES_CONFIGS: Record<string, SeriesConfig> = {
     gridSpreadFactor: 0.0,
     defaultLaps: 1, // single quarter-mile pass
   },
+  wec: {
+    baseSpeedFactor: 0.90,
+    speedVariation: 0.03,
+    lapTimeSeconds: 125,
+    targetAvgSpeedKmh: 215,
+    pitStopDurationS: 45,
+    pitStopLaps: [12, 24, 36],
+    tyreCompounds: ['SOFT', 'MEDIUM', 'HARD', 'WET'],
+    hasDRS: false,
+    hasSafetyCar: true,
+    driverCount: 16,
+    gridSpreadFactor: 0.015,
+    defaultLaps: 48,
+  },
 };
 
 // ── Simulation Engine ────────────────────────────────────────────────
