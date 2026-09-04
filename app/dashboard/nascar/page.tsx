@@ -93,12 +93,12 @@ export default function NascarPickerPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-[1px] bg-[var(--border-subtle)] border border-[var(--border-subtle)] rounded-[var(--radius-xl)] overflow-hidden animate-fade-in-up delay-150">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 animate-fade-in-up delay-150">
           {NASCAR_SERIES.map((series) => (
             <Link
               key={series.id}
               href={`/dashboard/${series.id}`}
-              className="group bg-[var(--bg-card)] p-8 flex flex-col gap-6 no-underline transition-colors hover:bg-[var(--bg-card-hover)] relative"
+              className="group bg-[var(--surface-sunken)] border border-[var(--border-subtle)] rounded-[var(--radius-lg)] p-7 flex flex-col gap-6 no-underline transition-all hover:border-[var(--border-active)] hover:bg-[var(--surface-raised)] relative"
               style={{ borderLeft: `3px solid ${series.color}` }}
             >
               <div>
@@ -147,7 +147,7 @@ export default function NascarPickerPage() {
           ))}
         </div>
 
-        <div className="animate-fade-in-up delay-300 mt-8 glass rounded-[var(--radius-xl)] p-6 flex items-center gap-4">
+        <div className="animate-fade-in-up delay-300 mt-8 bg-[var(--surface-sunken)] border border-[var(--border-subtle)] rounded-[var(--radius-lg)] p-5 flex items-center gap-4">
           <div className="live-badge">
             <div className="live-dot" />
             LIVE FEED ACTIVE

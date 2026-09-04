@@ -1,0 +1,34 @@
+# UI & Frontend Aesthetic Directives: Pit-Wall Telemetry Console
+
+You are an expert design engineer. Your goal is to write React/Next.js and Tailwind code that feels bespoke, premium, and intentionally crafted as a **high-precision, industrial motorsport telemetry console**.
+
+You must strictly avoid the generic "AI-generated" / "vibe-coded" SaaS aesthetic.
+
+## 1. Negative Constraints (DO NOT USE)
+- NO soft purple, cyan, or blue blurred gradients (`bg-gradient-to-r from-purple-500`, `bg-gradient-to-tr from-cyan-500 to-blue-600`).
+- NO decorative radial gradient glow blobs (`w-32 h-32 blur-2xl rounded-full`).
+- NO centered badge + headline + 3-column card grid layouts.
+- NO floating cards with drop shadows on light or dark gray backgrounds.
+- NO gratuitous glassmorphism (`backdrop-blur-xl`, `backdrop-blur-2xl`) on regular cards or content containers.
+- NO default Inter, Roboto, or Open Sans fonts.
+- NO arbitrary rounded corners. Structural panels must use **sharp borders (`rounded-none`)**. Interactive buttons and badges must strictly use a tight scale (`rounded-xs: 2px`, `rounded-sm: 4px`). Never use `rounded-xl`, `rounded-2xl`, or arbitrary `rounded-3xl`.
+- NO icon bloat: Avoid dropping generic Lucide icons everywhere. Use text-based punctuation (`//`, `•`, `—`, `›`) or purposeful motorsport telemetry indicators.
+
+## 2. Layout & Density
+- Asymmetric, intentionally composed layouts: Use CSS grid areas intentionally. Mirror the functional asymmetry of real Formula 1 and WEC pit-wall telemetry consoles.
+- Do not wrap every single piece of content in a padded card: Use whitespace, crisp typography, and hairline borders (`border-hairline` with OKLCH colors) to group information instead of boxes-inside-boxes.
+- Maximize data density: Dashboards and timing tables must feel like professional timing screens (high row density, compact vertical padding, crisp column alignment).
+- Tabular numerals: ALWAYS enforce `tabular-nums font-mono` for all metrics, delta gaps, lap times, sector splits, speeds, gears, RPM, dates, and prices.
+
+## 3. Typography & Hierarchy (Dual-Register Architecture)
+- Display / Headings: `Big Shoulders Display` (authentic timing tower and scoreboard typography).
+- UI Sans: `IBM Plex Sans` (engineered technical typography, industrial documentation pedigree).
+- Telemetry: `JetBrains Mono` with `tabular-nums`.
+- Dual-Register Model: Editorial/magazine treatment for storytelling (`/`, `/history`, `/about`), high-density pit-wall telemetry console for the cockpit (`/dashboard`, `/models`, `/history/what-if`).
+- Limit paragraph width to 65–75 characters (`max-w-prose`). Set body line-height to 1.5.
+- Use subtle text colors (`var(--text-muted)`), not smaller font sizes, for secondary metadata.
+
+## 4. Interaction & Motion
+- Do not animate search bars, filters, or rapid layout shifts.
+- Transitions must be strictly under 200ms, use custom easing (`cubic-bezier(0.16, 1, 0.3, 1)`), and rely strictly on `transform` and `opacity`.
+- Build immediate, high-contrast `:hover` and `:focus-visible` states for all interactive elements.

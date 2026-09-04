@@ -5,72 +5,81 @@ import { openSuggestionsModal } from '@/components/SuggestionsModal';
 
 export default function SiteFooter() {
   return (
-    <footer className="py-[var(--sp-8)] relative z-10 border-t border-[var(--border-subtle)] bg-[var(--bg-base)]">
-      <div className="max-w-[1180px] mx-auto px-[var(--sp-5)]">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[var(--sp-6)] padding-bottom-[var(--sp-7)]">
+    <footer className="py-12 relative z-10 border-t border-[var(--border-hairline)] bg-[var(--canvas-base)]">
+      <div className="max-w-[1360px] mx-auto px-4 sm:px-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 pb-8">
           <div className="pr-4">
-            <Link href="/" className="logo no-underline mb-[var(--sp-3)] block">
+            <Link href="/" className="logo no-underline mb-3 block">
               <span className="dot"></span>APEXIS
             </Link>
-            <p className="text-[13px] text-[var(--text-muted)] max-w-[280px] leading-[1.6]">
-              An independent dashboard built for motorsport fans who want the whole weekend - live timing, AI briefings, and full replays - in one place.
+            <p className="text-xs text-[var(--text-muted)] max-w-[280px] leading-[1.6]">
+              Independent telemetry console built for motorsport fans — live timing towers, telemetry telemetry delta replays, and AI strategy briefings.
             </p>
           </div>
           <div>
-            <h4 className="font-mono text-[11px] tracking-[0.1em] uppercase text-[var(--text-muted)] mb-[var(--sp-4)]">
-              Product
+            <h4 className="font-mono text-[10px] tracking-wider uppercase text-[var(--amber)] font-bold mb-3">
+              INTELLIGENCE &amp; MODELS
             </h4>
-            <Link href="/models" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">
-              Predictive AI Models
-            </Link>
-            <Link href="/embed/f1" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">
-              Embed Widget
-            </Link>
+            <div className="flex flex-col gap-2 font-mono text-xs">
+              <Link href="/models" className="text-[var(--text-secondary)] hover:text-[var(--amber)] transition-colors no-underline">
+                Predictive AI Accuracy
+              </Link>
+              <Link href="/history/what-if" className="text-[var(--text-secondary)] hover:text-[var(--amber)] transition-colors no-underline">
+                Counterfactual Simulator
+              </Link>
+              <Link href="/embed/f1" className="text-[var(--text-secondary)] hover:text-[var(--amber)] transition-colors no-underline">
+                Embed Live Widget
+              </Link>
+            </div>
           </div>
           <div>
-            <h4 className="font-mono text-[11px] tracking-[0.1em] uppercase text-[var(--text-muted)] mb-[var(--sp-4)]">
-              Resources
+            <h4 className="font-mono text-[10px] tracking-wider uppercase text-[var(--amber)] font-bold mb-3">
+              RESOURCES &amp; DOCS
             </h4>
-            <Link href="/guide" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">
-              User Guide
-            </Link>
-            <Link href="/faq" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">
-              FAQ
-            </Link>
-            <Link href="/about/data" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">
-              Data &amp; Methodology
-            </Link>
-            <Link href="/developers" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">
-              Developer API
-            </Link>
+            <div className="flex flex-col gap-2 font-mono text-xs">
+              <Link href="/guide" className="text-[var(--text-secondary)] hover:text-[var(--amber)] transition-colors no-underline">
+                Operating User Guide
+              </Link>
+              <Link href="/faq" className="text-[var(--text-secondary)] hover:text-[var(--amber)] transition-colors no-underline">
+                Telemetry FAQ
+              </Link>
+              <Link href="/about/data" className="text-[var(--text-secondary)] hover:text-[var(--amber)] transition-colors no-underline">
+                Methodology &amp; OpenF1
+              </Link>
+              <Link href="/developers" className="text-[var(--text-secondary)] hover:text-[var(--amber)] transition-colors no-underline">
+                Developer API
+              </Link>
+            </div>
           </div>
           <div>
-            <h4 className="font-mono text-[11px] tracking-[0.1em] uppercase text-[var(--text-muted)] mb-[var(--sp-4)]">
-              Community &amp; About
+            <h4 className="font-mono text-[10px] tracking-wider uppercase text-[var(--amber)] font-bold mb-3">
+              PLATFORM &amp; PADDOCK
             </h4>
-            <Link href="/about" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">
-              About Apexis
-            </Link>
-            <button
-              onClick={openSuggestionsModal}
-              className="block text-left text-[14px] text-amber-400 font-semibold mb-[var(--sp-3)] hover:text-amber-300 transition-colors cursor-pointer bg-transparent border-none p-0"
-            >
-              Suggestions Box
-            </button>
-            <Link href="/legacy" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">
-              Legacy
-            </Link>
-            <a href="https://github.com/haresham15/AIMotorsportsHub" target="_blank" rel="noopener noreferrer" className="block text-[14px] text-[var(--text-secondary)] mb-[var(--sp-3)] hover:text-[var(--amber)] transition-colors">
-              GitHub
-            </a>
+            <div className="flex flex-col gap-2 font-mono text-xs">
+              <Link href="/about" className="text-[var(--text-secondary)] hover:text-[var(--amber)] transition-colors no-underline">
+                About Apexis
+              </Link>
+              <button
+                onClick={openSuggestionsModal}
+                className="text-left text-amber-400 font-semibold hover:text-amber-300 transition-colors cursor-pointer bg-transparent border-none p-0"
+              >
+                Suggestions Box
+              </button>
+              <Link href="/legacy" className="text-[var(--text-secondary)] hover:text-[var(--amber)] transition-colors no-underline">
+                Heritage Story
+              </Link>
+              <a href="https://github.com/haresham15/AIMotorsportsHub" target="_blank" rel="noopener noreferrer" className="text-[var(--text-secondary)] hover:text-[var(--amber)] transition-colors no-underline">
+                GitHub Repository
+              </a>
+            </div>
           </div>
         </div>
-        <div className="flex justify-between items-center flex-wrap gap-[var(--sp-3)] border-t border-[var(--border-subtle)] pt-[var(--sp-5)] font-mono text-[12px] text-[var(--text-muted)] mt-[var(--sp-6)]">
-          <div className="flex items-center gap-[8px]">
-            <span className="w-[7px] h-[7px] rounded-full bg-[var(--green-flag)] shadow-[0_0_6px_var(--green-flag)]"></span>
-            ALL SYSTEMS LIVE
+        <div className="flex justify-between items-center flex-wrap gap-2 border-t border-[var(--border-hairline)] pt-4 font-mono text-[11px] text-[var(--text-muted)]">
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--green-flag)] shadow-[0_0_6px_var(--green-flag)]"></span>
+            <span>TELEMETRY STACK OPERATIONAL &bull; 200 HZ</span>
           </div>
-          <div>(c) 2026 APEXIS - NOT AFFILIATED WITH FIA, NASCAR, OR NHRA</div>
+          <div>&copy; 2026 APEXIS &bull; INDEPENDENT MOTORSPORT TELEMETRY</div>
         </div>
       </div>
     </footer>

@@ -63,33 +63,34 @@ export default function ProfilePage() {
   if (!isLoggedIn || !profile) {
     return (
       <main className="flex-1 flex items-center justify-center p-6 min-h-[calc(100vh-160px)]">
-        <div className="card glass animate-fade-in-up w-full max-w-[500px] p-8 rounded-[var(--radius-xl)] bg-[var(--bg-card)] border border-[var(--border-subtle)] text-center shadow-2xl">
-          <div className="w-14 h-14 rounded-2xl bg-[var(--amber)]/15 border border-[var(--amber)]/30 flex items-center justify-center text-[var(--amber)] mx-auto mb-4">
-            <ShieldCheck size={28} />
+        <div className="console-panel w-full max-w-[480px] p-8 text-center border border-[var(--border-hairline)] shadow-xl">
+          <div className="w-12 h-12 rounded-none bg-[var(--surface-elevated)] border border-[var(--amber-pit)]/40 flex items-center justify-center text-[var(--amber-pit)] mx-auto mb-4">
+            <ShieldCheck size={24} />
           </div>
-          <h1 className="font-[family-name:var(--font-disp)] uppercase text-3xl font-extrabold text-white tracking-tight mb-2">
+          <div className="text-[10px] font-mono text-[var(--amber-pit)] uppercase tracking-widest mb-1">[AUTHENTICATION-REQUIRED]</div>
+          <h1 className="font-[family-name:var(--font-disp)] uppercase text-2xl font-extrabold text-white tracking-tight mb-2">
             Paddock Pass Required
           </h1>
-          <p className="text-sm text-[var(--text-muted)] leading-relaxed mb-6">
-            Sign in to track your favorite drivers and teams at all times, view your race weekend check-in history, and customize live telemetry alerts.
+          <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-6 font-mono">
+            Sign in to track driver telemetry, record race weekend check-in deltas, and synchronize customized telemetry alerts.
           </p>
 
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2.5">
             <Link
               href="/login"
-              className="w-full py-3 px-4 rounded-lg bg-[var(--amber)] hover:bg-amber-400 text-black font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-2 no-underline transition-transform hover:-translate-y-0.5 shadow-md"
+              className="w-full py-2.5 px-4 rounded-xs bg-[var(--amber-pit)] hover:bg-[var(--amber-pit-hover)] text-black font-mono font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 no-underline transition-colors"
             >
               <span>Sign In to Your Pass</span>
               <ChevronRight size={14} />
             </Link>
             <button
               onClick={() => loginDemo()}
-              className="w-full py-3 px-4 rounded-lg bg-white/5 hover:bg-white/10 border border-white/15 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-colors"
+              className="w-full py-2.5 px-4 rounded-xs bg-[var(--surface-elevated)] hover:bg-[var(--surface-pressed)] border border-[var(--border-hairline)] text-white font-mono font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-colors"
             >
-              <Zap size={14} className="text-amber-400 fill-amber-400" />
+              <Zap size={14} className="text-[var(--amber-pit)] fill-[var(--amber-pit)]" />
               <span>Instant VIP Demo Access</span>
             </button>
-            <Link href="/" className="text-xs text-[var(--text-muted)] hover:text-white no-underline mt-2">
+            <Link href="/" className="text-xs font-mono text-[var(--text-muted)] hover:text-white no-underline mt-2">
               &larr; Back to Race Wall
             </Link>
           </div>
@@ -107,17 +108,14 @@ export default function ProfilePage() {
   const availableTeams = TEAM_HISTORY[selectedSeries] || []
 
   return (
-    <main className="min-h-screen py-8 px-4 sm:px-6 max-w-[1280px] mx-auto flex flex-col gap-8 animate-fade-in-up">
+    <main className="min-h-screen py-8 px-4 sm:px-6 max-w-[1280px] mx-auto flex flex-col gap-8">
       
       {/* ===== DIGITAL PADDOCK ID HEADER CARD ===== */}
-      <section className="relative overflow-hidden rounded-[var(--radius-xl)] bg-gradient-to-r from-[rgba(25,29,36,0.95)] via-[rgba(20,23,28,0.95)] to-[rgba(15,17,21,0.95)] border border-[var(--border-subtle)] p-6 sm:p-8 shadow-2xl">
-        {/* Background circuit glow */}
-        <div className="absolute -right-20 -top-20 w-80 h-80 bg-[var(--amber)]/5 rounded-full blur-3xl pointer-events-none" />
-        
+      <section className="console-panel p-6 sm:p-7 relative border border-[var(--border-hairline)]">
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           {/* User Profile Details */}
           <div className="flex items-center gap-4 sm:gap-6">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[var(--amber)]/15 border-2 border-[var(--amber)]/40 flex items-center justify-center font-mono font-extrabold text-2xl sm:text-3xl text-[var(--amber)] shadow-[0_0_24px_rgba(255,176,32,0.25)] shrink-0">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-none bg-[var(--surface-elevated)] border-2 border-[var(--amber-pit)]/50 flex items-center justify-center font-mono font-bold text-xl sm:text-2xl text-[var(--amber-pit)] shrink-0">
               {initials}
             </div>
             <div>
@@ -125,12 +123,12 @@ export default function ProfilePage() {
                 <h1 className="font-[family-name:var(--font-disp)] uppercase text-2xl sm:text-3xl font-extrabold text-white tracking-tight m-0">
                   {profile.displayName}
                 </h1>
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[var(--amber)]/15 border border-[var(--amber)]/30 text-[var(--amber)] font-mono text-[10px] font-bold uppercase tracking-wider">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-none bg-[var(--surface-elevated)] border border-[var(--amber-pit)]/40 text-[var(--amber-pit)] font-mono text-[10px] font-bold uppercase tracking-wider">
                   <ShieldCheck size={12} />
                   {profile.paddockTier}
                 </span>
                 {profile.isDemo && (
-                  <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-none bg-[var(--flag-green)]/15 text-[var(--flag-green)] border border-[var(--flag-green)]/30">
                     VIP DEMO
                   </span>
                 )}

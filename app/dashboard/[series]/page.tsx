@@ -79,31 +79,31 @@ export default function SeriesDashboard() {
   return (
     <div className={`min-h-screen relative series-${series}`}>
       {/* ===== RACE CONTROL SUB-BAR ===== */}
-      <div className="bg-[rgba(20,23,28,0.75)] backdrop-blur-md border-b border-[var(--border-subtle)] px-6 py-3 sticky top-[68px] z-40">
+      <div className="bg-[var(--surface-console)] border-b border-[var(--border-hairline)] px-6 py-2.5 sticky top-[58px] z-40">
         <div className="max-w-[1280px] mx-auto flex flex-wrap justify-between items-center gap-3">
           <div className="flex items-center gap-3">
             {/* Series Switcher Pill */}
             <div className="relative group">
-              <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-[var(--border-subtle)] transition-colors cursor-pointer text-sm font-semibold text-[var(--text-primary)]">
-                <span className="font-mono font-black text-xs px-1.5 py-0.5 rounded bg-white/10 text-white border border-white/15 uppercase tracking-wider">{seriesInfo.shortName}</span>
+              <button className="flex items-center gap-2 px-3 py-1.5 rounded-xs bg-[var(--surface-elevated)] hover:bg-[var(--surface-pressed)] border border-[var(--border-hairline)] transition-colors cursor-pointer text-xs font-mono font-bold text-[var(--text-primary)]">
+                <span className="font-mono font-black text-[10px] px-1.5 py-0.5 rounded-xs bg-black/40 text-white uppercase tracking-wider">{seriesInfo.shortName}</span>
                 <span>{seriesInfo.name}</span>
                 <ChevronDown size={14} className="text-[var(--text-muted)] group-hover:text-white transition-colors" />
               </button>
 
               {/* Series Switcher Dropdown */}
-              <div className="absolute left-0 top-full mt-1.5 w-60 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl shadow-2xl p-1.5 hidden group-hover:block z-50 animate-fade-in-up">
-                <div className="text-[10px] font-mono text-[var(--text-muted)] uppercase tracking-wider px-3 py-1">Select Motorsport</div>
+              <div className="absolute left-0 top-full mt-1.5 w-64 bg-[var(--surface-console)] border border-[var(--border-hairline)] rounded-sm shadow-xl p-1.5 hidden group-hover:block z-50">
+                <div className="text-[10px] font-mono text-[var(--text-muted)] uppercase tracking-wider px-2.5 py-1.5 border-b border-[var(--border-hairline)] mb-1">Select Motorsport</div>
                 {SERIES.map((s) => (
                   <Link
                     key={s.id}
                     href={`/dashboard/${s.id}`}
-                    className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-colors no-underline ${
+                    className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-xs text-xs transition-colors no-underline font-mono ${
                       s.id === series
-                        ? 'bg-[var(--surface-elevated)] text-[var(--amber)] font-bold'
-                        : 'text-[var(--text-secondary)] hover:bg-white/5 hover:text-[var(--text-primary)]'
+                        ? 'bg-[var(--surface-elevated)] text-[var(--amber-pit)] font-bold border-l-2 border-l-[var(--amber-pit)]'
+                        : 'text-[var(--text-secondary)] hover:bg-[var(--surface-elevated)] hover:text-[var(--text-primary)]'
                     }`}
                   >
-                    <span className="font-mono font-black text-[10px] px-1 py-0.5 rounded bg-white/10 text-white border border-white/15 uppercase">{s.shortName}</span>
+                    <span className="font-mono font-black text-[10px] px-1 py-0.5 rounded-xs bg-black/40 text-white uppercase">{s.shortName}</span>
                     <span>{s.name}</span>
                   </Link>
                 ))}
@@ -111,16 +111,16 @@ export default function SeriesDashboard() {
             </div>
 
             {/* Live/Simulated Status Pill */}
-            <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/5 border border-[var(--border-subtle)] text-xs font-mono">
-              <span className={`w-2 h-2 rounded-full ${series === 'f1' || series === 'nascar' || series.startsWith('nascar-') ? 'bg-[var(--green-flag)] shadow-[0_0_8px_var(--green-flag)] animate-pulse' : 'bg-[var(--amber)] shadow-[0_0_8px_var(--amber)]'}`} />
-              <span className="text-[var(--text-secondary)] font-medium">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xs bg-[var(--surface-elevated)] border border-[var(--border-hairline)] text-xs font-mono">
+              <span className={`w-2 h-2 rounded-full ${series === 'f1' || series === 'nascar' || series.startsWith('nascar-') ? 'bg-[var(--flag-green)] shadow-[0_0_6px_var(--flag-green)] animate-pulse' : 'bg-[var(--amber-pit)] shadow-[0_0_6px_var(--amber-pit)]'}`} />
+              <span className="text-[var(--text-secondary)] font-medium tracking-wider">
                 {series === 'f1' || series === 'nascar' || series.startsWith('nascar-') ? 'LIVE TELEMETRY' : 'SIMULATION ENGINE'}
               </span>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <Link href="/" className="btn-ghost text-xs flex items-center gap-1.5 no-underline py-1.5 px-3">
+            <Link href="/" className="btn-ghost text-xs flex items-center gap-1.5 no-underline py-1.5 px-3 font-mono">
               <ArrowLeft size={13} />
               <span>Paddock Hub</span>
             </Link>
@@ -138,14 +138,14 @@ export default function SeriesDashboard() {
         
         {/* Roadmap Indicator for Non-Live Series */}
         {series !== 'f1' && series !== 'nascar' && !series.startsWith('nascar-') && (
-          <div className="animate-fade-in-up w-full bg-[var(--graphite-900)] border border-[var(--amber-dim)] rounded-[var(--radius-lg)] p-4 mb-6 flex items-center justify-between">
+          <div className="console-panel p-4 mb-6 flex items-center justify-between border-l-2 border-l-[var(--amber-pit)]">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-[rgba(255,176,32,0.1)] flex items-center justify-center text-[var(--amber)]">
-                <span className="font-[family-name:var(--font-mono)] font-bold">i</span>
+              <div className="w-8 h-8 rounded-none bg-[var(--amber-pit)]/10 border border-[var(--amber-pit)]/30 flex items-center justify-center text-[var(--amber-pit)]">
+                <span className="font-mono font-bold text-xs">i</span>
               </div>
               <div>
-                <div className="text-[13px] font-bold text-[var(--amber)] uppercase tracking-[0.05em]">Simulated Data</div>
-                <div className="text-[14px] text-[var(--text-secondary)]">Live telemetry coming soon for this series. Using simulation engine.</div>
+                <div className="text-[11px] font-mono font-bold text-[var(--amber-pit)] uppercase tracking-wider">Simulated Data Engine</div>
+                <div className="text-[13px] text-[var(--text-secondary)]">Live telemetry streaming in development for this series. Running simulated physics loop.</div>
               </div>
             </div>
           </div>
@@ -153,31 +153,31 @@ export default function SeriesDashboard() {
 
         {/* ===== PADDOCK FAN HQ & RACE CHECK-IN BAR ===== */}
         {isLoggedIn && profile ? (
-          <div className="animate-fade-in-up w-full bg-gradient-to-r from-[rgba(25,29,36,0.95)] via-[rgba(20,23,28,0.95)] to-[rgba(15,17,21,0.95)] border border-[var(--border-subtle)] rounded-[var(--radius-xl)] p-4 sm:p-5 mb-6 flex flex-wrap items-center justify-between gap-4 shadow-xl">
+          <div className="console-panel p-4 mb-6 flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-[var(--amber)]/15 border border-[var(--amber)]/30 flex items-center justify-center font-mono font-bold text-sm text-[var(--amber)] shrink-0 shadow-[0_0_12px_rgba(255,176,32,0.2)]">
+              <div className="w-9 h-9 rounded-none bg-[var(--surface-elevated)] border border-[var(--amber-pit)]/40 flex items-center justify-center font-mono font-bold text-xs text-[var(--amber-pit)] shrink-0">
                 {profile.displayName.slice(0, 2).toUpperCase()}
               </div>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs font-mono font-bold text-[var(--amber)] uppercase tracking-wider flex items-center gap-1">
+                  <span className="text-xs font-mono font-bold text-[var(--amber-pit)] uppercase tracking-wider flex items-center gap-1">
                     <ShieldCheck size={13} />
                     Paddock Fan HQ
                   </span>
                   <span className="text-xs text-[var(--text-muted)]">&bull;</span>
                   <span className="text-xs font-bold text-white">Welcome, {profile.displayName}</span>
                 </div>
-                <div className="text-xs text-[var(--text-secondary)] mt-0.5 flex items-center gap-2 flex-wrap">
+                <div className="text-xs text-[var(--text-secondary)] mt-0.5 flex items-center gap-2 flex-wrap font-mono">
                   {followedDrivers.length > 0 && (
                     <span className="flex items-center gap-1 text-[var(--text-muted)]">
-                      <Star size={12} className="text-amber-400 fill-amber-400" />
+                      <Star size={12} className="text-[var(--amber-pit)] fill-[var(--amber-pit)]" />
                       Following: {followedDrivers.map(d => d.name).slice(0, 2).join(', ')}
                       {followedDrivers.length > 2 ? ` +${followedDrivers.length - 2}` : ''}
                     </span>
                   )}
                   {profile.checkInStreak > 0 && (
-                    <span className="text-amber-400 font-mono text-[11px] font-bold flex items-center gap-0.5">
-                      <Flame size={12} className="fill-amber-400" />
+                    <span className="text-[var(--amber-pit)] font-mono text-[11px] font-bold flex items-center gap-0.5 tabular-nums">
+                      <Flame size={12} className="fill-[var(--amber-pit)]" />
                       {profile.checkInStreak} Race Streak
                     </span>
                   )}
@@ -194,8 +194,8 @@ export default function SeriesDashboard() {
 
                 if (isCheckedIn) {
                   return (
-                    <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-mono text-xs font-bold shadow-sm">
-                      <Check size={15} className="text-emerald-400" />
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-none bg-[var(--flag-green)]/15 border border-[var(--flag-green)]/40 text-[var(--flag-green)] font-mono text-xs font-bold">
+                      <Check size={14} className="text-[var(--flag-green)]" />
                       <span>CHECKED IN &bull; RD {selectedRound}</span>
                     </div>
                   )
@@ -213,9 +213,9 @@ export default function SeriesDashboard() {
                       )
                       toast.success(`Checked in for ${currentRoundData?.name || `Round ${selectedRound}`}! Fan streak updated.`)
                     }}
-                    className="flex items-center gap-2 py-2 px-4 rounded-xl bg-[var(--amber)] hover:bg-amber-400 text-black font-extrabold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-md hover:shadow-[0_0_16px_rgba(255,176,32,0.3)]"
+                    className="flex items-center gap-2 py-1.5 px-3.5 rounded-xs bg-[var(--amber-pit)] hover:bg-[var(--amber-pit-hover)] text-black font-mono font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer"
                   >
-                    <Flame size={15} />
+                    <Flame size={14} />
                     <span>Check In for this Race</span>
                   </button>
                 )
@@ -223,20 +223,20 @@ export default function SeriesDashboard() {
 
               <Link
                 href="/profile"
-                className="py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-white no-underline transition-colors"
+                className="py-1.5 px-3 rounded-xs bg-[var(--surface-elevated)] hover:bg-[var(--surface-pressed)] border border-[var(--border-hairline)] text-xs font-mono text-[var(--text-primary)] no-underline transition-colors"
               >
                 My Profile
               </Link>
             </div>
           </div>
         ) : (
-          <div className="animate-fade-in-up w-full bg-white/[0.03] border border-white/10 rounded-[var(--radius-xl)] p-4 mb-6 flex flex-wrap items-center justify-between gap-4">
+          <div className="console-panel p-4 mb-6 flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
-                <Star size={16} />
+              <div className="w-8 h-8 rounded-none bg-[var(--surface-elevated)] border border-[var(--amber-pit)]/40 flex items-center justify-center text-[var(--amber-pit)] shrink-0">
+                <Star size={15} />
               </div>
               <div>
-                <div className="text-xs font-bold text-white">Browsing as Guest</div>
+                <div className="text-xs font-bold text-white font-mono uppercase tracking-wider">Browsing as Guest</div>
                 <div className="text-xs text-[var(--text-muted)]">
                   Sign in with a Paddock Pass to check in to this race, follow your favorite drivers, and track telemetry across sessions.
                 </div>
@@ -244,7 +244,7 @@ export default function SeriesDashboard() {
             </div>
             <Link
               href="/login"
-              className="btn-primary text-xs py-1.5 px-3.5 no-underline flex items-center gap-1.5"
+              className="btn-primary text-xs py-1.5 px-3.5 no-underline flex items-center gap-1.5 rounded-xs font-mono"
             >
               <span>Unlock Paddock Pass</span>
               &rarr;
@@ -253,7 +253,7 @@ export default function SeriesDashboard() {
         )}
 
         {/* ===== HERO MAP ===== */}
-        <div className="animate-fade-in-up delay-100 w-full bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-[var(--radius-xl)] overflow-hidden mb-8">
+        <div className="console-panel overflow-hidden mb-8">
           {(() => {
             const currentRoundData = scheduleData?.rounds.find((r) => r.round === selectedRound)
             const currentSession = currentRoundData?.sessions.find((s) => s.key === selectedSessionKey)
@@ -277,7 +277,7 @@ export default function SeriesDashboard() {
         </div>
 
         {/* ===== AI SUMMARY & NAVIGATION ===== */}
-        <div className="animate-fade-in-up flex flex-col gap-6 mb-8">
+        <div className="flex flex-col gap-6 mb-8">
           <AiSummary series={series} />
           
           {(series === 'f1' || series === 'nascar' || series.startsWith('nascar-')) && scheduleData && (
@@ -300,13 +300,13 @@ export default function SeriesDashboard() {
           
           {/* Missing Live Data Banner (Non-F1) */}
           {series !== 'f1' && !isScanningActive && (
-            <div className="animate-fade-in-up delay-100 lg:col-span-3">
-              <div className="card glass-hover px-6 py-4 rounded-[var(--radius-xl)] flex justify-between items-center bg-[var(--bg-card)] border border-[var(--border-subtle)]">
+            <div className="lg:col-span-3">
+              <div className="console-panel px-5 py-3.5 flex justify-between items-center">
                 <div>
-                  <h3 className="m-0 text-sm font-semibold">Missing Live Data?</h3>
-                  <p className="m-0 text-xs text-[var(--text-muted)]">Use Computer Vision to extract standings directly from a race broadcast.</p>
+                  <h3 className="m-0 text-sm font-bold uppercase tracking-wider font-mono">Missing Live Data?</h3>
+                  <p className="m-0 text-xs text-[var(--text-muted)]">Use Computer Vision OCR to extract standings directly from a live race broadcast.</p>
                 </div>
-                <button onClick={() => setIsScanningActive(true)} className="btn-primary px-4 py-2 text-xs">
+                <button onClick={() => setIsScanningActive(true)} className="btn-primary px-3.5 py-1.5 text-xs font-mono">
                   Sync via Broadcast
                 </button>
               </div>
@@ -318,7 +318,7 @@ export default function SeriesDashboard() {
           </Modal>
 
           {/* Standings Table (Spans 2 columns on large screens) */}
-          <div className="animate-fade-in-up delay-150 lg:col-span-2">
+          <div className="lg:col-span-2">
             <LiveStandings 
               series={series} 
               sessionKey={selectedSessionKey}
@@ -333,7 +333,7 @@ export default function SeriesDashboard() {
 
           {/* Right Column: Championship Standings & Fantasy Game */}
           <div className="flex flex-col gap-8 lg:col-span-1">
-            <div className="animate-fade-in-up delay-200 h-[500px]">
+            <div className="h-[500px]">
               {series === 'f1' && standingsData && (
                 <ChampionshipStandings 
                   drivers={standingsData.driverStandings} 
@@ -342,38 +342,39 @@ export default function SeriesDashboard() {
               )}
             </div>
 
-            <div className="animate-fade-in-up delay-200">
+            <div>
               <FantasyGame series={series} round={selectedRound} />
             </div>
           </div>
         </div>
 
         {/* Secondary Information Grid */}
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-6 mt-8 pt-10 border-t border-[var(--border-subtle)]">
-            <div className="animate-fade-in-up delay-200">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-6 mt-8 pt-8 border-t border-[var(--border-hairline)]">
+            <div>
               <MySupported series={series} />
             </div>
-            <div className="animate-fade-in-up delay-250">
+            <div>
               <StrategyPredictor />
             </div>
-            {series === 'f1' && <div className="animate-fade-in-up delay-250"><PodiumProbability /></div>}
-            <div className="animate-fade-in-up delay-300">
+            {series === 'f1' && <div><PodiumProbability /></div>}
+            <div>
               <TeamHistory series={series} />
             </div>
-            <div className="animate-fade-in-up delay-350">
-              <Link href="/history" className="block card glass-hover p-6 rounded-[var(--radius-xl)] bg-[var(--bg-card)] border border-[var(--border-subtle)] no-underline h-full">
-                <h3 className="m-0 text-lg font-semibold text-[var(--amber)] mb-2">Historical Archive</h3>
-                <p className="text-sm text-[var(--text-secondary)] m-0 leading-[1.5]">Explore past seasons, historical standings, driver head-to-heads, and track records.</p>
+            <div>
+              <Link href="/history" className="block console-panel console-panel-interactive p-5 no-underline h-full">
+                <div className="text-[10px] font-mono text-[var(--amber-pit)] uppercase tracking-wider mb-1 font-bold">Historical Archive</div>
+                <h3 className="m-0 text-base font-bold text-[var(--text-primary)] uppercase tracking-wider mb-2 font-[family-name:var(--font-disp)]">Grand Prix History</h3>
+                <p className="text-xs text-[var(--text-secondary)] m-0 leading-[1.6]">Explore past seasons, historical standings, driver head-to-heads, and track records.</p>
               </Link>
             </div>
-            <div className="animate-fade-in-up delay-400">
+            <div>
               <WhereToWatch series={series} />
             </div>
-            <div className="animate-fade-in-up delay-500">
+            <div>
               <AlertSettings />
             </div>
           </div>
-          {series === 'f1' && <div className="animate-fade-in-up"><DriverSimilarityMap /></div>}
+          {series === 'f1' && <div className="mt-8"><DriverSimilarityMap /></div>}
       </main>
 
       {/* ===== FLOATING CHATBOT WIDGET ===== */}

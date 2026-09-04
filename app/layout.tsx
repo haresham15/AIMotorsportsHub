@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { IBM_Plex_Sans, JetBrains_Mono, Barlow_Condensed } from "next/font/google";
 import { Analytics } from '@vercel/analytics/react';
 import { Toaster } from 'sonner';
 import SiteHeader from '@/components/layout/SiteHeader';
@@ -7,15 +7,23 @@ import SiteFooter from '@/components/layout/SiteFooter';
 import SuggestionsModal from '@/components/SuggestionsModal';
 import "./globals.css";
 
-const inter = Inter({
+const ibmPlexSans = IBM_Plex_Sans({
   variable: "--font-sans",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
   display: "swap",
 });
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
+  display: "swap",
+});
+
+const barlowCondensed = Barlow_Condensed({
+  variable: "--font-disp",
+  subsets: ["latin"],
+  weight: ["600", "700", "800", "900"],
   display: "swap",
 });
 
@@ -79,7 +87,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Big+Shoulders+Display:wght@600;700;800;900&family=Chakra+Petch:ital,wght@0,500;0,600;0,700;1,700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet" />
       </head>
       <body
-        className={`${inter.variable} ${jetbrainsMono.variable} flex flex-col min-h-screen`}
+        className={`${ibmPlexSans.variable} ${jetbrainsMono.variable} ${barlowCondensed.variable} flex flex-col min-h-screen font-sans bg-[var(--canvas-base)] text-[var(--text-primary)] antialiased`}
         suppressHydrationWarning
       >
         <SiteHeader />

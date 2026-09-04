@@ -236,31 +236,34 @@ export default function LiveStandings({
   const liveLabel = (series === 'nascar' || series.startsWith('nascar-')) ? 'LIVE (NASCAR)' : 'LIVE (OPENF1)'
 
   return (
-    <div className="px-2">
-      <div className="flex items-center justify-between mb-5">
+    <div className="console-panel p-4">
+      <div className="flex items-center justify-between mb-4 pb-3 border-b border-[var(--border-hairline)]">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-[var(--surface-raised)] border border-[var(--border-subtle)] text-[var(--text-secondary)] shadow-sm flex items-center justify-center">
-            <BarChart3 size={16} />
+          <div className="w-7 h-7 rounded-xs bg-[var(--surface-elevated)] border border-[var(--border-hairline)] text-[var(--text-secondary)] flex items-center justify-center">
+            <BarChart3 size={14} />
           </div>
-          <h2 className="font-[family-name:var(--font-disp)] uppercase text-2xl font-extrabold tracking-[-0.01em]">Live Timing</h2>
+          <div>
+            <h2 className="font-mono text-sm font-bold uppercase tracking-wider text-[var(--text-primary)]">Timing Tower</h2>
+            <div className="text-[10px] font-mono text-[var(--text-muted)] uppercase tracking-wider">Live Timing &amp; Deltas</div>
+          </div>
         </div>
 
         {activeRaceData.length > 0 && (
-          <div className="live-badge" style={{
-            background: isReplayActive ? 'rgba(34,197,94,0.12)' : dataSource === 'mock' ? 'rgba(251,191,36,0.12)' : undefined,
-            color: isReplayActive ? '#4ade80' : dataSource === 'mock' ? '#fbbf24' : dataSource === 'cv' ? '#3b82f6' : undefined,
-            border: isReplayActive ? '1px solid rgba(34,197,94,0.25)' : dataSource === 'mock' ? '1px solid rgba(251,191,36,0.2)' : dataSource === 'cv' ? '1px solid rgba(59,130,246,0.2)' : undefined
+          <div className="flex items-center gap-2 px-2.5 py-1 rounded-xs text-xs font-mono font-bold tracking-wider uppercase border" style={{
+            background: isReplayActive ? 'rgba(34,197,94,0.12)' : dataSource === 'mock' ? 'rgba(251,191,36,0.12)' : 'rgba(59,130,246,0.12)',
+            color: isReplayActive ? '#4ade80' : dataSource === 'mock' ? '#fbbf24' : '#60a5fa',
+            borderColor: isReplayActive ? 'rgba(34,197,94,0.3)' : dataSource === 'mock' ? 'rgba(251,191,36,0.25)' : 'rgba(59,130,246,0.25)'
           }}>
-            <div className="live-dot" style={{
-              background: isReplayActive ? '#4ade80' : dataSource === 'mock' ? '#fbbf24' : dataSource === 'cv' ? '#3b82f6' : undefined,
-              boxShadow: isReplayActive ? '0 0 8px #4ade80' : dataSource === 'mock' ? '0 0 8px #fbbf24' : dataSource === 'cv' ? '0 0 8px #3b82f6' : undefined
+            <div className="w-1.5 h-1.5 rounded-full" style={{
+              background: isReplayActive ? '#4ade80' : dataSource === 'mock' ? '#fbbf24' : '#60a5fa',
+              boxShadow: isReplayActive ? '0 0 6px #4ade80' : dataSource === 'mock' ? '0 0 6px #fbbf24' : '0 0 6px #60a5fa'
             }} />
             {isReplayActive ? (
               <span>
                 REPLAY SYNCED
                 {activeRaceData[0]?.laps_completed && (
-                  <span className="font-mono text-[10px] text-emerald-300/80 font-bold ml-1.5">
-                    • LAP {activeRaceData[0].laps_completed}
+                  <span className="font-mono text-[10px] text-emerald-300 font-bold ml-1.5 tabular-nums">
+                    &bull; LAP {activeRaceData[0].laps_completed}
                   </span>
                 )}
               </span>
@@ -270,18 +273,18 @@ export default function LiveStandings({
       </div>
 
       {loading && activeRaceData.length === 0 ? (
-        <div className="flex flex-col gap-1.5">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="skeleton h-11 rounded-[var(--radius-sm)]" />
+        <div className="flex flex-col gap-1">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="skeleton h-9 rounded-none" />
           ))}
         </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse table-auto">
             <thead>
-              <tr className="border-b border-[var(--border-subtle)]">
+              <tr className="border-b border-[var(--border-hairline)] bg-[var(--surface-elevated)]/40">
                 {['Pos', 'Driver', 'Gap', 'Speed / Status', (series === 'nascar' || series.startsWith('nascar-')) ? 'Mfg' : 'Tire'].map((header) => (
-                  <th key={header} className="pb-3 px-3 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--text-muted)] whitespace-nowrap">
+                  <th key={header} className="py-2 px-2.5 text-[10px] font-mono font-bold uppercase tracking-widest text-[var(--text-muted)] whitespace-nowrap">
                     {header}
                   </th>
                 ))}
@@ -290,8 +293,8 @@ export default function LiveStandings({
             <tbody>
               {activeRaceData.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-10 px-3 text-center text-[var(--text-muted)] text-[13px] italic">
-                    Waiting for race session data...
+                  <td colSpan={5} className="py-10 px-3 text-center text-[var(--text-muted)] font-mono text-xs italic">
+                    Waiting for race session telemetry...
                   </td>
                 </tr>
               ) : (
@@ -303,85 +306,85 @@ export default function LiveStandings({
                     <tr 
                       key={entry.driver_id} 
                       onClick={() => onSelectDriver?.(isSelected ? null : entry.driver_id)}
-                      className={`row-interactive border-b border-white/5 transition-all duration-150 cursor-pointer ${
+                      className={`row-interactive border-b border-[var(--border-hairline)] transition-colors duration-100 cursor-pointer text-xs ${
                         isSelected 
-                          ? 'bg-white/10 !border-l-2 !border-l-[var(--amber)]' 
+                          ? 'bg-[var(--surface-pressed)] !border-l-2 !border-l-[var(--amber-pit)]' 
                           : isFollowed 
-                          ? 'bg-amber-500/[0.04] !border-l-2 !border-l-amber-400/60 hover:bg-amber-500/[0.08]'
-                          : 'hover:bg-white/5'
+                          ? 'bg-[var(--amber-pit)]/[0.04] !border-l-2 !border-l-[var(--amber-pit)]/60 hover:bg-[var(--surface-elevated)]'
+                          : 'hover:bg-[var(--surface-elevated)]'
                       }`}
                       title={`${entry.drivers?.name || entry.driver_id} ${isFollowed ? '(Followed Driver) ' : ''}- Click to focus in Race Replay`}
                     >
-                      <td className="p-3">
-                        <span className={`font-tech font-extrabold text-[15px] ${entry.position <= 3 ? 'text-[#fbbf24]' : 'text-[var(--text-primary)]'}`}>
-                          {entry.position}
+                      <td className="py-2 px-2.5">
+                        <span className={`font-mono font-bold text-xs tabular-nums ${entry.position === 1 ? 'text-[var(--amber-pit)]' : entry.position <= 3 ? 'text-white' : 'text-[var(--text-muted)]'}`}>
+                          {entry.position < 10 ? `0${entry.position}` : entry.position}
                         </span>
                       </td>
-                      <td className="p-3 font-semibold text-[14px] text-[var(--text-primary)] whitespace-nowrap">
+                      <td className="py-2 px-2.5 font-medium text-[13px] text-[var(--text-primary)] whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           {entry.team_color && (
                             <span 
-                              className="w-1 h-4.5 rounded-full shrink-0" 
+                              className="w-1 h-3.5 rounded-none shrink-0" 
                               style={{ background: entry.team_color }} 
                             />
                           )}
-                          <span className="font-mono font-black text-xs text-white tracking-wider px-1.5 py-0.5 rounded bg-white/5 border border-white/10 shrink-0">
+                          <span className="font-mono font-bold text-xs text-white tracking-wider px-1.5 py-0.2 rounded-none bg-[var(--surface-elevated)] border border-[var(--border-hairline)] shrink-0">
                             {entry.driver_id}
                           </span>
                           {entry.car_number && (
-                            <span className="font-mono text-xs px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[var(--text-muted)] shrink-0">
+                            <span className="font-mono text-xs px-1 py-0.2 rounded-none text-[var(--text-muted)] shrink-0 tabular-nums">
                               #{entry.car_number}
                             </span>
                           )}
-                          <span>{entry.drivers?.name || `Car ${entry.driver_id}`}</span>
+                          <span className="font-mono">{entry.drivers?.name || `Car ${entry.driver_id}`}</span>
                           {entry.team_name && (
-                            <span className="text-xs text-[var(--text-muted)] font-normal hidden sm:inline">
-                              • {entry.team_name}
+                            <span className="text-[11px] text-[var(--text-muted)] font-mono hidden sm:inline">
+                              &bull; {entry.team_name}
                             </span>
                           )}
                           {isFollowed && (
-                            <span className="flex items-center gap-0.5 text-[9px] font-mono font-bold text-amber-300 bg-amber-500/15 border border-amber-500/30 px-1.5 py-0.2 rounded shrink-0">
-                              <Star size={9} className="fill-amber-400 text-amber-400" />
+                            <span className="flex items-center gap-0.5 text-[9px] font-mono font-bold text-[var(--amber-pit)] bg-[var(--amber-pit)]/15 border border-[var(--amber-pit)]/30 px-1 py-0.2 rounded-none shrink-0">
+                              <Star size={9} className="fill-[var(--amber-pit)] text-[var(--amber-pit)]" />
                               FAV
                             </span>
                           )}
                           {entry.drs_active && (
-                            <span className="text-[9px] font-mono font-black text-emerald-400 bg-emerald-500/20 px-1 py-0.2 rounded border border-emerald-500/40 shrink-0">
+                            <span className="text-[9px] font-mono font-bold text-[var(--flag-green)] bg-[var(--flag-green)]/15 px-1 py-0.2 rounded-none border border-[var(--flag-green)]/40 shrink-0">
                               DRS
                             </span>
                           )}
                         </div>
                       </td>
-                      <td className="p-3 font-mono text-[12px]">
+                      <td className="py-2 px-2.5 font-mono text-xs tabular-nums">
                         {entry.gap_to_leader === 'PIT' ? (
-                          <span className="text-amber-400 font-bold bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded text-[10px]">
+                          <span className="text-[var(--amber-pit)] font-bold bg-[var(--amber-pit)]/15 border border-[var(--amber-pit)]/30 px-1.5 py-0.2 rounded-none text-[10px] tracking-wider">
                             PIT
                           </span>
                         ) : entry.gap_to_leader === 'OUT' ? (
-                          <span className="text-red-400 font-bold bg-red-500/15 border border-red-500/30 px-2 py-0.5 rounded text-[10px]">
+                          <span className="text-[var(--flag-red)] font-bold bg-[var(--flag-red)]/15 border border-[var(--flag-red)]/30 px-1.5 py-0.2 rounded-none text-[10px] tracking-wider">
                             OUT
                           </span>
                         ) : entry.position === 1 ? (
-                          <span className="text-[var(--amber)] font-bold text-xs bg-[var(--amber)]/10 px-2 py-0.5 rounded border border-[var(--amber)]/20">
+                          <span className="text-[var(--amber-pit)] font-bold text-[10px] tracking-wider bg-[var(--surface-elevated)] px-1.5 py-0.2 rounded-none border border-[var(--amber-pit)]/30">
                             LEADER
                           </span>
                         ) : (
-                          <span className="text-[var(--text-secondary)] font-semibold">
+                          <span className="text-[var(--text-secondary)] font-medium">
                             {entry.gap_to_leader}
                           </span>
                         )}
                       </td>
-                      <td className="p-3 font-mono text-[12px] text-[var(--text-muted)]">
+                      <td className="py-2 px-2.5 font-mono text-xs tabular-nums text-[var(--text-muted)]">
                         {entry.last_lap}
                       </td>
-                      <td className="p-3">
+                      <td className="py-2 px-2.5">
                         {(series === 'nascar' || series.startsWith('nascar-')) && entry.manufacturer ? (
-                           <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-[0.04em] bg-white/10 text-white border border-white/20">
+                           <span className="inline-block px-1.5 py-0.2 rounded-none text-[10px] font-mono font-bold uppercase tracking-wider bg-[var(--surface-elevated)] text-white border border-[var(--border-hairline)]">
                              {entry.manufacturer}
                            </span>
                         ) : (
                           <span
-                            className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-[0.04em]"
+                            className="inline-block px-1.5 py-0.2 rounded-none text-[10px] font-mono font-bold uppercase tracking-wider"
                             style={{
                               background: tireColor.bg,
                               color: tireColor.text,

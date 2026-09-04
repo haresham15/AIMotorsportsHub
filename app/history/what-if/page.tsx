@@ -41,41 +41,43 @@ export default function WhatIfPage() {
 
   return (
     <main className="max-w-[800px] mx-auto px-6 py-12 min-h-[calc(100vh-200px)] flex flex-col">
-      <Link href="/history" className="text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors w-fit">← Back to History</Link>
+      <Link href="/history" className="text-xs font-mono font-bold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors w-fit inline-flex items-center gap-1.5">
+        &larr; Telemetry Archive
+      </Link>
       
-      <div className="eyebrow mt-8">AI + Machine Learning</div>
-      <div className="flex items-center gap-4 mb-2 flex-wrap">
-        <div className="w-12 h-12 rounded-xl bg-[var(--amber)]/15 flex items-center justify-center border border-[var(--amber)]/25">
-          <FastForward className="w-6 h-6 text-[var(--amber)]" />
+      <div className="eyebrow mt-6">Strategy Simulator</div>
+      <div className="flex items-center gap-3 mb-2 flex-wrap">
+        <div className="w-10 h-10 rounded-xs bg-[var(--surface-elevated)] border border-[var(--amber-pit)]/40 flex items-center justify-center">
+          <FastForward className="w-5 h-5 text-[var(--amber-pit)]" />
         </div>
-        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight font-[family-name:var(--font-disp)] uppercase">&ldquo;What If?&rdquo; Simulator</h1>
+        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight font-[family-name:var(--font-disp)] uppercase">&ldquo;What If?&rdquo; Simulator</h1>
       </div>
       
-      <p className="text-[var(--text-secondary)] mb-8 text-lg max-w-2xl leading-[1.65]">
-        Enter a historical scenario. Our AI retrieves the factual race data, applies our machine learning tire model to calculate a new timeline, and narrates the alternate reality.
+      <p className="text-[var(--text-secondary)] mb-8 text-sm max-w-2xl leading-[1.6]">
+        Enter a historical scenario. The system queries factual telemetry archives, injects parameters into the tire degradation ML model, and simulates alternate outcomes.
       </p>
       
-      <form onSubmit={handleSubmit} className="relative mb-12">
-        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-          <Search className="h-6 w-6 text-[var(--text-muted)]" />
+      <form onSubmit={handleSubmit} className="relative mb-10">
+        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+          <Search className="h-4 w-4 text-[var(--text-muted)]" />
         </div>
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="e.g. What if Hamilton pitted 5 laps earlier at the 2021 Abu Dhabi Grand Prix?"
-          className="glass-input block w-full pl-12 pr-36 py-5 text-lg rounded-[var(--radius-xl)]"
+          className="bg-[var(--surface-elevated)] border border-[var(--border-hairline)] block w-full pl-10 pr-32 py-3 text-xs text-[var(--text-primary)] rounded-xs focus:border-[var(--amber-pit)] focus:outline-none font-mono placeholder:text-[var(--text-muted)]"
           disabled={loading}
         />
         <button
           type="submit"
           disabled={loading || !query.trim()}
-          className="absolute inset-y-2 right-2 px-6 bg-[var(--amber)] text-[#1a1200] font-bold rounded-[var(--radius-lg)] hover:shadow-[0_8px_24px_rgba(255,176,32,0.25)] disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+          className="absolute inset-y-1.5 right-1.5 px-4 bg-[var(--amber-pit)] hover:bg-[var(--amber-pit-hover)] text-black font-mono font-bold text-xs uppercase tracking-wider rounded-xs disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5 cursor-pointer"
         >
           {loading ? (
             <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              Simulating
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <span>Simulating</span>
             </>
           ) : (
             'Simulate'
@@ -84,86 +86,85 @@ export default function WhatIfPage() {
       </form>
 
       {error && (
-        <div className="p-6 mb-8 bg-[var(--flag-red)]/10 border border-[var(--flag-red)]/30 rounded-[var(--radius-xl)] flex items-start gap-4">
-          <AlertTriangle className="w-6 h-6 text-[var(--flag-red)] shrink-0 mt-0.5" />
+        <div className="p-4 mb-8 bg-[var(--flag-red)]/10 border border-[var(--flag-red)]/40 rounded-sm flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-[var(--flag-red)] shrink-0 mt-0.5" />
           <div>
-            <h3 className="text-[var(--flag-red)] font-bold text-lg mb-1">Simulation Failed</h3>
-            <p className="text-[var(--flag-red)]/80">{error}</p>
+            <h3 className="text-[var(--flag-red)] font-bold text-sm mb-1 font-mono uppercase">Simulation Engine Error</h3>
+            <p className="text-[var(--flag-red)]/80 text-xs font-mono m-0">{error}</p>
           </div>
         </div>
       )}
 
       {loading && (
-        <div className="flex-1 flex flex-col items-center justify-center py-20 text-[var(--text-muted)]">
-          <div className="relative w-24 h-24 mb-6">
-            <div className="absolute inset-0 border-4 border-[var(--border-subtle)] rounded-full"></div>
-            <div className="absolute inset-0 border-4 border-[var(--amber)] rounded-full border-t-transparent animate-spin"></div>
-            <Bot className="absolute inset-0 m-auto w-10 h-10 text-[var(--amber)] animate-pulse" />
+        <div className="flex-1 flex flex-col items-center justify-center py-16 text-[var(--text-muted)]">
+          <div className="relative w-16 h-16 mb-4">
+            <div className="absolute inset-0 border-2 border-[var(--border-hairline)] rounded-full"></div>
+            <div className="absolute inset-0 border-2 border-[var(--amber-pit)] rounded-full border-t-transparent animate-spin"></div>
+            <Bot className="absolute inset-0 m-auto w-6 h-6 text-[var(--amber-pit)] animate-pulse" />
           </div>
-          <h3 className="text-xl font-bold font-[family-name:var(--font-disp)] text-[var(--text-primary)] mb-2 uppercase">Calculating Alternate Timeline...</h3>
-          <p className="animate-pulse font-mono text-sm">Retrieving historical data and running ML inference</p>
+          <h3 className="text-base font-bold font-mono text-[var(--text-primary)] mb-1 uppercase tracking-wider">Calculating Alternate Timeline...</h3>
+          <p className="font-mono text-xs text-[var(--text-muted)]">Querying historical telemetry and running ML inference</p>
         </div>
       )}
 
       {result && !loading && (
-        <div className="animate-fade-in-up">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {/* Reality Card */}
-            <div className="card glass rounded-[var(--radius-xl)] p-6 relative overflow-hidden">
-              <div className="absolute top-0 right-0 bg-[var(--bg-card-hover)] px-3 py-1 rounded-bl-lg text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider font-mono">
-                Original Reality
+            <div className="console-panel p-5 rounded-sm relative border border-[var(--border-hairline)]">
+              <div className="absolute top-0 right-0 bg-[var(--surface-elevated)] px-2.5 py-1 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider font-mono border-b border-l border-[var(--border-hairline)] rounded-bl-xs">
+                Factual Reality
               </div>
-              <h3 className="text-sm text-[var(--text-muted)] uppercase font-bold tracking-wider mb-4 font-mono">Historical Fact</h3>
-              <div className="flex items-end gap-4">
-                <div className="text-6xl font-black text-[var(--text-primary)] font-mono">
+              <div className="text-[10px] font-mono text-[var(--text-muted)] uppercase tracking-wider mb-2 font-bold">Historical Baseline</div>
+              <div className="flex items-end gap-3 mb-4">
+                <div className="text-5xl font-bold text-[var(--text-primary)] font-mono tabular-nums">
                   P{result.original.position}
                 </div>
-                <div className="pb-2 text-[var(--text-secondary)] font-medium">
+                <div className="pb-1 text-xs text-[var(--text-secondary)] font-mono font-medium">
                   {result.driverName}
                 </div>
               </div>
-              <div className="mt-4 pt-4 border-t border-[var(--border-subtle)] flex justify-between text-sm">
-                <span className="text-[var(--text-muted)]">Race Time</span>
-                <span className="font-mono text-[var(--text-primary)]">{result.original.time || 'N/A'}</span>
+              <div className="pt-3 border-t border-[var(--border-hairline)] flex justify-between text-xs font-mono">
+                <span className="text-[var(--text-muted)]">Official Race Time</span>
+                <span className="text-[var(--text-primary)] tabular-nums">{result.original.time || 'N/A'}</span>
               </div>
             </div>
 
             {/* Simulation Card */}
-            <div className="card glass rounded-[var(--radius-xl)] p-6 relative overflow-hidden border-[var(--amber)]/30">
-              <div className="absolute top-0 right-0 bg-[var(--amber)]/15 px-3 py-1 rounded-bl-lg text-xs font-bold text-[var(--amber)] uppercase tracking-wider font-mono">
+            <div className="console-panel p-5 rounded-sm relative border border-[var(--amber-pit)]/40">
+              <div className="absolute top-0 right-0 bg-[var(--amber-pit)]/15 px-2.5 py-1 text-[10px] font-bold text-[var(--amber-pit)] uppercase tracking-wider font-mono border-b border-l border-[var(--amber-pit)]/40 rounded-bl-xs">
                 Simulated Reality
               </div>
-              <div className="absolute -right-12 -bottom-12 w-48 h-48 bg-[var(--amber)]/10 rounded-full blur-3xl pointer-events-none" />
               
-              <h3 className="text-sm text-[var(--amber)] uppercase font-bold tracking-wider mb-4 flex items-center gap-2 font-mono">
-                <RefreshCcw className="w-4 h-4" /> ML Inference
-              </h3>
-              <div className="flex items-end gap-4">
-                <div className="text-6xl font-black text-[var(--amber)] font-mono">
+              <div className="text-[10px] font-mono text-[var(--amber-pit)] uppercase tracking-wider mb-2 flex items-center gap-1.5 font-bold">
+                <RefreshCcw className="w-3 h-3" /> ML Physics Inference
+              </div>
+              <div className="flex items-end gap-3 mb-4">
+                <div className="text-5xl font-bold text-[var(--amber-pit)] font-mono tabular-nums">
                   P{result.simulated.position}
                 </div>
-                <div className="pb-2 flex items-center gap-2">
+                <div className="pb-1 flex items-center gap-2">
                   {result.simulated.position < result.original.position ? (
-                    <span className="text-[var(--green-flag)] font-bold text-sm bg-[var(--green-flag)]/10 px-2 py-0.5 rounded font-mono">
-                      Gained {result.original.position - result.simulated.position} places
+                    <span className="text-[var(--flag-green)] font-bold text-xs bg-[var(--flag-green)]/15 border border-[var(--flag-green)]/30 px-2 py-0.5 rounded-xs font-mono">
+                      &uarr; Gained {result.original.position - result.simulated.position} places
                     </span>
                   ) : result.simulated.position > result.original.position ? (
-                    <span className="text-[var(--flag-red)] font-bold text-sm bg-[var(--flag-red)]/10 px-2 py-0.5 rounded font-mono">
-                      Lost {result.simulated.position - result.original.position} places
+                    <span className="text-[var(--flag-red)] font-bold text-xs bg-[var(--flag-red)]/15 border border-[var(--flag-red)]/30 px-2 py-0.5 rounded-xs font-mono">
+                      &darr; Lost {result.simulated.position - result.original.position} places
                     </span>
                   ) : (
-                    <span className="text-[var(--text-muted)] font-bold text-sm bg-[var(--bg-card-hover)] px-2 py-0.5 rounded font-mono">
-                      No position change
+                    <span className="text-[var(--text-muted)] font-bold text-xs bg-[var(--surface-elevated)] px-2 py-0.5 rounded-xs font-mono border border-[var(--border-hairline)]">
+                      No position delta
                     </span>
                   )}
                 </div>
               </div>
-              <div className="mt-4 pt-4 border-t border-[var(--border-subtle)] flex justify-between text-sm relative z-10">
-                <span className="text-[var(--text-muted)]">New Race Time</span>
-                <span className="font-mono text-[var(--text-primary)]">
+              <div className="pt-3 border-t border-[var(--border-hairline)] flex justify-between text-xs font-mono">
+                <span className="text-[var(--text-muted)]">Simulated Race Time</span>
+                <span className="text-[var(--text-primary)] tabular-nums">
                   {result.simulated.time} 
                   {result.timeDeltaMs && (
-                    <span className={`ml-2 ${result.timeDeltaMs < 0 ? 'text-[var(--green-flag)]' : 'text-[var(--flag-red)]'}`}>
+                    <span className={`ml-2 ${result.timeDeltaMs < 0 ? 'text-[var(--flag-green)]' : 'text-[var(--flag-red)]'}`}>
                       ({result.timeDeltaMs > 0 ? '+' : ''}{(result.timeDeltaMs / 1000).toFixed(3)}s)
                     </span>
                   )}
@@ -172,14 +173,18 @@ export default function WhatIfPage() {
             </div>
           </div>
 
-          <div className="card glass rounded-[var(--radius-xl)] p-8">
-            <h3 className="text-xl font-bold mb-6 font-[family-name:var(--font-disp)] uppercase flex items-center gap-3 border-b border-[var(--border-subtle)] pb-4">
-              <Bot className="w-6 h-6 text-[var(--amber)]" />
-              The Verdict
-            </h3>
-            <div className="max-w-none text-[var(--text-secondary)] leading-relaxed">
+          <div className="console-panel p-6 rounded-sm border border-[var(--border-hairline)]">
+            <div className="flex items-center justify-between border-b border-[var(--border-hairline)] pb-3 mb-4">
+              <div className="flex items-center gap-2">
+                <Bot className="w-4 h-4 text-[var(--amber-pit)]" />
+                <h3 className="text-sm font-bold font-mono uppercase tracking-wider text-white m-0">
+                  Telemetry Analysis &amp; Verdict
+                </h3>
+              </div>
+            </div>
+            <div className="text-xs text-[var(--text-secondary)] leading-relaxed space-y-3 font-mono">
               {result.narrative.split('\n').map((para: string, i: number) => (
-                para.trim() && <p key={i} className="mb-4">{para}</p>
+                para.trim() && <p key={i} className="m-0 leading-[1.6]">{para}</p>
               ))}
             </div>
           </div>
