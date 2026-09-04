@@ -43,8 +43,9 @@ export default function LoginPage() {
         router.push('/profile')
         router.refresh()
       }
-    } catch (err: any) {
-      setError(err.message || 'An error occurred during authentication.')
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'An error occurred during authentication.'
+      setError(message)
     } finally {
       setLoading(false)
     }

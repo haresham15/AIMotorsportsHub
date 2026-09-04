@@ -37,7 +37,9 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
   const [canvasSize, setCanvasSize] = useState({ w: 800, h: 450 })
   const cachedTrackCanvasRef = useRef<HTMLCanvasElement | null>(null)
   const playbackRef = useRef(playback)
-  playbackRef.current = playback
+  useEffect(() => {
+    playbackRef.current = playback
+  })
 
   /* keep ref in sync, but only override if it's a manual scrub/skip (>2 frames difference) */
   useEffect(() => { 

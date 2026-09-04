@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { SERIES, SERIES_MAP } from '@/lib/data'
@@ -19,7 +19,7 @@ import RoundNavigator from '@/components/dashboard/RoundNavigator'
 import ChampionshipStandings from '@/components/dashboard/ChampionshipStandings'
 import { ArrowLeft, ChevronDown, AlertCircle, ShieldCheck, Check, Flame, Star } from 'lucide-react'
 import { useSeriesData } from '@/lib/hooks/useSeriesData'
-import { RaceData, CVData, Round, DriverStanding, ConstructorStanding } from '@/lib/types'
+import { RaceData, CVData } from '@/lib/types'
 import Modal from '@/components/ui/Modal'
 import PodiumProbability from '@/components/dashboard/PodiumProbability'
 import DriverSimilarityMap from '@/components/dashboard/DriverSimilarityMap'
@@ -49,11 +49,15 @@ export default function SeriesDashboard() {
   const [focusedDriverCode, setFocusedDriverCode] = useState<string | null>(null)
   const { profile, isLoggedIn, followedDrivers, isCheckedInForRound, checkIn } = useUserProfile()
 
-  // Clear replay state on round/session change to avoid stale cross-circuit sync
-  useEffect(() => {
+  // Reset replay state during render on round/session change to avoid stale cross-circuit sync
+  const [prevSelectionKey, setPrevSelectionKey] = useState(`${series}-${selectedRound}-${selectedSessionKey}-${selectedYear}`)
+  const currentSelectionKey = `${series}-${selectedRound}-${selectedSessionKey}-${selectedYear}`
+
+  if (prevSelectionKey !== currentSelectionKey) {
+    setPrevSelectionKey(currentSelectionKey)
     setReplayStandings(null)
     setFocusedDriverCode(null)
-  }, [series, selectedRound, selectedSessionKey, selectedYear])
+  }
 
   // Unified active standings: Replay takes absolute precedence when active
   const activeTelemetryData = (replayStandings && replayStandings.length > 0) ? replayStandings : liveRaceData

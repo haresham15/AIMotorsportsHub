@@ -127,8 +127,8 @@ body::before {
 
 .glass-nav {
   background: rgba(11, 13, 16, 0.85);
-  backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border-subtle);
 }
 
@@ -409,6 +409,7 @@ body::before {
   justify-content: space-between;
   padding: 10px 18px;
   background: rgba(18, 22, 30, 0.85);
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border-subtle);
   flex-shrink: 0;
@@ -804,8 +805,8 @@ body::before {
   left: 12px;
   width: 220px;
   background: rgba(6,10,19,0.92);
-  backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   overflow: hidden;

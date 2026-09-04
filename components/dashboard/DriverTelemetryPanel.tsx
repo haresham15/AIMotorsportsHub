@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { ReplayData, RaceFrame } from '@/lib/replayTypes';
 import { TYRE_COMPOUNDS } from '@/lib/replayTypes';
-import { X, Gauge, Zap, Wind, ExternalLink, Activity } from 'lucide-react';
+import { X, ExternalLink, Activity } from 'lucide-react';
 
 interface Props {
   data: ReplayData;
@@ -23,24 +23,24 @@ export default function DriverTelemetryPanel({
   const [gearPop, setGearPop] = useState(false);
   const prevGearRef = useRef<number | null>(null);
 
-  if (!frame || !driverCode) return null;
-
-  const d = frame.drivers[driverCode];
-  if (!d) return null;
-
-  const driver = data.drivers.find(dr => dr.code === driverCode);
-  const color = data.driverColors[driverCode] || 'var(--color-amber)';
-  const tyreInfo = TYRE_COMPOUNDS[d.tyre] || TYRE_COMPOUNDS['MEDIUM'];
+  const d = (frame && driverCode) ? frame.drivers[driverCode] : undefined;
+  const currentGear = d?.gear;
 
   // Trigger micro-animation on gear shift
   useEffect(() => {
-    if (prevGearRef.current !== null && prevGearRef.current !== d.gear) {
+    if (prevGearRef.current !== null && currentGear !== undefined && prevGearRef.current !== currentGear) {
       setGearPop(true);
       const timer = setTimeout(() => setGearPop(false), 260);
       return () => clearTimeout(timer);
     }
-    prevGearRef.current = d.gear;
-  }, [d.gear]);
+    prevGearRef.current = currentGear ?? null;
+  }, [currentGear]);
+
+  if (!frame || !driverCode || !d) return null;
+
+  const driver = data.drivers.find(dr => dr.code === driverCode);
+  const color = data.driverColors[driverCode] || 'var(--color-amber)';
+  const tyreInfo = TYRE_COMPOUNDS[d.tyre] || TYRE_COMPOUNDS['MEDIUM'];
 
   // Compute shift light stages based on speed and throttle
   // Speed thresholds: <150 (1 light), 150-200 (2), 200-250 (3), 250-290 (4), >290 (5 all lit/flashing)

@@ -68,16 +68,19 @@ See [DEPLOYMENT.md](./DEPLOYMENT.md) for a comprehensive guide on how to deploy 
 ## Features in Detail
 
 ### Main Dashboard
+
 - Overview of all supported racing series
 - Navigation to sport-specific dashboards
 - Predictive AI modeling
 
 ### Historical Statistics Archive
+
 - **Past Seasons**: View complete race calendars and final Championship standings for every season.
 - **Head-to-Head**: Direct performance comparison between two drivers across all their shared races, utilizing URL query parameters for fast server-side rendering.
 - **Track Records**: View historical data for all tracks that have hosted races.
 
 ### Sport-Specific Dashboard
+
 - **AI Strategy Predictor**: Dynamic charting projecting time penalties for staying out on aging tires.
 - **Race Results & CV Broadcast Scanner**: Live standings with simulated updates, or sync via computer vision directly from an external live broadcast.
 - **2D Live Race Map**: Visual representation of driver positions powered by a Web Worker simulation engine, scaling from 3-lap Quali sessions to 24-hour endurance events.
