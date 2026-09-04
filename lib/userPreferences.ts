@@ -344,7 +344,13 @@ export function useUserProfile() {
   const [followedDrivers, setFollowedDrivers] = useState<FollowedDriver[]>([])
   const [followedTeams, setFollowedTeams] = useState<FollowedTeam[]>([])
   const [checkIns, setCheckIns] = useState<RaceCheckIn[]>([])
-  const [alertPrefs, setAlertPrefs] = useState<TelemetryAlertPreferences>(getStoredAlertPreferences())
+  const [alertPrefs, setAlertPrefs] = useState<TelemetryAlertPreferences>({
+    pitEntry: true,
+    fastestLap: true,
+    overtakes: true,
+    drsZones: false,
+    radioHighlights: true,
+  })
   const [loading, setLoading] = useState(true)
 
   const reloadAll = useCallback(() => {

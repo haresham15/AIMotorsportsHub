@@ -4,6 +4,7 @@ import { RaceData } from '@/lib/types'
 export const revalidate = 10 // Cache for 10 seconds, same strategy as F1
 
 const NASCAR_SERIES_IDS: Record<string, number> = {
+  'nascar': 1,
   'nascar-cup': 1,
   'nascar-xfinity': 2,
   'nascar-trucks': 3,

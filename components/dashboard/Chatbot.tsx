@@ -96,6 +96,16 @@ export default function Chatbot({ series, contextData }: ChatbotProps) {
             return next
           })
         }
+
+        if (!accumulated.trim()) {
+          setMessages((prev) => {
+            const next = [...prev]
+            if (next.length > 0 && next[next.length - 1].role === 'assistant') {
+              next[next.length - 1] = { role: 'assistant', content: 'Copy that. Standing by for your next telemetry request.' }
+            }
+            return next
+          })
+        }
         setIsStreaming(false)
       }
     } catch (err: any) {

@@ -27,11 +27,13 @@ import {
   FollowedTeam
 } from '@/lib/userPreferences'
 import { SERIES_DRIVERS, TEAM_HISTORY, SERIES } from '@/lib/data'
+import Loader from '@/components/ui/Loader'
 
 export default function ProfilePage() {
   const {
     profile,
     isLoggedIn,
+    loading,
     followedDrivers,
     followedTeams,
     checkIns,
@@ -48,6 +50,14 @@ export default function ProfilePage() {
   const [showAddModal, setShowAddModal] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedSeries, setSelectedSeries] = useState<string>('f1')
+
+  if (loading) {
+    return (
+      <main className="flex-1 flex items-center justify-center p-6 min-h-[calc(100vh-160px)]">
+        <Loader text="Accessing Paddock Pass..." subtext="Authenticating telemetry credentials" variant="starting-lights" />
+      </main>
+    )
+  }
 
   // If user is not logged in, render a stylish Paddock Pass prompt
   if (!isLoggedIn || !profile) {

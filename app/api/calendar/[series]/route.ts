@@ -4,12 +4,13 @@ export const maxDuration = 60;
 export const revalidate = 86400; // Cache for 24 hours
 
 function getScheduleUrl(origin: string, series: string) {
-  if (series === 'f1') {
+  const normalizedSeries = series === 'nascar' ? 'nascar-cup' : series
+  if (normalizedSeries === 'f1') {
     return `${origin}/api/f1/schedule`
   }
 
-  if (series.startsWith('nascar-')) {
-    return `${origin}/api/nascar/schedule?series=${encodeURIComponent(series)}`
+  if (normalizedSeries.startsWith('nascar-')) {
+    return `${origin}/api/nascar/schedule?series=${encodeURIComponent(normalizedSeries)}`
   }
 
   return null

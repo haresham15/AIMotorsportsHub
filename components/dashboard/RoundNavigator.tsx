@@ -45,6 +45,12 @@ export default function RoundNavigator({
 
   if (!rounds || rounds.length === 0) return null
 
+  const formattedDate = (() => {
+    if (!current?.date) return null
+    const d = new Date(current.date)
+    return isNaN(d.getTime()) ? null : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+  })()
+
   return (
     <div className="round-nav">
       <div className="round-nav__header">
@@ -76,11 +82,17 @@ export default function RoundNavigator({
             <div className="round-nav__title">Round {current?.round}: {current?.name}</div>
             <div className="round-nav__meta">
               <span>{current?.circuitName} • {current?.country}</span>
-              <span>|</span>
-              <span>{new Date(current?.date || '').toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
-              <span className={`round-nav__status round-nav__status--${current?.status}`}>
-                {current?.status}
-              </span>
+              {formattedDate && (
+                <>
+                  <span>|</span>
+                  <span>{formattedDate}</span>
+                </>
+              )}
+              {current?.status && (
+                <span className={`round-nav__status round-nav__status--${current.status}`}>
+                  {current.status}
+                </span>
+              )}
             </div>
           </div>
 

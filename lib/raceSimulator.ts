@@ -209,6 +209,7 @@ interface DriverSimState {
   plannedPitLaps: number[];
   pitStopIndex: number;
   retired: boolean;
+  finished: boolean;
   position: number;
   gear: number;
   drs: number;
@@ -368,7 +369,10 @@ export function generateReplayData(
   const effectiveFPS = rawFrameCount > MAX_FRAMES
     ? Math.max(5, Math.floor(MAX_FRAMES / (totalLaps * effectiveLapTimeSeconds)))
     : REPLAY_FPS;
-  const totalFrames = totalLaps * effectiveLapTimeSeconds * effectiveFPS;
+  const totalFrames = Math.min(
+    MAX_FRAMES,
+    Math.ceil(totalLaps * effectiveLapTimeSeconds * effectiveFPS * 1.5)
+  );
   const dt = 1 / effectiveFPS;
 
   // Initialize driver states
@@ -432,6 +436,7 @@ export function generateReplayData(
       plannedPitLaps,
       pitStopIndex: 0,
       retired: false,
+      finished: false,
       position: idx + 1,
       gear: initialGear,
       drs: 0,
@@ -492,7 +497,7 @@ export function generateReplayData(
 
     // Update each driver
     for (const ds of driverStates) {
-      if (ds.retired) continue;
+      if (ds.retired || ds.finished) continue;
 
       // Pit stop logic
       if (ds.inPit) {
@@ -574,7 +579,7 @@ export function generateReplayData(
       // Check if race is finished
       if (ds.lap > totalLaps) {
         ds.lap = totalLaps;
-        ds.retired = true; // Finished
+        ds.finished = true; // Finished
       }
 
       // Simulated telemetry values
@@ -638,15 +643,15 @@ export function generateReplayData(
 
     // Sort by distance to determine positions
     const activeDriversSorted = [...driverStates]
-      .filter(d => !d.retired || d.lap >= totalLaps)
+      .filter(d => !d.retired)
       .sort((a, b) => b.dist - a.dist);
 
     activeDriversSorted.forEach((ds, idx) => {
       ds.position = idx + 1;
     });
 
-    // Check if every driver has finished
-    allFinished = driverStates.every(ds => ds.retired);
+    // Check if every driver has finished or retired
+    allFinished = driverStates.every(ds => ds.retired || ds.finished);
 
     // Build frame
     const driversRecord: Record<string, DriverFrameState> = {};
@@ -673,7 +678,8 @@ export function generateReplayData(
         throttle: ds.throttle,
         brake: ds.brake,
         inPit: ds.inPit,
-        retired: ds.retired && ds.lap >= totalLaps,
+        retired: ds.retired,
+        finished: ds.finished,
       };
     }
 

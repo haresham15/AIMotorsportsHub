@@ -29,6 +29,12 @@ export function useSeriesData(series: string): SeriesDataResult {
   const queryYear = isNascar ? '2025' : selectedYear
 
   useEffect(() => {
+    let isCancelled = false
+
+    // Reset data when switching series to prevent stale cross-series flashes
+    setScheduleData(null)
+    setStandingsData(null)
+
     if (series === 'f1') {
       const fetchData = async () => {
         try {
@@ -37,13 +43,17 @@ export function useSeriesData(series: string): SeriesDataResult {
             fetch(`/api/f1/standings?year=${queryYear}`)
           ])
 
-          const schedule = await scheduleRes.json()
-          const standings = await standingsRes.json()
+          if (isCancelled) return
 
-          setScheduleData(schedule)
-          setStandingsData(standings)
+          const schedule = scheduleRes.ok ? await scheduleRes.json() : null
+          const standings = standingsRes.ok ? await standingsRes.json() : null
 
-          if (!schedule.rounds?.length) {
+          if (isCancelled) return
+
+          if (schedule) setScheduleData(schedule)
+          if (standings && !standings.error) setStandingsData(standings)
+
+          if (!schedule?.rounds?.length) {
             setSelectedRound(1)
             setSelectedSessionKey(null)
             return
@@ -60,7 +70,9 @@ export function useSeriesData(series: string): SeriesDataResult {
           const raceSession = currentRoundData?.sessions?.find((s: { name: string }) => s.name === 'Race') || currentRoundData?.sessions?.[0]
           if (raceSession) setSelectedSessionKey(raceSession.key)
         } catch (err) {
-          console.error('Error fetching F1 data:', err)
+          if (!isCancelled) {
+            console.error('Error fetching F1 data:', err)
+          }
         }
       }
 
@@ -74,13 +86,17 @@ export function useSeriesData(series: string): SeriesDataResult {
             fetch(`/api/nascar/standings?year=${queryYear}&series=${nascarParam}`)
           ])
 
-          const schedule = await scheduleRes.json()
-          const standings = await standingsRes.json()
+          if (isCancelled) return
 
-          setScheduleData(schedule)
-          setStandingsData(standings)
+          const schedule = scheduleRes.ok ? await scheduleRes.json() : null
+          const standings = standingsRes.ok ? await standingsRes.json() : null
 
-          if (!schedule.rounds?.length) {
+          if (isCancelled) return
+
+          if (schedule) setScheduleData(schedule)
+          if (standings && !standings.error) setStandingsData(standings)
+
+          if (!schedule?.rounds?.length) {
             setSelectedRound(1)
             setSelectedSessionKey(null)
             return
@@ -97,11 +113,17 @@ export function useSeriesData(series: string): SeriesDataResult {
           const raceSession = currentRoundData?.sessions?.find((s: { name: string }) => s.name === 'Race') || currentRoundData?.sessions?.[0]
           if (raceSession) setSelectedSessionKey(raceSession.key)
         } catch (err) {
-          console.error('Error fetching NASCAR data:', err)
+          if (!isCancelled) {
+            console.error('Error fetching NASCAR data:', err)
+          }
         }
       }
 
       fetchNascarData()
+    }
+
+    return () => {
+      isCancelled = true
     }
   }, [series, queryYear, isNascar])
 

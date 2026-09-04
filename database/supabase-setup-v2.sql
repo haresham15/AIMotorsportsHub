@@ -62,8 +62,14 @@ INSERT INTO series (id, name) VALUES
   ('f3', 'Formula 3'),
   ('formula-e', 'Formula E'),
   ('nascar', 'NASCAR'),
+  ('nascar-cup', 'NASCAR Cup Series'),
+  ('nascar-xfinity', 'NASCAR Xfinity Series'),
+  ('nascar-trucks', 'NASCAR Craftsman Truck Series'),
   ('gt-world-challenge', 'GT World Challenge'),
-  ('top-fuel', 'Top Fuel Dragster')
+  ('top-fuel', 'Top Fuel Dragster'),
+  ('wec', 'FIA World Endurance Championship'),
+  ('elms', 'European Le Mans Series'),
+  ('imsa', 'IMSA SportsCar Championship')
 ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name;
 
 -- Teams
@@ -81,11 +87,43 @@ CREATE TABLE IF NOT EXISTS drivers (
   team_id UUID REFERENCES teams(id)
 );
 
--- User Followed Drivers (Junction)
+-- Followed Drivers (String code e.g. 'VER', 'ANT' used by app)
+CREATE TABLE IF NOT EXISTS followed_drivers (
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  series TEXT NOT NULL,
+  driver_id TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id, series, driver_id)
+);
+
+-- Legacy Junction Table (retained for backward compatibility)
 CREATE TABLE IF NOT EXISTS user_followed_drivers (
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   driver_id UUID REFERENCES drivers(id) ON DELETE CASCADE,
   PRIMARY KEY (user_id, driver_id)
+);
+
+-- Followed Teams
+CREATE TABLE IF NOT EXISTS followed_teams (
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  series TEXT NOT NULL,
+  team_name TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id, series, team_name)
+);
+
+-- Race Check-Ins
+CREATE TABLE IF NOT EXISTS race_checkins (
+  id TEXT PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  series TEXT NOT NULL,
+  round INT NOT NULL,
+  race_name TEXT NOT NULL,
+  circuit TEXT NOT NULL,
+  supported_driver_code TEXT,
+  supported_driver_name TEXT,
+  supported_team TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- Live Race Data
@@ -344,17 +382,62 @@ CREATE POLICY "Public read for drivers" ON drivers FOR SELECT USING (true);
 DROP POLICY IF EXISTS "Public read for race data" ON mock_live_race_data;
 CREATE POLICY "Public read for race data" ON mock_live_race_data FOR SELECT USING (true);
 
--- User-specific policies for followed drivers
-DROP POLICY IF EXISTS "Users can read own followed drivers" ON user_followed_drivers;
-CREATE POLICY "Users can read own followed drivers" ON user_followed_drivers
+-- User-specific policies for followed drivers (String code & legacy)
+ALTER TABLE followed_drivers ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can read own followed drivers" ON followed_drivers;
+CREATE POLICY "Users can read own followed drivers" ON followed_drivers
   FOR SELECT USING (auth.uid() = user_id);
 
-DROP POLICY IF EXISTS "Users can insert own followed drivers" ON user_followed_drivers;
-CREATE POLICY "Users can insert own followed drivers" ON user_followed_drivers
+DROP POLICY IF EXISTS "Users can insert own followed drivers" ON followed_drivers;
+CREATE POLICY "Users can insert own followed drivers" ON followed_drivers
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
-DROP POLICY IF EXISTS "Users can delete own followed drivers" ON user_followed_drivers;
-CREATE POLICY "Users can delete own followed drivers" ON user_followed_drivers
+DROP POLICY IF EXISTS "Users can delete own followed drivers" ON followed_drivers;
+CREATE POLICY "Users can delete own followed drivers" ON followed_drivers
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- Legacy followed drivers junction
+DROP POLICY IF EXISTS "Users can read own legacy followed drivers" ON user_followed_drivers;
+CREATE POLICY "Users can read own legacy followed drivers" ON user_followed_drivers
+  FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can insert own legacy followed drivers" ON user_followed_drivers;
+CREATE POLICY "Users can insert own legacy followed drivers" ON user_followed_drivers
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can delete own legacy followed drivers" ON user_followed_drivers;
+CREATE POLICY "Users can delete own legacy followed drivers" ON user_followed_drivers
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- Followed Teams RLS
+ALTER TABLE followed_teams ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can read own followed teams" ON followed_teams;
+CREATE POLICY "Users can read own followed teams" ON followed_teams
+  FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can insert own followed teams" ON followed_teams;
+CREATE POLICY "Users can insert own followed teams" ON followed_teams
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can delete own followed teams" ON followed_teams;
+CREATE POLICY "Users can delete own followed teams" ON followed_teams
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- Race Check-Ins RLS
+ALTER TABLE race_checkins ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can read own race checkins" ON race_checkins;
+CREATE POLICY "Users can read own race checkins" ON race_checkins
+  FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can insert own race checkins" ON race_checkins;
+CREATE POLICY "Users can insert own race checkins" ON race_checkins
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can delete own race checkins" ON race_checkins;
+CREATE POLICY "Users can delete own race checkins" ON race_checkins
   FOR DELETE USING (auth.uid() = user_id);
 
 -- API Keys RLS
@@ -370,6 +453,70 @@ DROP POLICY IF EXISTS "Users can delete own api keys" ON api_keys;
 CREATE POLICY "Users can delete own api keys" ON api_keys FOR DELETE USING (auth.uid() = user_id);
 
 -- ============================================================
+-- MULTICLASS TELEMETRY (WEC, ELMS, IMSA, Alkamel)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS race_sessions (
+  id TEXT PRIMARY KEY,
+  series_id TEXT NOT NULL REFERENCES series(id),
+  provider TEXT NOT NULL,
+  name TEXT,
+  track_name TEXT,
+  status TEXT NOT NULL DEFAULT 'UNKNOWN',
+  started_at TIMESTAMPTZ,
+  ended_at TIMESTAMPTZ,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS session_entries (
+  session_id TEXT NOT NULL REFERENCES race_sessions(id) ON DELETE CASCADE,
+  car_number TEXT NOT NULL,
+  category_code TEXT,
+  team_name TEXT,
+  manufacturer TEXT,
+  current_driver_id TEXT,
+  overall_position INT,
+  class_position INT,
+  laps_completed INT NOT NULL DEFAULT 0,
+  stint_duration_ms BIGINT,
+  pit_status TEXT,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (session_id, car_number)
+);
+
+CREATE TABLE IF NOT EXISTS telemetry_laps (
+  session_id TEXT NOT NULL REFERENCES race_sessions(id) ON DELETE CASCADE,
+  car_number TEXT NOT NULL,
+  lap_number INT NOT NULL,
+  driver_id TEXT,
+  category_code TEXT,
+  lap_time_ms BIGINT,
+  sector_1_ms BIGINT,
+  sector_2_ms BIGINT,
+  sector_3_ms BIGINT,
+  maximum_speed_kph NUMERIC,
+  track_limits_count INT,
+  completed_at TIMESTAMPTZ,
+  raw_payload JSONB,
+  PRIMARY KEY (session_id, car_number, lap_number)
+);
+
+CREATE INDEX IF NOT EXISTS telemetry_laps_session_lap_idx
+  ON telemetry_laps (session_id, lap_number);
+
+ALTER TABLE race_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE session_entries ENABLE ROW LEVEL SECURITY;
+ALTER TABLE telemetry_laps ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public read for race sessions" ON race_sessions;
+CREATE POLICY "Public read for race sessions" ON race_sessions FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Public read for session entries" ON session_entries;
+CREATE POLICY "Public read for session entries" ON session_entries FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Public read for telemetry laps" ON telemetry_laps;
+CREATE POLICY "Public read for telemetry laps" ON telemetry_laps FOR SELECT USING (true);
+
+-- ============================================================
 -- FANTASY PREDICTIONS
 -- ============================================================
 CREATE TABLE IF NOT EXISTS fantasy_predictions (
@@ -382,10 +529,14 @@ CREATE TABLE IF NOT EXISTS fantasy_predictions (
   p2 TEXT NOT NULL,
   p3 TEXT NOT NULL,
   score INT,
+  scored_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(user_id, series, round)
 );
+
+-- Ensure scored_at exists if table already existed
+ALTER TABLE fantasy_predictions ADD COLUMN IF NOT EXISTS scored_at TIMESTAMPTZ;
 
 -- Fantasy Predictions RLS
 ALTER TABLE fantasy_predictions ENABLE ROW LEVEL SECURITY;
@@ -397,4 +548,4 @@ DROP POLICY IF EXISTS "Users can insert own fantasy predictions" ON fantasy_pred
 CREATE POLICY "Users can insert own fantasy predictions" ON fantasy_predictions FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 DROP POLICY IF EXISTS "Users can update own fantasy predictions" ON fantasy_predictions;
-CREATE POLICY "Users can update own fantasy predictions" ON fantasy_predictions FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can update own fantasy predictions" ON fantasy_predictions FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);

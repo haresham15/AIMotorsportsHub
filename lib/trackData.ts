@@ -142,7 +142,7 @@ export function getTrackForSeries(seriesId: string): TrackGeometry {
       'nascar-xfinity': 'Charlotte Motor Speedway',
       'nascar-trucks': 'Bristol Motor Speedway',
     };
-    return NASCAR_TRACK_REGISTRY[fallbackMap[seriesId]];
+    return NASCAR_TRACK_REGISTRY[fallbackMap[seriesId]] || NASCAR_TRACK_REGISTRY['Daytona International Speedway'] || Object.values(NASCAR_TRACK_REGISTRY)[0];
   }
 
   const fallbackMap: Record<string, string> = {

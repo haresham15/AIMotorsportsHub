@@ -7,12 +7,12 @@ import { getDriverColor } from '@/lib/data'
 import { DriverStanding, ConstructorStanding } from '@/lib/types'
 
 interface Props {
-  drivers: DriverStanding[]
-  constructors: ConstructorStanding[]
+  drivers?: DriverStanding[]
+  constructors?: ConstructorStanding[]
   loading?: boolean
 }
 
-export default function ChampionshipStandings({ drivers, constructors, loading }: Props) {
+export default function ChampionshipStandings({ drivers = [], constructors = [], loading }: Props) {
   const [tab, setTab] = useState<'drivers' | 'constructors'>('drivers')
 
   if (loading) {
@@ -33,8 +33,10 @@ export default function ChampionshipStandings({ drivers, constructors, loading }
     )
   }
 
-  const maxDriverPoints = drivers[0]?.points || 1
-  const maxConstructorPoints = constructors[0]?.points || 1
+  const safeDrivers = drivers || []
+  const safeConstructors = constructors || []
+  const maxDriverPoints = safeDrivers[0]?.points || 1
+  const maxConstructorPoints = safeConstructors[0]?.points || 1
 
   return (
     <div className="card glass rounded-[var(--radius-xl)] overflow-hidden flex flex-col h-full">
@@ -60,7 +62,17 @@ export default function ChampionshipStandings({ drivers, constructors, loading }
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
-        {tab === 'drivers' && drivers.map((d, index) => {
+        {tab === 'drivers' && safeDrivers.length === 0 && (
+          <div className="py-8 text-center text-[var(--text-muted)] text-sm">
+            No driver standings available for this season.
+          </div>
+        )}
+        {tab === 'constructors' && safeConstructors.length === 0 && (
+          <div className="py-8 text-center text-[var(--text-muted)] text-sm">
+            No constructor standings available for this series.
+          </div>
+        )}
+        {tab === 'drivers' && safeDrivers.map((d, index) => {
           const color = getDriverColor('f1', d.code) || 'var(--text-secondary)'
           const posColor = index === 0 ? 'text-amber-400' : index === 1 ? 'text-gray-300' : index === 2 ? 'text-amber-700' : 'text-[var(--text-muted)]'
           
@@ -80,8 +92,8 @@ export default function ChampionshipStandings({ drivers, constructors, loading }
           )
         })}
 
-        {tab === 'constructors' && constructors.map((c, index) => {
-          const driverOnTeam = drivers.find(d => d.constructorId === c.constructorId)
+        {tab === 'constructors' && safeConstructors.map((c, index) => {
+          const driverOnTeam = safeDrivers.find(d => d.constructorId === c.constructorId)
           const color = driverOnTeam ? getDriverColor('f1', driverOnTeam.code) : 'var(--text-secondary)'
           const posColor = index === 0 ? 'text-amber-400' : index === 1 ? 'text-gray-300' : index === 2 ? 'text-amber-700' : 'text-[var(--text-muted)]'
           

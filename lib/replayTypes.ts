@@ -20,6 +20,7 @@ export interface DriverFrameState {
   brake: number;      // 0–100
   inPit: boolean;
   retired: boolean;
+  finished?: boolean;
 }
 
 /** Safety car state within a frame */
@@ -238,7 +239,7 @@ export function frameToRaceData(
       car_number: driverInfo?.number ? String(driverInfo.number) : undefined,
       position: d.position,
       gap_to_leader: d.inPit ? 'PIT' : d.retired ? 'OUT' : gap,
-      last_lap: d.inPit ? 'PIT' : d.retired ? 'OUT' : `${d.speed} km/h`,
+      last_lap: d.inPit ? 'PIT' : d.retired ? 'OUT' : d.finished ? 'FIN' : `${d.speed} km/h`,
       tire_compound: d.tyre || 'MEDIUM',
       team_name: driverInfo?.team,
       laps_completed: d.lap,

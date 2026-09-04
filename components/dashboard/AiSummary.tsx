@@ -14,6 +14,12 @@ export default function AiSummary({ series }: AiSummaryProps) {
   const [hasFetched, setHasFetched] = useState(false)
   const seriesInfo = SERIES_MAP[series]
 
+  useEffect(() => {
+    setSummary('')
+    setHasFetched(false)
+    setLoading(false)
+  }, [series])
+
   const fetchSummary = async () => {
     setLoading(true)
     setHasFetched(true)

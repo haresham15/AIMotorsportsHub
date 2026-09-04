@@ -54,4 +54,19 @@ describe('race simulator track math', () => {
     // Speed must vary between corners and straights
     expect(maxSpeed - minSpeed).toBeGreaterThan(100)
   })
+
+  it('marks drivers who complete totalLaps as finished: true and retired: false', () => {
+    const drivers = [{ code: 'VER', name: 'Max Verstappen', number: 1, team: 'Red Bull', color: '#3671C6' }]
+    // Qualifying uses totalLaps = 3 for fast simulation
+    const replay = generateReplayData('f1', tracks['Monte Carlo'] as any, drivers, 'Qualifying')
+    expect(replay.frames.length).toBeGreaterThan(0)
+
+    // Check the final frame
+    const lastFrame = replay.frames[replay.frames.length - 1]
+    const driverState = lastFrame.drivers['VER']
+    expect(driverState).toBeDefined()
+    expect(driverState.lap).toBeGreaterThanOrEqual(replay.totalLaps)
+    expect(driverState.finished).toBe(true)
+    expect(driverState.retired).toBe(false)
+  })
 })

@@ -118,6 +118,18 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
       setIsAuthLoading(false)
       if (session?.user) {
         checkExistingPrediction(session.user.id)
+      } else {
+        try {
+          const guestKey = `apexis_guest_fantasy_${series}_${round}`
+          const stored = localStorage.getItem(guestKey)
+          if (stored) {
+            const parsed = JSON.parse(stored)
+            if (parsed.p1 && parsed.p2 && parsed.p3) {
+              setPredictions(parsed)
+              setSubmitted(true)
+            }
+          }
+        } catch {}
       }
     })
 
@@ -127,6 +139,18 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
         if (session?.user) {
           checkExistingPrediction(session.user.id)
         } else {
+          try {
+            const guestKey = `apexis_guest_fantasy_${series}_${round}`
+            const stored = localStorage.getItem(guestKey)
+            if (stored) {
+              const parsed = JSON.parse(stored)
+              if (parsed.p1 && parsed.p2 && parsed.p3) {
+                setPredictions(parsed)
+                setSubmitted(true)
+                return
+              }
+            }
+          } catch {}
           setSubmitted(false)
         }
       }
@@ -168,26 +192,36 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!user || !predictions.p1 || !predictions.p2 || !predictions.p3 || hasDuplicatePicks) return
+    if (!predictions.p1 || !predictions.p2 || !predictions.p3 || hasDuplicatePicks) return
     
     setLoading(true)
     try {
-      const res = await fetch('/api/fantasy', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user.id,
-          series,
-          round,
-          ...predictions
+      if (user) {
+        const res = await fetch('/api/fantasy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.id,
+            series,
+            round,
+            ...predictions
+          })
         })
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to submit prediction")
+        const data = await res.json()
+        if (!res.ok) {
+          throw new Error(data.error || "Failed to submit prediction")
+        }
+        setSubmitted(true)
+        fetchLeaderboard() // Refresh in case we added a new user
+        toast.success("Podium predictions submitted to global leaderboard!")
+      } else {
+        try {
+          const guestKey = `apexis_guest_fantasy_${series}_${round}`
+          localStorage.setItem(guestKey, JSON.stringify(predictions))
+        } catch {}
+        setSubmitted(true)
+        toast.success("Podium predictions locked! Sign in to join the global leaderboard.")
       }
-      setSubmitted(true)
-      fetchLeaderboard() // Refresh in case we added a new user
     } catch (e: any) {
       if (e.message) {
         toast.error(e.message)
@@ -235,23 +269,16 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
             <div className="p-6 text-center text-[var(--text-muted)] text-[14px]">
               Loading game state...
             </div>
-          ) : !user ? (
-            <div className="flex flex-col items-center justify-center gap-4 h-full text-center p-6">
-              <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-[var(--text-muted)]">
-                <Trophy size={32} />
-              </div>
-              <div>
-                <h3 className="text-base font-bold m-0 mb-2">Log In to Play</h3>
-                <p className="text-[13px] text-[var(--text-muted)] m-0">
-                  Create an account to submit your predictions and join the global leaderboard.
-                </p>
-              </div>
-              <Link href="/login" className="btn-primary px-6 py-2 text-[14px]">
-                Sign In
-              </Link>
-            </div>
           ) : !submitted ? (
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+              {!user && (
+                <div className="flex items-center justify-between text-xs text-[var(--amber)] bg-[var(--amber)]/10 border border-[var(--amber)]/20 px-3 py-2 rounded-[var(--radius-md)]">
+                  <span>Guest Paddock Pass • Saved locally</span>
+                  <Link href="/login" className="font-bold underline hover:text-white transition-colors">
+                    Sign in to rank
+                  </Link>
+                </div>
+              )}
               <div className="flex flex-col gap-3">
                 {(['p1', 'p2', 'p3'] as const).map((pos, idx) => (
                   <div key={pos} className="flex items-center gap-3">
@@ -280,7 +307,7 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
 
               <button 
                 type="submit"
-                disabled={loading || !user || !predictions.p1 || !predictions.p2 || !predictions.p3 || hasDuplicatePicks}
+                disabled={loading || !predictions.p1 || !predictions.p2 || !predictions.p3 || hasDuplicatePicks}
                 className="btn-primary mt-2"
               >
                 {loading ? 'Saving...' : 'Lock Predictions'}
@@ -299,6 +326,11 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
                 <p className="text-[13px] text-[var(--text-muted)] m-0">
                   {score !== null ? 'Final results have been calculated.' : 'Waiting for the race to finish...'}
                 </p>
+                {!user && (
+                  <p className="text-[11px] text-[var(--amber)] mt-1">
+                    Guest Pass Active • <Link href="/login" className="underline font-semibold">Sign in</Link> to sync to the leaderboard
+                  </p>
+                )}
               </div>
 
               <div className="flex gap-3 my-4">
@@ -316,10 +348,20 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
                 </div>
               </div>
 
-              <button onClick={handleShare} className="hover-lift bg-white/5 border border-[var(--border-subtle)] text-[var(--text-primary)] px-4 py-2 rounded-full flex items-center gap-2 text-xs font-semibold cursor-pointer">
-                <Share2 size={14} />
-                Share Results
-              </button>
+              <div className="flex items-center gap-3">
+                <button onClick={handleShare} className="hover-lift bg-white/5 border border-[var(--border-subtle)] text-[var(--text-primary)] px-4 py-2 rounded-full flex items-center gap-2 text-xs font-semibold cursor-pointer">
+                  <Share2 size={14} />
+                  Share Results
+                </button>
+                {!user && (
+                  <button
+                    onClick={() => setSubmitted(false)}
+                    className="text-xs text-[var(--text-muted)] hover:text-white underline cursor-pointer py-2 px-1"
+                  >
+                    Edit Picks
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </div>

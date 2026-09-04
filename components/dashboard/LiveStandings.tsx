@@ -53,6 +53,11 @@ export default function LiveStandings({
   const hasLiveData = useRef(false)
   const previousLiveKey = useRef(`${series}:${dataSource}:${sessionKey ?? 'latest'}`)
 
+  const onLiveStandingsUpdateRef = useRef(onLiveStandingsUpdate)
+  useEffect(() => {
+    onLiveStandingsUpdateRef.current = onLiveStandingsUpdate
+  }, [onLiveStandingsUpdate])
+
   // Active standings: if replayData is available, it takes absolute precedence
   const isReplayActive = Boolean(replayData && replayData.length > 0)
   const isReplayActiveRef = useRef(isReplayActive)
@@ -65,9 +70,9 @@ export default function LiveStandings({
   // Forward updates to parent (e.g. Chatbot, Fantasy)
   useEffect(() => {
     if (activeRaceData && activeRaceData.length > 0) {
-      onLiveStandingsUpdate?.(activeRaceData)
+      onLiveStandingsUpdateRef.current?.(activeRaceData)
     }
-  }, [activeRaceData, onLiveStandingsUpdate])
+  }, [activeRaceData])
 
   useEffect(() => {
     // If replayData is actively driving the standings, do not poll background APIs
@@ -89,7 +94,6 @@ export default function LiveStandings({
       if (hasLiveData.current || isReplayActiveRef.current) return
       const fallback = getFallbackData(series)
       setRaceData(fallback)
-      onLiveStandingsUpdate?.(fallback)
     }
 
     if (dataSource === 'live' && series === 'f1') {
@@ -113,7 +117,6 @@ export default function LiveStandings({
           const top20 = nextRaceData.slice(0, 20)
           if (!isReplayActiveRef.current) {
             setRaceData(top20)
-            onLiveStandingsUpdate?.(top20)
             hasLiveData.current = true
             setLoading(false)
           }
@@ -129,7 +132,7 @@ export default function LiveStandings({
       intervalId = setInterval(fetchLiveF1Data, 10000)
     } else if (dataSource === 'live' && (series === 'nascar' || series.startsWith('nascar-'))) {
       const fetchLiveNascarData = async () => {
-        if (isFetchingRef.current) return
+        if (isFetchingRef.current || isReplayActiveRef.current) return
         isFetchingRef.current = true
 
         try {
@@ -142,12 +145,15 @@ export default function LiveStandings({
             return
           }
 
+          if (isReplayActiveRef.current) return
+
           const payload: { standings?: RaceData[] } = await response.json()
           const top20 = (payload.standings || []).slice(0, 20)
-          setRaceData(top20)
-          onLiveStandingsUpdate?.(top20)
-          hasLiveData.current = top20.length > 0
-          setLoading(false)
+          if (!isReplayActiveRef.current) {
+            setRaceData(top20)
+            hasLiveData.current = top20.length > 0
+            setLoading(false)
+          }
         } catch {
           applyFallback()
           setLoading(false)
@@ -170,7 +176,6 @@ export default function LiveStandings({
         }))
         queueMicrotask(() => {
           setRaceData(nextRaceData)
-          onLiveStandingsUpdate?.(nextRaceData)
           setLoading(false)
         })
       } else {
@@ -179,7 +184,6 @@ export default function LiveStandings({
     } else {
       const fallback = getFallbackData(series)
       setRaceData(fallback)
-      onLiveStandingsUpdate?.(fallback)
       setLoading(false)
 
       intervalId = setInterval(() => {
@@ -208,7 +212,6 @@ export default function LiveStandings({
             return { ...rest, position, gap_to_leader: nextGap, last_lap: formatMockLap(series) } as RaceData
           })
 
-          onLiveStandingsUpdate?.(mapped)
           return mapped
         })
       }, 3000)
@@ -217,7 +220,7 @@ export default function LiveStandings({
     return () => {
       if (intervalId) clearInterval(intervalId)
     }
-  }, [series, dataSource, externalData, sessionKey, onLiveStandingsUpdate, isReplayActive])
+  }, [series, dataSource, externalData, sessionKey, isReplayActive])
 
   const getTireColor = (compound: string) => {
     switch (compound?.toLowerCase()) {

@@ -112,4 +112,118 @@ describe('replay standings and timing leaderboard sync', () => {
     expect(standings[1].tire_compound).toBe('MEDIUM')
     expect(standings[1].drivers?.name).toBe('George Russell')
   })
+
+  it('preserves gap_to_leader for finished drivers and sets OUT only for retired drivers', () => {
+    const mockFrame = {
+      t: 5000,
+      lap: 72,
+      trackStatus: '1',
+      drivers: {
+        ANT: {
+          x: 10,
+          y: 20,
+          position: 1,
+          lap: 72,
+          dist: 306648,
+          relDist: 0.0,
+          speed: 180,
+          gear: 4,
+          tyre: 'HARD',
+          tyreLife: 30,
+          drs: 0,
+          throttle: 50,
+          brake: 0,
+          inPit: false,
+          retired: false,
+          finished: true,
+        },
+        RUS: {
+          x: 8,
+          y: 18,
+          position: 2,
+          lap: 72,
+          dist: 306620,
+          relDist: 0.99,
+          speed: 180,
+          gear: 4,
+          tyre: 'HARD',
+          tyreLife: 30,
+          drs: 0,
+          throttle: 50,
+          brake: 0,
+          inPit: false,
+          retired: false,
+          finished: true,
+        },
+        VER: {
+          x: 0,
+          y: 0,
+          position: 3,
+          lap: 20,
+          dist: 85000,
+          relDist: 0.2,
+          speed: 0,
+          gear: 0,
+          tyre: 'MEDIUM',
+          tyreLife: 20,
+          drs: 0,
+          throttle: 0,
+          brake: 100,
+          inPit: false,
+          retired: true,
+          finished: false,
+        },
+      },
+    } as unknown as RaceFrame
+
+    const mockReplayData = {
+      circuit: 'Zandvoort',
+      country: 'Netherlands',
+      sessionInfo: {
+        seriesId: 'f1',
+        seriesName: 'Formula 1',
+        eventName: 'Dutch Grand Prix',
+        circuitName: 'Zandvoort',
+        country: 'Netherlands',
+        sessionType: 'Race',
+        year: 2026,
+        round: 12,
+      },
+      drivers: [
+        { code: 'ANT', name: 'Andrea Kimi Antonelli', number: 12, team: 'Mercedes', color: '#00D2BE' },
+        { code: 'RUS', name: 'George Russell', number: 63, team: 'Mercedes', color: '#00D2BE' },
+        { code: 'VER', name: 'Max Verstappen', number: 1, team: 'Red Bull', color: '#3671C6' },
+      ],
+      driverColors: { ANT: '#00D2BE', RUS: '#00D2BE', VER: '#3671C6' },
+      totalLaps: 72,
+      frames: [mockFrame],
+      trackGeometry: {
+        name: 'Zandvoort',
+        country: 'Netherlands',
+        lengthKm: 4.259,
+        totalLaps: 72,
+        type: 'circuit',
+        referenceLine: [],
+        innerEdge: [],
+        outerEdge: [],
+        startFinishIdx: 0,
+      },
+    } as unknown as ReplayData
+
+    const standings = frameToRaceData(mockFrame, mockReplayData, 'f1')
+    expect(standings).toHaveLength(3)
+
+    // Winner
+    expect(standings[0].driver_id).toBe('ANT')
+    expect(standings[0].gap_to_leader).toBe('LEADER')
+
+    // P2 finisher
+    expect(standings[1].driver_id).toBe('RUS')
+    expect(standings[1].gap_to_leader).not.toBe('OUT')
+    expect(standings[1].gap_to_leader).toMatch(/^\+\d+\.\d+s$/)
+
+    // DNF driver
+    expect(standings[2].driver_id).toBe('VER')
+    expect(standings[2].gap_to_leader).toBe('OUT')
+  })
 })

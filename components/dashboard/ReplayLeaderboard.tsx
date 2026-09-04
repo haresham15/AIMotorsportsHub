@@ -124,6 +124,8 @@ export default function ReplayLeaderboard({ data, frame, selectedDrivers, onSele
                   <span className="text-amber-400 font-bold bg-amber-500/15 border border-amber-500/30 px-1.5 py-0.2 rounded text-[9px]">PIT</span>
                 ) : d.retired ? (
                   <span className="text-red-400 font-bold bg-red-500/15 border border-red-500/30 px-1.5 py-0.2 rounded text-[9px]">OUT</span>
+                ) : d.finished && d.position === 1 ? (
+                  <span className="text-amber-400 font-bold bg-amber-500/15 border border-amber-500/30 px-1.5 py-0.2 rounded text-[9px]">WINNER</span>
                 ) : (
                   gap
                 )}

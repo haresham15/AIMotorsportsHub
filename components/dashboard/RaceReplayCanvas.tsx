@@ -36,6 +36,8 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
 
   const [canvasSize, setCanvasSize] = useState({ w: 800, h: 450 })
   const cachedTrackCanvasRef = useRef<HTMLCanvasElement | null>(null)
+  const playbackRef = useRef(playback)
+  playbackRef.current = playback
 
   /* keep ref in sync, but only override if it's a manual scrub/skip (>2 frames difference) */
   useEffect(() => { 
@@ -248,7 +250,7 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
       const sp = toScreen({ x: d.x, y: d.y })
       const color = data.driverColors[code] || COLORS.textPrimary
       const [r, g, b] = hexToRgb(color)
-      const isSelected = playback.selectedDrivers.includes(code)
+      const isSelected = playbackRef.current.selectedDrivers.includes(code)
       const isLeader = d.position <= 3
 
       /* ghost trail */
@@ -289,7 +291,7 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
       ctx.strokeStyle = tyreColor; ctx.lineWidth = isSelected ? 2 : 1.2; ctx.stroke()
 
       /* label */
-      if (isSelected || playback.showDriverLabels) {
+      if (isSelected || playbackRef.current.showDriverLabels) {
         ctx.fillStyle = COLORS.textPrimary; ctx.font = 'bold 9px "JetBrains Mono", monospace'; ctx.textAlign = 'center'
         ctx.fillText(code, sp.x, sp.y - (isSelected ? 16 : 14))
       }
@@ -346,8 +348,8 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
 
     /* speed indicator */
     ctx.fillStyle = COLORS.textMuted; ctx.font = '11px Inter'; ctx.textAlign = 'right'
-    ctx.fillText(`${playback.speed}x`, w - 16, h - 16)
-  }, [data, playback, getTransform])
+    ctx.fillText(`${playbackRef.current.speed}x`, w - 16, h - 16)
+  }, [data, getTransform])
 
   /* ── animation loop ───────────────────────────────────────────── */
   useEffect(() => {
@@ -366,23 +368,29 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
     const tick = (timestamp: number) => {
       if (!running) return
 
-      if (playback.isPlaying && lastTimeRef.current > 0) {
-        const elapsed = (timestamp - lastTimeRef.current) / 1000
-        const advance = elapsed * REPLAY_FPS * playback.speed
-        const newIdx = Math.min(frameIdxRef.current + advance, data.frames.length - 1)
+      const isPlaying = playbackRef.current.isPlaying
+      const speed = playbackRef.current.speed
 
-        if (newIdx !== frameIdxRef.current) {
-          frameIdxRef.current = newIdx
-          // Throttle React state updates to ~10 FPS (every 100ms) to prevent main thread stutter
-          // while keeping the internal canvas rendering smoothly at 60 FPS.
-          if (timestamp - lastSyncTime > 100 || newIdx >= data.frames.length - 1) {
-            lastSyncTime = timestamp
-            onPlaybackChange({ frameIndex: newIdx })
+      if (isPlaying) {
+        if (lastTimeRef.current > 0) {
+          const elapsed = (timestamp - lastTimeRef.current) / 1000
+          const advance = elapsed * REPLAY_FPS * speed
+          const newIdx = Math.min(frameIdxRef.current + advance, data.frames.length - 1)
+
+          if (newIdx !== frameIdxRef.current) {
+            frameIdxRef.current = newIdx
+            // Throttle React state updates to ~10 FPS (every 100ms) to prevent main thread stutter
+            // while keeping the internal canvas rendering smoothly at 60 FPS.
+            if (timestamp - lastSyncTime > 100 || newIdx >= data.frames.length - 1) {
+              lastSyncTime = timestamp
+              onPlaybackChange({ frameIndex: newIdx })
+            }
           }
         }
+        lastTimeRef.current = timestamp
+      } else {
+        lastTimeRef.current = 0
       }
-
-      lastTimeRef.current = timestamp
 
       const fi = Math.min(Math.floor(frameIdxRef.current), data.frames.length - 1)
       if (fi >= 0 && fi < data.frames.length) {
@@ -394,7 +402,7 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
 
     animRef.current = requestAnimationFrame(tick)
     return () => { running = false; cancelAnimationFrame(animRef.current) }
-  }, [data, playback.isPlaying, playback.speed, canvasSize, drawFrame, onPlaybackChange])
+  }, [data, canvasSize, drawFrame, onPlaybackChange])
 
   /* ── keyboard shortcuts ───────────────────────────────────────── */
   useEffect(() => {
@@ -444,18 +452,19 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
     }
 
     if (closestCode) {
+      const currentSelected = playbackRef.current.selectedDrivers
       if (e.shiftKey) {
-        const sel = playback.selectedDrivers.includes(closestCode)
-          ? playback.selectedDrivers.filter(c => c !== closestCode)
-          : [...playback.selectedDrivers, closestCode]
+        const sel = currentSelected.includes(closestCode)
+          ? currentSelected.filter(c => c !== closestCode)
+          : [...currentSelected, closestCode]
         onDriverSelect(sel)
       } else {
-        onDriverSelect(playback.selectedDrivers[0] === closestCode && playback.selectedDrivers.length === 1 ? [] : [closestCode])
+        onDriverSelect(currentSelected[0] === closestCode && currentSelected.length === 1 ? [] : [closestCode])
       }
     } else {
       onDriverSelect([])
     }
-  }, [data, playback, canvasSize, getTransform, onDriverSelect])
+  }, [data, canvasSize, getTransform, onDriverSelect])
 
   return (
     <canvas
