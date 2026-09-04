@@ -153,6 +153,7 @@ export interface PlaybackState {
   showWeather: boolean;
   showDriverLabels: boolean;
   showDrsZones: boolean;
+  isLiveMode?: boolean;
 }
 
 /** Available playback speeds */
@@ -252,5 +253,30 @@ export function frameToRaceData(
       },
     };
   });
+}
+
+/**
+ * Fast binary search to find the frame index corresponding to a given elapsed race time (seconds).
+ */
+export function findFrameIndexForTime(frames: RaceFrame[], targetSec: number): number {
+  if (!frames || frames.length === 0) return 0;
+  if (targetSec <= frames[0].t) return 0;
+  if (targetSec >= frames[frames.length - 1].t) return frames.length - 1;
+
+  let low = 0;
+  let high = frames.length - 1;
+  let bestIdx = 0;
+
+  while (low <= high) {
+    const mid = Math.floor((low + high) / 2);
+    if (frames[mid].t <= targetSec) {
+      bestIdx = mid;
+      low = mid + 1;
+    } else {
+      high = mid - 1;
+    }
+  }
+
+  return bestIdx;
 }
 

@@ -9,9 +9,23 @@ interface Props {
   playback: PlaybackState
   data: ReplayData
   onChange: (p: Partial<PlaybackState>) => void
+  isLiveSession?: boolean
+  isBehindLive?: boolean
+  liveLagSeconds?: number
+  liveEdgeTime?: number
+  onSyncToLive?: () => void
 }
 
-export default function ReplayControls({ playback, data, onChange }: Props) {
+export default function ReplayControls({
+  playback,
+  data,
+  onChange,
+  isLiveSession = false,
+  isBehindLive = false,
+  liveLagSeconds = 0,
+  liveEdgeTime,
+  onSyncToLive,
+}: Props) {
   const totalFrames = data.frames.length
   const maxFrameIndex = Math.max(0, totalFrames - 1)
   const progress = totalFrames > 0 ? playback.frameIndex / totalFrames : 0
@@ -39,7 +53,7 @@ export default function ReplayControls({ playback, data, onChange }: Props) {
 
   const handleScrub = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = parseFloat(e.target.value)
-    onChange({ frameIndex: Math.min(v * totalFrames, maxFrameIndex), isPlaying: false })
+    onChange({ frameIndex: Math.min(v * totalFrames, maxFrameIndex), isPlaying: false, isLiveMode: false })
   }
 
   const toggleFullscreen = () => {
@@ -78,6 +92,15 @@ export default function ReplayControls({ playback, data, onChange }: Props) {
           className="absolute top-1/2 -translate-y-1/2 -ml-2 w-3.5 h-3.5 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.8)] opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none" 
           style={{ left: `${progress * 100}%` }} 
         />
+
+        {/* Live Edge Line Indicator */}
+        {isLiveSession && liveEdgeTime !== undefined && totalTime > 0 && (
+          <div 
+            className="absolute top-0 bottom-0 w-[2px] bg-emerald-400 z-15 pointer-events-none shadow-[0_0_6px_#10b981]"
+            style={{ left: `${Math.min(100, (liveEdgeTime / totalTime) * 100)}%` }}
+            title={`Live Race Edge (${fmtTime(liveEdgeTime)})`}
+          />
+        )}
 
         {/* Track Status Periods (Safety Car / Yellow / Red Zones) */}
         {data.trackStatuses.map((ts, i) => {
@@ -121,7 +144,7 @@ export default function ReplayControls({ playback, data, onChange }: Props) {
           <button
             className="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
             title="Restart to beginning (R)"
-            onClick={() => onChange({ frameIndex: 0, isPlaying: true })}
+            onClick={() => onChange({ frameIndex: 0, isPlaying: true, isLiveMode: false })}
           >
             <RotateCcw size={14} />
           </button>
@@ -130,9 +153,47 @@ export default function ReplayControls({ playback, data, onChange }: Props) {
           <button
             className="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--text-secondary)] hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
             title="Rewind 10s (←)"
-            onClick={() => onChange({ frameIndex: Math.max(0, playback.frameIndex - REPLAY_FPS * 10) })}
+            onClick={() => onChange({ frameIndex: Math.max(0, playback.frameIndex - REPLAY_FPS * 10), isLiveMode: false })}
           >
             <SkipBack size={16} />
+          </button>
+
+          {/* Live / Sync to Live Button */}
+          <button
+            onClick={() => {
+              if (onSyncToLive) {
+                onSyncToLive()
+              } else {
+                onChange({ frameIndex: maxFrameIndex, isPlaying: true, speed: 1, isLiveMode: true })
+              }
+            }}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer border ${
+              isLiveSession && !isBehindLive
+                ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.3)]'
+                : isLiveSession && isBehindLive
+                ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 hover:bg-amber-500/30 shadow-[0_0_8px_rgba(245,158,11,0.2)]'
+                : playback.isLiveMode
+                ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400'
+                : 'bg-white/5 border-white/10 text-[var(--text-muted)] hover:text-white hover:bg-white/10'
+            }`}
+            title={
+              isBehindLive
+                ? `Behind live by ${fmtTime(liveLagSeconds)}. Click to sync to live.`
+                : isLiveSession
+                ? 'Synchronized with live race time'
+                : 'Toggle live playback'
+            }
+          >
+            <span className={`w-2 h-2 rounded-full ${
+              (isLiveSession && !isBehindLive) || playback.isLiveMode
+                ? 'bg-emerald-400 animate-pulse shadow-[0_0_6px_#10b981]'
+                : isBehindLive
+                ? 'bg-amber-400'
+                : 'bg-white/40'
+            }`} />
+            <span>
+              {isBehindLive ? `-${fmtTime(liveLagSeconds)} SYNC` : 'LIVE'}
+            </span>
           </button>
 
           {/* Play / Pause */}

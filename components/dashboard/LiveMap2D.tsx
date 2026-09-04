@@ -40,7 +40,7 @@ const generateReplayDataAsync = async (series: string, track: TrackGeometry, dri
   }
 }
 
-import { frameToRaceData } from '@/lib/replayTypes'
+import { frameToRaceData, findFrameIndexForTime } from '@/lib/replayTypes'
 import type { RaceData } from '@/lib/types'
 
 interface LiveMap2DProps {
@@ -60,6 +60,9 @@ interface LiveMap2DProps {
   onStandingsChange?: (standings: RaceData[]) => void
   selectedDriverCode?: string | null
   onSelectDriver?: (code: string | null) => void
+  isLiveSession?: boolean
+  sessionStartTime?: string | null
+  roundStatus?: string
 }
 
 export default function LiveMap2D({
@@ -73,6 +76,9 @@ export default function LiveMap2D({
   onStandingsChange,
   selectedDriverCode,
   onSelectDriver,
+  isLiveSession = false,
+  sessionStartTime = null,
+  roundStatus,
 }: LiveMap2DProps) {
   const [replayData, setReplayData] = useState<ReplayData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -254,12 +260,135 @@ export default function LiveMap2D({
     onSelectDriver?.(codes.length === 1 ? codes[0] : null)
   }, [onSelectDriver])
 
-  // Reset frame index when replay data changes
-  useEffect(() => {
-    if (replayData) {
-      setPlayback(prev => ({ ...prev, frameIndex: 0, isPlaying: false }))
+  // Compute live edge time in seconds from session start
+  const liveEdgeTimeSec = useMemo(() => {
+    if (isLiveSession && sessionStartTime) {
+      const startMs = new Date(sessionStartTime).getTime()
+      if (!isNaN(startMs)) {
+        const nowMs = Date.now()
+        return Math.max(0, (nowMs - startMs) / 1000)
+      }
     }
-  }, [replayData])
+    if (!replayData || replayData.frames.length === 0) return 0
+    return replayData.frames[replayData.frames.length - 1]?.t ?? 0
+  }, [isLiveSession, sessionStartTime, replayData])
+
+  // Set initial frame index and playback state when replay data changes
+  useEffect(() => {
+    if (!replayData || replayData.frames.length === 0) return
+
+    if (isLiveSession) {
+      let targetFrame = 0
+      if (sessionStartTime) {
+        const startMs = new Date(sessionStartTime).getTime()
+        if (!isNaN(startMs)) {
+          const nowMs = Date.now()
+          const elapsedSec = Math.max(0, (nowMs - startMs) / 1000)
+          targetFrame = findFrameIndexForTime(replayData.frames, elapsedSec)
+        }
+      } else {
+        // Session is live without specific timestamp: snap to latest generated frame
+        targetFrame = Math.max(0, replayData.frames.length - 1)
+      }
+
+      setPlayback(prev => ({
+        ...prev,
+        frameIndex: targetFrame,
+        isPlaying: true, // Auto-play live action
+        speed: 1, // Real-time 1x
+        isLiveMode: true,
+      }))
+    } else {
+      setPlayback(prev => ({ ...prev, frameIndex: 0, isPlaying: false, isLiveMode: false }))
+    }
+  }, [replayData, isLiveSession, sessionStartTime])
+
+  // Jump/Sync directly to the current live moment
+  const handleSyncToLive = useCallback(() => {
+    if (!replayData || replayData.frames.length === 0) return
+    const targetIdx = findFrameIndexForTime(replayData.frames, liveEdgeTimeSec)
+    setPlayback(prev => ({
+      ...prev,
+      frameIndex: targetIdx,
+      isPlaying: true,
+      speed: 1,
+      isLiveMode: true,
+    }))
+  }, [replayData, liveEdgeTimeSec])
+
+  // Continuous wall-clock synchronization while in live mode
+  useEffect(() => {
+    if (!playback.isLiveMode || !isLiveSession || !sessionStartTime || !replayData || replayData.frames.length === 0) return
+
+    const syncWithWallClock = () => {
+      const startMs = new Date(sessionStartTime).getTime()
+      if (isNaN(startMs)) return
+      const nowMs = Date.now()
+      const elapsedSec = Math.max(0, (nowMs - startMs) / 1000)
+      const targetIdx = findFrameIndexForTime(replayData.frames, elapsedSec)
+      
+      // If playback has drifted by more than 2 seconds (50 frames at 25 FPS) from real time
+      setPlayback(prev => {
+        if (Math.abs(prev.frameIndex - targetIdx) > 50) {
+          return { ...prev, frameIndex: targetIdx, isPlaying: true, speed: 1 }
+        }
+        return prev
+      })
+    }
+
+    const interval = setInterval(syncWithWallClock, 2000)
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        syncWithWallClock()
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+
+    return () => {
+      clearInterval(interval)
+      document.removeEventListener('visibilitychange', handleVisibility)
+    }
+  }, [playback.isLiveMode, isLiveSession, sessionStartTime, replayData])
+
+  // Poll real-time live standings for live races (F1 & NASCAR)
+  useEffect(() => {
+    if (!isLiveSession) return
+    let isCancelled = false
+
+    const pollLiveData = async () => {
+      try {
+        if (series === 'f1') {
+          const sessionParam = sessionKey || 'latest'
+          const res = await fetch(`/api/f1/live?sessionKey=${sessionParam}`)
+          if (!res.ok || isCancelled) return
+          const liveStandings: RaceData[] = await res.json()
+          if (Array.isArray(liveStandings) && liveStandings.length > 0 && !isCancelled) {
+            if (playback.isLiveMode && onStandingsChange) {
+              onStandingsChange(liveStandings)
+            }
+          }
+        } else if (series === 'nascar' || series.startsWith('nascar-')) {
+          const nascarParam = series === 'nascar' ? 'nascar-cup' : series
+          const res = await fetch(`/api/nascar/live?series=${encodeURIComponent(nascarParam)}`)
+          if (!res.ok || isCancelled) return
+          const data = await res.json()
+          if (data.standings && Array.isArray(data.standings) && data.standings.length > 0 && !isCancelled) {
+            if (playback.isLiveMode && onStandingsChange) {
+              onStandingsChange(data.standings)
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('[LiveMap2D] Live telemetry poll failed:', err)
+      }
+    }
+
+    const pollInterval = setInterval(pollLiveData, 8000)
+    return () => {
+      isCancelled = true
+      clearInterval(pollInterval)
+    }
+  }, [isLiveSession, series, sessionKey, playback.isLiveMode, onStandingsChange])
 
   // Keyboard navigation for playback controls
   useEffect(() => {
@@ -362,6 +491,16 @@ export default function LiveMap2D({
     }
   })()
 
+  const currentSec = currentFrame?.t ?? 0
+  const isBehindLive = Boolean(isLiveSession && (liveEdgeTimeSec - currentSec > 4))
+  const liveLagSeconds = Math.max(0, Math.floor(liveEdgeTimeSec - currentSec))
+
+  const formatLag = (s: number) => {
+    const m = Math.floor(s / 60)
+    const sec = s % 60
+    return `${m}:${String(sec).padStart(2, '0')}`
+  }
+
   return (
     <div className="replay-wrapper">
       {/* ── Header: Paddock Bar ──────────────────────────────────────── */}
@@ -383,8 +522,29 @@ export default function LiveMap2D({
           </button>
         </div>
 
-        {/* Center: Track Condition Flag */}
+        {/* Center: Track Condition Flag & Live Indicator */}
         <div className="hidden sm:flex items-center gap-2">
+          {isLiveSession && (
+            isBehindLive ? (
+              <button
+                onClick={handleSyncToLive}
+                className="px-2.5 py-1 rounded-full border border-amber-500/40 bg-amber-500/15 text-amber-300 text-[11px] font-mono font-bold flex items-center gap-1.5 shadow-sm cursor-pointer hover:bg-amber-500/25 transition-all animate-pulse"
+                title="Behind live race time. Click to jump to current live action."
+              >
+                <span className="w-2 h-2 rounded-full bg-amber-400" />
+                <span>DVR (-{formatLag(liveLagSeconds)}) • JUMP TO LIVE</span>
+              </button>
+            ) : (
+              <div 
+                className="px-2.5 py-1 rounded-full border border-emerald-500/40 bg-emerald-500/15 text-emerald-400 text-[11px] font-mono font-bold flex items-center gap-1.5 shadow-[0_0_10px_rgba(16,185,129,0.25)]"
+                title="Synchronized with exact live race time"
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_#10b981] animate-pulse" />
+                <span>LIVE FEED</span>
+              </div>
+            )
+          )}
+
           <button
             onClick={() => setIsRaceControlModalOpen(true)}
             className={`px-3 py-1 rounded-full border text-[11px] font-mono font-bold flex items-center gap-1.5 shadow-sm cursor-pointer hover:scale-105 transition-all ${flagDetails.color}`}
@@ -463,6 +623,11 @@ export default function LiveMap2D({
         playback={playback}
         data={replayData}
         onChange={handlePlaybackChange}
+        isLiveSession={isLiveSession}
+        isBehindLive={isBehindLive}
+        liveLagSeconds={liveLagSeconds}
+        liveEdgeTime={liveEdgeTimeSec}
+        onSyncToLive={handleSyncToLive}
       />
 
       {/* ── Specialized Pop-up Modals ───────────────────────────────── */}

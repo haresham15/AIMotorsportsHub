@@ -258,6 +258,16 @@ export default function SeriesDashboard() {
             const currentRoundData = scheduleData?.rounds.find((r) => r.round === selectedRound)
             const currentSession = currentRoundData?.sessions.find((s) => s.key === selectedSessionKey)
             const sessionType = currentSession?.name || 'Race'
+            const sessionStartTime = currentSession?.dateStart || (currentRoundData?.date ? `${currentRoundData.date}T${currentRoundData.time || '00:00:00Z'}` : null)
+
+            const isSessionLive = currentRoundData?.status === 'live' || (() => {
+              if (!sessionStartTime) return false
+              const startMs = new Date(sessionStartTime).getTime()
+              if (isNaN(startMs)) return false
+              const nowMs = Date.now()
+              // Active if started in the last 3 hours and round is not marked completed
+              return currentRoundData?.status !== 'completed' && nowMs >= startMs && (nowMs - startMs) < 3 * 60 * 60 * 1000
+            })()
             
             return (
               <LiveMap2D 
@@ -271,6 +281,9 @@ export default function SeriesDashboard() {
                 onStandingsChange={setReplayStandings}
                 selectedDriverCode={focusedDriverCode}
                 onSelectDriver={setFocusedDriverCode}
+                isLiveSession={isSessionLive}
+                sessionStartTime={sessionStartTime}
+                roundStatus={currentRoundData?.status}
               />
             )
           })()}
