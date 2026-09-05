@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { getSeasonDetails } from '@/lib/db';
 import { notFound } from 'next/navigation';
+import HistoryNav from '@/components/history/HistoryNav';
+import SeasonSwitcherDropdown from '@/components/history/SeasonSwitcherDropdown';
 
 export async function generateMetadata({ params }: { params: { year: string } }) {
   // Fix for Next.js 15: params is now a Promise
@@ -29,9 +31,18 @@ export default async function SeasonDetailsPage({ params }: { params: { year: st
   }
 
   return (
-    <main className="max-w-[1200px] mx-auto px-6 py-12">
-      <Link href="/history/seasons" className="text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">← Back to Seasons</Link>
-      <h1 className="text-4xl md:text-5xl font-extrabold mt-6 mb-8 tracking-tight">{year} Formula 1 Season</h1>
+    <main className="max-w-[1200px] mx-auto px-6 py-10">
+      <HistoryNav activeTab="seasons" />
+
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2 mb-8 pb-4 border-b border-[var(--border-hairline)]">
+        <div>
+          <span className="eyebrow text-xs">FIA Formula 1 World Championship</span>
+          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white font-[family-name:var(--font-disp)] uppercase">
+            {year} <span className="text-[var(--amber)]">Season</span> Archive
+          </h1>
+        </div>
+        <SeasonSwitcherDropdown currentYear={year} />
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <section>

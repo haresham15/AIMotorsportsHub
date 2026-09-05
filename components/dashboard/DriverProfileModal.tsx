@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { X, Star, Gauge, Activity, ShieldCheck, Flag, Zap, Trophy, Award } from 'lucide-react';
+import { X, Star, Gauge, Trophy } from 'lucide-react';
 import { getDriverColor, SERIES_DRIVERS } from '@/lib/data';
 import { useUserProfile } from '@/lib/userPreferences';
 import { toast } from 'sonner';
@@ -21,8 +21,16 @@ interface DriverProfileModalProps {
     drs?: boolean;
     position?: number;
     gap?: string;
+    isMph?: boolean;
+    chuteDeployed?: boolean;
+    attackMode?: boolean;
+    energyPct?: number;
+    carClass?: string;
+    stintNumber?: number;
+    stageNumber?: number;
   };
 }
+
 
 const DRIVER_DOSSIER: Record<string, {
   name: string;
@@ -253,45 +261,120 @@ export default function DriverProfileModal({
           </div>
 
           {/* Real-time Telemetry Snapshot */}
-          <div>
-            <div className="text-[11px] font-mono uppercase font-bold text-[var(--text-muted)] tracking-wider mb-2 flex items-center gap-1.5">
-              <Gauge size={13} className="text-amber-400" />
-              <span>Live Telemetry Telecast</span>
-            </div>
+          {(() => {
+            const isTopFuel = series === 'top-fuel';
+            const isNascar = series === 'nascar' || series.startsWith('nascar-');
+            const isFormulaE = series === 'formula-e';
+            const isWec = series === 'wec' || series === 'gt-world-challenge';
+            const isMph = telemetry?.isMph ?? (isTopFuel || isNascar);
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
-              <div className="p-3 rounded-lg bg-white/5 border border-white/5">
-                <div className="text-[10px] font-mono text-[var(--text-muted)] uppercase">Speed</div>
-                <div className="text-lg font-mono font-black text-white">
-                  {telemetry?.speed ?? '—'} <span className="text-[10px] font-normal text-[var(--text-muted)]">km/h</span>
+            const displaySpeed = telemetry?.speed !== undefined
+              ? (isMph ? Math.round(telemetry.speed * 0.621371) : telemetry.speed)
+              : '—';
+            const speedUnit = isMph ? 'MPH' : 'km/h';
+
+            const gearDisplay = isTopFuel
+              ? '1:1'
+              : isFormulaE
+              ? '1'
+              : telemetry?.gear !== undefined ? (telemetry.gear === 0 ? 'N' : String(telemetry.gear)) : '—';
+            const gearLabel = isTopFuel ? 'DIRECT' : isFormulaE ? 'EV DRIVE' : 'GEAR';
+
+            return (
+              <div>
+                <div className="text-[11px] font-mono uppercase font-bold text-[var(--text-muted)] tracking-wider mb-2 flex items-center gap-1.5">
+                  <Gauge size={13} className="text-amber-400" />
+                  <span>Live Telemetry Telecast</span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
+                  <div className="p-3 rounded-lg bg-white/5 border border-white/5">
+                    <div className="text-[10px] font-mono text-[var(--text-muted)] uppercase">Speed</div>
+                    <div className="text-lg font-mono font-black text-white">
+                      {displaySpeed} <span className="text-[10px] font-normal text-[var(--text-muted)]">{speedUnit}</span>
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-lg bg-white/5 border border-white/5">
+                    <div className="text-[10px] font-mono text-[var(--text-muted)] uppercase">{gearLabel}</div>
+                    <div className={`text-lg font-mono font-black ${gearDisplay === 'N' ? 'text-emerald-400' : 'text-amber-400'}`}>
+                      {gearDisplay}
+                    </div>
+                  </div>
+
+                  {isTopFuel ? (
+                    <div className="p-3 rounded-lg bg-white/5 border border-white/5">
+                      <div className="text-[10px] font-mono text-[var(--text-muted)] uppercase">Nitro Blend</div>
+                      <div className="text-sm font-mono font-black text-amber-300 mt-0.5">
+                        90% CH₃NO₂
+                      </div>
+                      <div className="text-[9px] font-mono text-[var(--text-muted)]">
+                        NITROMETHANE
+                      </div>
+                    </div>
+                  ) : isFormulaE ? (
+                    <div className="p-3 rounded-lg bg-white/5 border border-white/5">
+                      <div className="text-[10px] font-mono text-[var(--text-muted)] uppercase">Battery</div>
+                      <div className="text-lg font-mono font-black text-sky-400">
+                        ⚡ {telemetry?.energyPct !== undefined ? `${telemetry.energyPct.toFixed(1)}%` : '98.0%'}
+                      </div>
+                      <div className="text-[9px] font-mono text-[var(--text-muted)]">
+                        USABLE SOC
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-3 rounded-lg bg-white/5 border border-white/5">
+                      <div className="text-[10px] font-mono text-[var(--text-muted)] uppercase">Tyre</div>
+                      <div className="text-lg font-mono font-black text-emerald-400">
+                        {telemetry?.tyre ?? 'HARD'}
+                      </div>
+                      <div className="text-[9px] font-mono text-[var(--text-muted)]">
+                        {telemetry?.tyreLife ?? 0} laps old
+                      </div>
+                    </div>
+                  )}
+
+                  {isTopFuel ? (
+                    <div className="p-3 rounded-lg bg-white/5 border border-white/5">
+                      <div className="text-[10px] font-mono text-[var(--text-muted)] uppercase">Parachute</div>
+                      <div className={`text-sm font-mono font-black mt-1 ${telemetry?.chuteDeployed ? 'text-amber-400 animate-pulse' : 'text-emerald-400'}`}>
+                        {telemetry?.chuteDeployed ? 'DEPLOYED' : 'ARMED'}
+                      </div>
+                    </div>
+                  ) : isFormulaE ? (
+                    <div className="p-3 rounded-lg bg-white/5 border border-white/5">
+                      <div className="text-[10px] font-mono text-[var(--text-muted)] uppercase">Power Mode</div>
+                      <div className={`text-sm font-mono font-black mt-1 ${telemetry?.attackMode ? 'text-cyan-300 animate-pulse' : 'text-sky-400'}`}>
+                        {telemetry?.attackMode ? '350kW ATK' : '300kW BASE'}
+                      </div>
+                    </div>
+                  ) : isWec ? (
+                    <div className="p-3 rounded-lg bg-white/5 border border-white/5">
+                      <div className="text-[10px] font-mono text-[var(--text-muted)] uppercase">Stint</div>
+                      <div className="text-sm font-mono font-black text-amber-400 mt-1">
+                        STINT {telemetry?.stintNumber || 1}
+                      </div>
+                    </div>
+                  ) : isNascar ? (
+                    <div className="p-3 rounded-lg bg-white/5 border border-white/5">
+                      <div className="text-[10px] font-mono text-[var(--text-muted)] uppercase">Stage</div>
+                      <div className="text-sm font-mono font-black text-amber-300 mt-1">
+                        STAGE {telemetry?.stageNumber || 1}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-3 rounded-lg bg-white/5 border border-white/5">
+                      <div className="text-[10px] font-mono text-[var(--text-muted)] uppercase">DRS Wing</div>
+                      <div className={`text-sm font-mono font-black mt-1 ${telemetry?.drs ? 'text-emerald-400' : 'text-[var(--text-muted)]'}`}>
+                        {telemetry?.drs ? 'OPEN' : 'OFF'}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
+            );
+          })()}
 
-              <div className="p-3 rounded-lg bg-white/5 border border-white/5">
-                <div className="text-[10px] font-mono text-[var(--text-muted)] uppercase">Gear</div>
-                <div className="text-lg font-mono font-black text-amber-400">
-                  {telemetry?.gear ? `G${telemetry.gear}` : '—'}
-                </div>
-              </div>
-
-              <div className="p-3 rounded-lg bg-white/5 border border-white/5">
-                <div className="text-[10px] font-mono text-[var(--text-muted)] uppercase">Tyre</div>
-                <div className="text-lg font-mono font-black text-emerald-400">
-                  {telemetry?.tyre ?? 'HARD'}
-                </div>
-                <div className="text-[9px] font-mono text-[var(--text-muted)]">
-                  {telemetry?.tyreLife ?? 0} laps old
-                </div>
-              </div>
-
-              <div className="p-3 rounded-lg bg-white/5 border border-white/5">
-                <div className="text-[10px] font-mono text-[var(--text-muted)] uppercase">DRS Wing</div>
-                <div className={`text-sm font-mono font-black mt-1 ${telemetry?.drs ? 'text-emerald-400' : 'text-[var(--text-muted)]'}`}>
-                  {telemetry?.drs ? 'OPEN' : 'OFF'}
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* Pedals Micro-HUD */}
           {telemetry && (

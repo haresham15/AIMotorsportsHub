@@ -11,6 +11,7 @@ interface Props {
   onPlaybackChange: (p: Partial<PlaybackState>) => void
   onDriverSelect: (codes: string[]) => void
   liveTrackStatus?: string
+  isRaceDone?: boolean
 }
 
 /* ── colour helpers ─────────────────────────────────────────────── */
@@ -29,7 +30,8 @@ function bounds(pts: Point2D[]) {
   return { xMin, xMax, yMin, yMax }
 }
 
-export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onDriverSelect, liveTrackStatus }: Props) {
+export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onDriverSelect, liveTrackStatus, isRaceDone = false }: Props) {
+
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animRef = useRef<number>(0)
   const lastTimeRef = useRef<number>(0)
@@ -161,6 +163,36 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
         const pts = source.slice(zone.startIdx, zone.endIdx + 1)
         if (pts.length > 1) drawLine(pts, 'rgba(34,197,94,0.8)', 10)
       }
+    }
+
+    /* pit lane */
+    if (!isDrag && data.trackGeometry.pitLane && data.trackGeometry.pitLane.length >= 2) {
+      const pit = data.trackGeometry.pitLane
+      // Draw pit road foundation with asphalt styling
+      drawLine(pit, 'rgba(148, 163, 184, 0.20)', 8)
+      // Dashed lane guidance line
+      cacheCtx.setLineDash([4, 4])
+      drawLine(pit, 'rgba(245, 158, 11, 0.45)', 1.5)
+      cacheCtx.setLineDash([])
+
+      // Demarcate Pit Entry line and Pit Exit line
+      const entryPt = toScreen(pit[0])
+      const exitPt = toScreen(pit[pit.length - 1])
+      
+      cacheCtx.fillStyle = 'rgba(245, 158, 11, 0.85)'
+      cacheCtx.font = 'bold 8px "JetBrains Mono", monospace'
+      cacheCtx.textAlign = 'center'
+      cacheCtx.fillText('PIT IN', entryPt.x, entryPt.y - 6)
+
+      cacheCtx.fillStyle = 'rgba(34, 197, 94, 0.85)'
+      cacheCtx.fillText('PIT OUT', exitPt.x, exitPt.y - 6)
+
+      // Pit Box marker (mid-point of pit lane)
+      const midIdx = Math.floor(pit.length / 2)
+      const boxPt = toScreen(pit[midIdx])
+      cacheCtx.strokeStyle = 'rgba(245, 158, 11, 0.5)'
+      cacheCtx.lineWidth = 1.5
+      cacheCtx.strokeRect(boxPt.x - 4, boxPt.y - 4, 8, 8)
     }
 
     if (!isDrag) {
@@ -319,28 +351,21 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
         ctx.fillText(code, sp.x, sp.y - (isSelected ? 16 : 14))
       }
 
-      /* telemetry bars for selected drivers */
+      /* focus ring for selected driver on track */
       if (isSelected) {
-        const barW = 20
-        const barH = 3
-        const bx = sp.x - barW / 2
-        const by = sp.y + 12
-        
-        // throttle (green)
-        ctx.fillStyle = 'rgba(255,255,255,0.1)'; ctx.fillRect(bx, by, barW, barH)
-        ctx.fillStyle = COLORS.greenFlag; ctx.fillRect(bx, by, barW * (d.throttle / 100), barH)
-        
-        // brake (red)
-        ctx.fillStyle = 'rgba(255,255,255,0.1)'; ctx.fillRect(bx, by + 4, barW, barH)
-        ctx.fillStyle = COLORS.flagRed; ctx.fillRect(bx, by + 4, barW * (d.brake / 100), barH)
-        
-        // series-tailored gear label
-        ctx.fillStyle = COLORS.textSecondary; ctx.font = 'bold 8px "JetBrains Mono", monospace'; ctx.textAlign = 'center'
-        const seriesId = data.sessionInfo?.seriesId || 'f1';
-        const isDragTrack = seriesId === 'top-fuel' || data.trackGeometry.type === 'drag';
-        const isFormulaE = seriesId === 'formula-e';
-        const gearLabel = isDragTrack ? '1:1' : isFormulaE ? 'EV' : `G${d.gear}`;
-        ctx.fillText(gearLabel, sp.x, by + 15)
+        ctx.beginPath()
+        ctx.arc(sp.x, sp.y, radius + 4, 0, Math.PI * 2)
+        ctx.strokeStyle = '#fbbf24'
+        ctx.lineWidth = 1.5
+        ctx.stroke()
+      }
+
+      /* pit indicator badge */
+      if (d.inPit) {
+        ctx.fillStyle = '#f59e0b'
+        ctx.font = 'bold 8px "JetBrains Mono", monospace'
+        ctx.textAlign = 'center'
+        ctx.fillText(d.pitPhase === 'STOP' ? 'BOX' : 'PIT', sp.x, sp.y + (isSelected ? 16 : 14))
       }
 
       /* DRS indicator (only relevant for F1, F2, F3) */
@@ -352,7 +377,7 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
     }
 
     /* HUD: track status banner (incorporates real-time live track alerts if in live mode) */
-    const effectiveTrackStatus = (playbackRef.current.isLiveMode && liveTrackStatusRef.current)
+    const effectiveTrackStatus = (playbackRef.current.isLiveMode && !isRaceDone && liveTrackStatusRef.current)
       ? liveTrackStatusRef.current
       : frame.trackStatus;
     if (effectiveTrackStatus && effectiveTrackStatus !== '1') {
@@ -362,8 +387,8 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
       ctx.fillText(si.label, 16, 24)
     }
 
-    /* HUD: live status pill on top right */
-    if (playbackRef.current.isLiveMode) {
+    /* HUD: live status pill on top right (closed out once race is done) */
+    if (playbackRef.current.isLiveMode && !isRaceDone) {
       ctx.beginPath()
       ctx.arc(w - 56, 20, 4, 0, Math.PI * 2)
       ctx.fillStyle = '#ef4444'
@@ -373,6 +398,7 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
       ctx.textAlign = 'right'
       ctx.fillText('LIVE', w - 16, 24)
     }
+
 
     /* ── Series-Tailored HUD Overlay ─────────────────────────────── */
     const seriesId = data.sessionInfo?.seriesId || 'f1';
@@ -390,21 +416,26 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
       : (driversArr.find(([, d]) => d.position === 1)?.[1] || driversArr[0]?.[1]);
     const secondDriver = driversArr.find(([, d]) => d.position === 2)?.[1];
 
+    // Shift bottom-left HUD vertically when a driver is focused to prevent overlapping DriverTelemetryPanel
+    const hudY = selectedCode ? h - 280 : h - 16;
+    const hudYSub = selectedCode ? h - 300 : h - 36;
+    const hudYTert = selectedCode ? h - 320 : h - 56;
+
     if (isDrag) {
       // ── Top Fuel HUD ──
       const speedMph = targetDriver ? Math.round(targetDriver.speed * 0.621371) : 0;
       const etSec = targetDriver?.elapsedTime ?? frame.t;
       
       ctx.fillStyle = '#f59e0b'; ctx.font = 'bold 12px Inter'; ctx.textAlign = 'left'
-      ctx.fillText('1,000 FT ELIMINATION • ROUND 1', 16, h - 38)
+      ctx.fillText('1,000 FT ELIMINATION • ROUND 1', 16, hudYTert)
       
       ctx.fillStyle = COLORS.textPrimary; ctx.font = 'bold 13px "JetBrains Mono", monospace'
-      ctx.fillText(`ET: ${etSec.toFixed(3)}s • SPEED: ${speedMph} MPH`, 16, h - 20)
+      ctx.fillText(`ET: ${etSec.toFixed(3)}s • SPEED: ${speedMph} MPH`, 16, hudYSub)
 
       ctx.fillStyle = COLORS.textSecondary; ctx.font = '10px "JetBrains Mono", monospace'
       const p1Rt = targetDriver?.reactionTime ? `+${targetDriver.reactionTime.toFixed(3)}s` : '+0.038s';
       const p2Rt = secondDriver?.reactionTime ? `+${secondDriver.reactionTime.toFixed(3)}s` : '+0.046s';
-      ctx.fillText(`RT: P1 ${p1Rt} | P2 ${p2Rt}`, 16, h - 6)
+      ctx.fillText(`RT: P1 ${p1Rt} | P2 ${p2Rt}`, 16, hudY)
 
       // Chute deployment notification banner
       if (targetDriver?.chuteDeployed) {
@@ -433,10 +464,10 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
 
       ctx.fillStyle = COLORS.textPrimary; ctx.font = 'bold 13px Inter'; ctx.textAlign = 'left'
       const stintStr = `STINT ${targetDriver?.stintNumber || 1} • LAP ${frame.lap}/${data.totalLaps}`
-      ctx.fillText(stintStr, 16, h - 16)
+      ctx.fillText(stintStr, 16, hudY)
 
       ctx.fillStyle = '#f59e0b'; ctx.font = 'bold 12px "JetBrains Mono", monospace'
-      ctx.fillText(`TIME REMAINING: ${remStr}`, 16, h - 36)
+      ctx.fillText(`TIME REMAINING: ${remStr}`, 16, hudYSub)
 
       if (targetDriver?.carClass) {
         ctx.fillStyle = targetDriver.carClass === 'HYPERCAR' ? '#ef4444' : '#f59e0b'
@@ -448,11 +479,11 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
       // ── Formula E HUD ──
       const energy = targetDriver?.energyPct !== undefined ? targetDriver.energyPct.toFixed(1) : '98.0';
       ctx.fillStyle = COLORS.textPrimary; ctx.font = 'bold 13px Inter'; ctx.textAlign = 'left'
-      ctx.fillText(`E-PRIX • LAP ${frame.lap}/${data.totalLaps}`, 16, h - 16)
+      ctx.fillText(`E-PRIX • LAP ${frame.lap}/${data.totalLaps}`, 16, hudY)
 
       ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 12px "JetBrains Mono", monospace'
       const atkStr = targetDriver?.attackMode ? ' • ⚡ ATTACK MODE (350 kW)' : '';
-      ctx.fillText(`ENERGY: ${energy}%${atkStr}`, 16, h - 36)
+      ctx.fillText(`ENERGY: ${energy}%${atkStr}`, 16, hudYSub)
     } else if (isNascar) {
       // ── NASCAR HUD ──
       const stageName = targetDriver?.stageNumber === 3 ? 'FINAL STAGE' : `STAGE ${targetDriver?.stageNumber || 1}`;
@@ -460,27 +491,28 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
       const speedMph = targetDriver ? Math.round(targetDriver.speed * 0.621371) : 190;
 
       ctx.fillStyle = COLORS.textPrimary; ctx.font = 'bold 13px Inter'; ctx.textAlign = 'left'
-      ctx.fillText(`NASCAR • ${stageName} • ${lapsToGo}`, 16, h - 16)
+      ctx.fillText(`NASCAR • ${stageName} • ${lapsToGo}`, 16, hudY)
 
       ctx.fillStyle = '#f59e0b'; ctx.font = 'bold 12px "JetBrains Mono", monospace'
-      ctx.fillText(`SPEED: ${speedMph} MPH`, 16, h - 36)
+      ctx.fillText(`SPEED: ${speedMph} MPH`, 16, hudYSub)
     } else if (isQuali) {
       // ── Qualifying HUD ──
       const qPhase = targetDriver?.qualifyingPhase || 'Q3 SHOOTOUT';
       ctx.fillStyle = COLORS.textPrimary; ctx.font = 'bold 13px Inter'; ctx.textAlign = 'left'
-      ctx.fillText(`QUALIFYING • ${qPhase}`, 16, h - 16)
+      ctx.fillText(`QUALIFYING • ${qPhase}`, 16, hudY)
 
       const totalSec = frame.t
       const mins = Math.floor(totalSec / 60)
       const secs = Math.floor(totalSec % 60)
       ctx.fillStyle = COLORS.textSecondary; ctx.font = '12px "JetBrains Mono", monospace'
-      ctx.fillText(`SESSION TIME: ${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`, 16, h - 36)
+      ctx.fillText(`SESSION TIME: ${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`, 16, hudYSub)
     } else {
       // ── Grand Prix / F1 Fallback HUD ──
       ctx.fillStyle = COLORS.textPrimary; ctx.font = 'bold 13px Inter'; ctx.textAlign = 'left'
-      const lapPrefix = playbackRef.current.isLiveMode ? 'LIVE • ' : ''
+      const lapPrefix = (playbackRef.current.isLiveMode && !isRaceDone) ? 'LIVE • ' : ''
       const lapStr = `${lapPrefix}LAP ${frame.lap}/${data.totalLaps}`
-      ctx.fillText(lapStr, 16, h - 16)
+
+      ctx.fillText(lapStr, 16, hudY)
 
       const totalSec = frame.t
       const hrs = Math.floor(totalSec / 3600)
@@ -490,8 +522,9 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
         ? `${hrs}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
         : `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
       ctx.fillStyle = COLORS.textSecondary; ctx.font = '12px "JetBrains Mono", monospace'
-      ctx.fillText(timeStr, 16, h - 36)
+      ctx.fillText(timeStr, 16, hudYSub)
     }
+
 
     /* speed indicator */
     ctx.fillStyle = COLORS.textMuted; ctx.font = '11px Inter'; ctx.textAlign = 'right'

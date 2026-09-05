@@ -19,6 +19,8 @@ export interface DriverFrameState {
   throttle: number;   // 0–100
   brake: number;      // 0–100
   inPit: boolean;
+  pitPhase?: 'ENTRY' | 'STOP' | 'EXIT';
+  pitStopDuration?: number;
   retired: boolean;
   finished?: boolean;
   // Series-specific telemetry details

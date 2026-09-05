@@ -12,22 +12,37 @@ import {
   Calendar,
   Award,
   Bell,
-  Radio,
   ExternalLink,
   ChevronRight,
   Check,
   Zap,
   Clock,
-  Compass
+  Compass,
+  Users,
+  UserPlus,
+  Paintbrush,
+  Search,
+  CheckCircle2,
+  XCircle,
+  UserCheck,
+  Sparkles,
+  MapPin,
+  Flag
 } from 'lucide-react'
 import {
   useUserProfile,
   BASE_ACHIEVEMENTS,
+  SEED_PADDOCK_MEMBERS,
   FollowedDriver,
-  FollowedTeam
+  FollowedTeam,
+  FriendConnection,
+  FriendRequest
 } from '@/lib/userPreferences'
 import { SERIES_DRIVERS, TEAM_HISTORY, SERIES } from '@/lib/data'
 import Loader from '@/components/ui/Loader'
+import { PaddockAvatar } from '@/components/profile/PaddockAvatar'
+import { ProfileCustomizerModal } from '@/components/profile/ProfileCustomizerModal'
+import { PublicProfileModal } from '@/components/profile/PublicProfileModal'
 
 export default function ProfilePage() {
   const {
@@ -37,19 +52,34 @@ export default function ProfilePage() {
     followedDrivers,
     followedTeams,
     checkIns,
+    friends,
+    friendRequests,
     alertPrefs,
     toggleDriver,
     toggleTeam,
     updateAlertPreferences,
+    updateProfileCustomization,
+    sendFriendRequest,
+    acceptFriendRequest,
+    declineFriendRequest,
+    cancelOutgoingRequest,
+    removeFriend,
+    isFriend,
+    hasPendingRequest,
     loginDemo,
     logout,
   } = useUserProfile()
 
-  const [activeTab, setActiveTab] = useState<'favorites' | 'checkins' | 'achievements' | 'alerts'>('favorites')
+  const [activeTab, setActiveTab] = useState<'favorites' | 'checkins' | 'achievements' | 'alerts' | 'connections'>('favorites')
+  const [connectionsSubTab, setConnectionsSubTab] = useState<'friends' | 'discover' | 'requests'>('friends')
   const [favoriteCategory, setFavoriteCategory] = useState<'drivers' | 'teams'>('drivers')
   const [showAddModal, setShowAddModal] = useState(false)
+  const [showCustomizerModal, setShowCustomizerModal] = useState(false)
+  const [inspectedMember, setInspectedMember] = useState<FriendConnection | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedSeries, setSelectedSeries] = useState<string>('f1')
+  const [directorySearch, setDirectorySearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'online' | 'in_replay' | 'in_garage'>('all')
 
   if (loading) {
     return (
@@ -72,7 +102,7 @@ export default function ProfilePage() {
             Paddock Pass Required
           </h1>
           <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-6 font-mono">
-            Sign in to track driver telemetry, record race weekend check-in deltas, and synchronize customized telemetry alerts.
+            Sign in to track driver telemetry, record race weekend check-in deltas, connect with paddock members, and synchronize customized telemetry alerts.
           </p>
 
           <div className="flex flex-col gap-2.5">
@@ -99,13 +129,10 @@ export default function ProfilePage() {
     )
   }
 
-  const initials = profile.displayName
-    ? profile.displayName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
-    : 'U'
-
   // Driver pool for Add Favorites modal
   const availableDrivers = SERIES_DRIVERS[selectedSeries] || []
   const availableTeams = TEAM_HISTORY[selectedSeries] || []
+  const incomingRequestsCount = friendRequests.filter(r => r.direction === 'incoming').length
 
   return (
     <main className="min-h-screen py-8 px-4 sm:px-6 max-w-[1280px] mx-auto flex flex-col gap-8">
@@ -114,16 +141,26 @@ export default function ProfilePage() {
       <section className="console-panel p-6 sm:p-7 relative border border-[var(--border-hairline)]">
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           {/* User Profile Details */}
-          <div className="flex items-center gap-4 sm:gap-6">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-none bg-[var(--surface-elevated)] border-2 border-[var(--amber-pit)]/50 flex items-center justify-center font-mono font-bold text-xl sm:text-2xl text-[var(--amber-pit)] shrink-0">
-              {initials}
-            </div>
-            <div>
+          <div className="flex items-start sm:items-center gap-4 sm:gap-6">
+            <PaddockAvatar
+              avatarUrl={profile.avatarUrl}
+              avatarFrame={profile.avatarFrame || 'gold_champion'}
+              name={profile.displayName}
+              size="xl"
+              status="online"
+              showStatus
+            />
+            <div className="space-y-1">
               <div className="flex items-center gap-2.5 flex-wrap">
                 <h1 className="font-[family-name:var(--font-disp)] uppercase text-2xl sm:text-3xl font-extrabold text-white tracking-tight m-0">
                   {profile.displayName}
                 </h1>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-none bg-[var(--surface-elevated)] border border-[var(--amber-pit)]/40 text-[var(--amber-pit)] font-mono text-[10px] font-bold uppercase tracking-wider">
+                {profile.title && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-none bg-[var(--surface-elevated)] border border-[var(--amber-pit)]/40 text-[var(--amber-pit)] font-mono text-[10px] font-bold uppercase tracking-wider">
+                    {profile.title}
+                  </span>
+                )}
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-none bg-white/5 border border-white/10 text-neutral-300 font-mono text-[10px] font-bold uppercase tracking-wider">
                   <ShieldCheck size={12} />
                   {profile.paddockTier}
                 </span>
@@ -133,24 +170,53 @@ export default function ProfilePage() {
                   </span>
                 )}
               </div>
-              <div className="text-xs text-[var(--text-muted)] mt-1 font-mono">
-                {profile.email} &bull; Member since {profile.memberSince}
+
+              {profile.tagline && (
+                <p className="text-xs text-neutral-300 italic font-mono max-w-xl">
+                  &ldquo;{profile.tagline}&rdquo;
+                </p>
+              )}
+
+              <div className="flex flex-wrap items-center gap-3 text-xs text-[var(--text-muted)] pt-1 font-mono">
+                <span>{profile.email}</span>
+                <span>&bull; Member since {profile.memberSince}</span>
+                {profile.homeCircuit && (
+                  <span className="flex items-center gap-1 text-neutral-300">
+                    <MapPin size={11} className="text-amber-400" />
+                    {profile.homeCircuit}
+                  </span>
+                )}
+                {profile.primaryTeam && (
+                  <span className="flex items-center gap-1 text-neutral-300">
+                    <Flag size={11} className="text-red-400" />
+                    {profile.primaryTeam}
+                  </span>
+                )}
               </div>
             </div>
           </div>
 
           {/* Quick Actions */}
-          <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="flex items-center gap-2.5 w-full md:w-auto flex-wrap">
+            <button
+              onClick={() => setShowCustomizerModal(true)}
+              className="flex-1 md:flex-initial py-2.5 px-4 rounded-lg bg-[var(--amber-pit)] hover:bg-[var(--amber-pit-hover)] text-black font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer"
+            >
+              <Paintbrush size={14} />
+              <span>Customize Profile</span>
+            </button>
+
             <Link
               href="/dashboard/f1"
-              className="flex-1 md:flex-initial py-2.5 px-4 rounded-lg bg-[var(--amber)] hover:bg-amber-400 text-black font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-2 no-underline transition-all shadow-md"
+              className="py-2.5 px-3.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold text-xs flex items-center gap-1.5 no-underline transition-colors"
             >
               <span>Live Telemetry</span>
-              <ExternalLink size={14} />
+              <ExternalLink size={13} />
             </Link>
+
             <button
               onClick={async () => await logout()}
-              className="py-2.5 px-4 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[var(--text-muted)] hover:text-white font-semibold text-xs transition-colors cursor-pointer"
+              className="py-2.5 px-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[var(--text-muted)] hover:text-white font-semibold text-xs transition-colors cursor-pointer"
             >
               Sign Out
             </button>
@@ -158,7 +224,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Fan Stats Bar */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-6 border-t border-white/5 font-mono">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-6 pt-6 border-t border-white/5 font-mono">
           <div className="p-3 rounded-xl bg-white/5 border border-white/5 text-center">
             <div className="text-[10px] uppercase text-[var(--text-muted)] tracking-wider flex items-center justify-center gap-1">
               <Flame size={12} className="text-amber-400 fill-amber-400" />
@@ -181,6 +247,16 @@ export default function ProfilePage() {
 
           <div className="p-3 rounded-xl bg-white/5 border border-white/5 text-center">
             <div className="text-[10px] uppercase text-[var(--text-muted)] tracking-wider flex items-center justify-center gap-1">
+              <Users size={12} className="text-cyan-400" />
+              Paddock Friends
+            </div>
+            <div className="text-2xl font-black text-cyan-300 mt-1">
+              {friends.length}
+            </div>
+          </div>
+
+          <div className="p-3 rounded-xl bg-white/5 border border-white/5 text-center">
+            <div className="text-[10px] uppercase text-[var(--text-muted)] tracking-wider flex items-center justify-center gap-1">
               <Star size={12} className="text-purple-400 fill-purple-400" />
               Followed Drivers
             </div>
@@ -189,12 +265,12 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <div className="p-3 rounded-xl bg-white/5 border border-white/5 text-center">
+          <div className="p-3 rounded-xl bg-white/5 border border-white/5 text-center col-span-2 sm:col-span-1">
             <div className="text-[10px] uppercase text-[var(--text-muted)] tracking-wider flex items-center justify-center gap-1">
-              <Compass size={12} className="text-cyan-400" />
+              <Compass size={12} className="text-orange-400" />
               Followed Teams
             </div>
-            <div className="text-2xl font-black text-cyan-300 mt-1">
+            <div className="text-2xl font-black text-orange-300 mt-1">
               {followedTeams.length}
             </div>
           </div>
@@ -204,10 +280,27 @@ export default function ProfilePage() {
       {/* ===== SECTION NAVIGATION TABS ===== */}
       <div className="flex border-b border-[var(--border-subtle)] gap-2 sm:gap-6 overflow-x-auto pb-1">
         <button
+          onClick={() => setActiveTab('connections')}
+          className={`flex items-center gap-2 py-3 px-3 sm:px-4 text-xs sm:text-sm font-bold tracking-wider uppercase transition-colors cursor-pointer border-b-2 ${
+            activeTab === 'connections'
+              ? 'border-[var(--amber-pit)] text-[var(--amber-pit)]'
+              : 'border-transparent text-[var(--text-muted)] hover:text-white'
+          }`}
+        >
+          <Users size={16} className={activeTab === 'connections' ? 'text-amber-400' : ''} />
+          <span>Paddock Connections ({friends.length})</span>
+          {incomingRequestsCount > 0 && (
+            <span className="px-1.5 py-0.5 bg-amber-500 text-black text-[10px] font-mono font-bold rounded-full animate-pulse">
+              {incomingRequestsCount}
+            </span>
+          )}
+        </button>
+
+        <button
           onClick={() => setActiveTab('favorites')}
           className={`flex items-center gap-2 py-3 px-3 sm:px-4 text-xs sm:text-sm font-bold tracking-wider uppercase transition-colors cursor-pointer border-b-2 ${
             activeTab === 'favorites'
-              ? 'border-[var(--amber)] text-[var(--amber)]'
+              ? 'border-[var(--amber-pit)] text-[var(--amber-pit)]'
               : 'border-transparent text-[var(--text-muted)] hover:text-white'
           }`}
         >
@@ -219,7 +312,7 @@ export default function ProfilePage() {
           onClick={() => setActiveTab('checkins')}
           className={`flex items-center gap-2 py-3 px-3 sm:px-4 text-xs sm:text-sm font-bold tracking-wider uppercase transition-colors cursor-pointer border-b-2 ${
             activeTab === 'checkins'
-              ? 'border-[var(--amber)] text-[var(--amber)]'
+              ? 'border-[var(--amber-pit)] text-[var(--amber-pit)]'
               : 'border-transparent text-[var(--text-muted)] hover:text-white'
           }`}
         >
@@ -231,7 +324,7 @@ export default function ProfilePage() {
           onClick={() => setActiveTab('achievements')}
           className={`flex items-center gap-2 py-3 px-3 sm:px-4 text-xs sm:text-sm font-bold tracking-wider uppercase transition-colors cursor-pointer border-b-2 ${
             activeTab === 'achievements'
-              ? 'border-[var(--amber)] text-[var(--amber)]'
+              ? 'border-[var(--amber-pit)] text-[var(--amber-pit)]'
               : 'border-transparent text-[var(--text-muted)] hover:text-white'
           }`}
         >
@@ -243,7 +336,7 @@ export default function ProfilePage() {
           onClick={() => setActiveTab('alerts')}
           className={`flex items-center gap-2 py-3 px-3 sm:px-4 text-xs sm:text-sm font-bold tracking-wider uppercase transition-colors cursor-pointer border-b-2 ${
             activeTab === 'alerts'
-              ? 'border-[var(--amber)] text-[var(--amber)]'
+              ? 'border-[var(--amber-pit)] text-[var(--amber-pit)]'
               : 'border-transparent text-[var(--text-muted)] hover:text-white'
           }`}
         >
@@ -627,6 +720,415 @@ export default function ProfilePage() {
         </div>
       )}
 
+      {/* ===== TAB 5: PADDOCK CONNECTIONS & FRIENDS ===== */}
+      {activeTab === 'connections' && (
+        <div className="flex flex-col gap-6">
+          {/* Connections Sub-Tabs */}
+          <div className="flex items-center gap-2 bg-white/5 p-1 rounded-xl border border-white/5 w-fit">
+            <button
+              onClick={() => setConnectionsSubTab('friends')}
+              className={`flex items-center gap-1.5 py-1.5 px-4 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer ${
+                connectionsSubTab === 'friends'
+                  ? 'bg-[var(--amber-pit)] text-black shadow-sm'
+                  : 'text-[var(--text-secondary)] hover:text-white'
+              }`}
+            >
+              <UserCheck size={14} />
+              Friends ({friends.length})
+            </button>
+            <button
+              onClick={() => setConnectionsSubTab('discover')}
+              className={`flex items-center gap-1.5 py-1.5 px-4 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer ${
+                connectionsSubTab === 'discover'
+                  ? 'bg-[var(--amber-pit)] text-black shadow-sm'
+                  : 'text-[var(--text-secondary)] hover:text-white'
+              }`}
+            >
+              <Search size={14} />
+              Discover Paddock
+            </button>
+            <button
+              onClick={() => setConnectionsSubTab('requests')}
+              className={`flex items-center gap-1.5 py-1.5 px-4 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer relative ${
+                connectionsSubTab === 'requests'
+                  ? 'bg-[var(--amber-pit)] text-black shadow-sm'
+                  : 'text-[var(--text-secondary)] hover:text-white'
+              }`}
+            >
+              <UserPlus size={14} />
+              Requests
+              {incomingRequestsCount > 0 && (
+                <span className="absolute -top-1 -right-1 px-1 min-w-[16px] h-4 flex items-center justify-center bg-red-500 text-white text-[9px] font-mono font-bold rounded-full">
+                  {incomingRequestsCount}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* ---- Friends Sub-Tab ---- */}
+          {connectionsSubTab === 'friends' && (
+            <div>
+              <div className="mb-4">
+                <h2 className="font-[family-name:var(--font-disp)] uppercase text-xl font-extrabold text-white m-0">
+                  Connected Paddock Friends
+                </h2>
+                <p className="text-xs text-[var(--text-muted)] mt-1">
+                  Your active pit crew — share telemetry insights and race-day experiences together.
+                </p>
+              </div>
+
+              {friends.length === 0 ? (
+                <div className="card glass p-12 text-center rounded-[var(--radius-xl)] bg-[var(--bg-card)] border border-[var(--border-subtle)]">
+                  <Users size={32} className="text-[var(--text-muted)] mx-auto mb-3" />
+                  <h3 className="text-base font-bold text-white mb-1">No Friends Connected Yet</h3>
+                  <p className="text-xs text-[var(--text-muted)] max-w-md mx-auto mb-4">
+                    Discover paddock members and send friend requests to build your pit crew.
+                  </p>
+                  <button
+                    onClick={() => setConnectionsSubTab('discover')}
+                    className="btn-primary text-xs py-2 px-4"
+                  >
+                    Discover Members
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {friends.map((friend) => (
+                    <button
+                      key={friend.id}
+                      type="button"
+                      onClick={() => setInspectedMember(friend)}
+                      className="card glass p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-amber-500/30 transition-all text-left cursor-pointer w-full"
+                    >
+                      <div className="flex items-start gap-3">
+                        <PaddockAvatar
+                          avatarUrl={friend.avatarUrl}
+                          avatarFrame={friend.avatarFrame || 'carbon'}
+                          name={friend.displayName}
+                          size="lg"
+                          status={friend.status}
+                          showStatus
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-bold text-sm text-white truncate">{friend.displayName}</span>
+                            {friend.title && (
+                              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/25 text-amber-400 shrink-0">
+                                {friend.title}
+                              </span>
+                            )}
+                          </div>
+                          {friend.tagline && (
+                            <p className="text-[11px] text-neutral-400 mt-0.5 line-clamp-1 italic">
+                              {friend.tagline}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-2 mt-1.5 text-[10px] font-mono text-neutral-500">
+                            {friend.primaryTeam && <span>{friend.primaryTeam}</span>}
+                            {friend.homeCircuit && (
+                              <>
+                                <span>&bull;</span>
+                                <span>{friend.homeCircuit}</span>
+                              </>
+                            )}
+                          </div>
+                          {friend.statusText && (
+                            <div className="mt-1.5 text-[10px] font-mono text-emerald-400/80 flex items-center gap-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                              {friend.statusText}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ---- Discover Members Sub-Tab ---- */}
+          {connectionsSubTab === 'discover' && (
+            <div>
+              <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+                <div>
+                  <h2 className="font-[family-name:var(--font-disp)] uppercase text-xl font-extrabold text-white m-0">
+                    Discover Paddock Members
+                  </h2>
+                  <p className="text-xs text-[var(--text-muted)] mt-1">
+                    Find and connect with motorsport enthusiasts across F1, WEC, and NASCAR communities.
+                  </p>
+                </div>
+              </div>
+
+              {/* Search & Filter Bar */}
+              <div className="flex flex-wrap items-center gap-3 mb-4">
+                <div className="relative flex-1 min-w-[220px]">
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
+                  <input
+                    type="text"
+                    value={directorySearch}
+                    onChange={(e) => setDirectorySearch(e.target.value)}
+                    placeholder="Search by name, team, or circuit..."
+                    className="w-full pl-9 pr-3 py-2.5 text-xs bg-neutral-900 border border-neutral-800 rounded-lg text-neutral-100 placeholder-neutral-500 focus:outline-none focus:border-amber-500 transition-colors font-mono"
+                  />
+                </div>
+                <div className="flex gap-1.5">
+                  {(['all', 'online', 'in_replay', 'in_garage'] as const).map((f) => (
+                    <button
+                      key={f}
+                      onClick={() => setStatusFilter(f)}
+                      className={`py-1.5 px-2.5 rounded-lg text-[10px] font-mono uppercase tracking-wider cursor-pointer transition-colors border ${
+                        statusFilter === f
+                          ? 'bg-amber-500/15 border-amber-500/40 text-amber-400'
+                          : 'bg-white/5 border-white/10 text-neutral-400 hover:text-white'
+                      }`}
+                    >
+                      {f === 'all' ? 'All' : f === 'in_replay' ? 'In Replay' : f === 'in_garage' ? 'Garage' : 'Online'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {SEED_PADDOCK_MEMBERS
+                  .filter((m) => {
+                    // Exclude already-connected friends
+                    if (isFriend(m.id)) return false
+                    // Search filter
+                    const q = directorySearch.toLowerCase()
+                    if (q && !m.displayName.toLowerCase().includes(q) && !m.primaryTeam?.toLowerCase().includes(q) && !m.homeCircuit?.toLowerCase().includes(q)) return false
+                    // Status filter
+                    if (statusFilter !== 'all' && m.status !== statusFilter) return false
+                    return true
+                  })
+                  .map((member) => {
+                    const pending = hasPendingRequest(member.id)
+                    return (
+                      <div
+                        key={member.id}
+                        className="card glass p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-white/20 transition-all"
+                      >
+                        <div className="flex items-start gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setInspectedMember(member)}
+                            className="cursor-pointer border-none bg-transparent p-0"
+                          >
+                            <PaddockAvatar
+                              avatarUrl={member.avatarUrl}
+                              avatarFrame={member.avatarFrame || 'carbon'}
+                              name={member.displayName}
+                              size="lg"
+                              status={member.status}
+                              showStatus
+                            />
+                          </button>
+                          <div className="flex-1 min-w-0">
+                            <button
+                              type="button"
+                              onClick={() => setInspectedMember(member)}
+                              className="text-left cursor-pointer border-none bg-transparent p-0 w-full"
+                            >
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="font-bold text-sm text-white truncate">{member.displayName}</span>
+                                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-neutral-400 uppercase shrink-0">
+                                  {member.favoriteSeries}
+                                </span>
+                              </div>
+                            </button>
+                            {member.title && (
+                              <div className="text-[10px] font-mono text-amber-400 mt-0.5">{member.title}</div>
+                            )}
+                            {member.tagline && (
+                              <p className="text-[10px] text-neutral-400 mt-0.5 line-clamp-2 italic">
+                                {member.tagline}
+                              </p>
+                            )}
+                            <div className="flex items-center gap-2 mt-1.5 text-[10px] font-mono text-neutral-500">
+                              {member.primaryTeam && <span>{member.primaryTeam}</span>}
+                              <span>🔥 {member.checkInStreak} streak</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
+                          <span className="text-[10px] font-mono text-neutral-500">
+                            {member.statusText}
+                          </span>
+                          {pending ? (
+                            <span className="text-[10px] font-mono text-amber-400 px-2.5 py-1 rounded border border-amber-500/30 bg-amber-500/10">
+                              Request Sent
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => sendFriendRequest(member)}
+                              className="flex items-center gap-1 text-[10px] font-mono font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-black transition-colors cursor-pointer border-none"
+                            >
+                              <UserPlus size={12} />
+                              Connect
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+              </div>
+
+              {SEED_PADDOCK_MEMBERS.filter(m => !isFriend(m.id)).length === 0 && (
+                <div className="card glass p-8 text-center rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)]">
+                  <Sparkles size={28} className="text-amber-400 mx-auto mb-2" />
+                  <p className="text-sm text-white font-bold">You&apos;re connected with everyone!</p>
+                  <p className="text-xs text-neutral-400 mt-1">All current paddock members are already in your friends list.</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ---- Pending Requests Sub-Tab ---- */}
+          {connectionsSubTab === 'requests' && (
+            <div>
+              <div className="mb-4">
+                <h2 className="font-[family-name:var(--font-disp)] uppercase text-xl font-extrabold text-white m-0">
+                  Connection Requests
+                </h2>
+                <p className="text-xs text-[var(--text-muted)] mt-1">
+                  Manage incoming and outgoing paddock connection requests.
+                </p>
+              </div>
+
+              {friendRequests.length === 0 ? (
+                <div className="card glass p-12 text-center rounded-[var(--radius-xl)] bg-[var(--bg-card)] border border-[var(--border-subtle)]">
+                  <UserPlus size={32} className="text-[var(--text-muted)] mx-auto mb-3" />
+                  <h3 className="text-base font-bold text-white mb-1">No Pending Requests</h3>
+                  <p className="text-xs text-[var(--text-muted)] max-w-md mx-auto mb-4">
+                    Discover paddock members and send connection requests to build your pit crew community.
+                  </p>
+                  <button
+                    onClick={() => setConnectionsSubTab('discover')}
+                    className="btn-primary text-xs py-2 px-4"
+                  >
+                    Discover Members
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  {/* Incoming Requests */}
+                  {friendRequests.filter(r => r.direction === 'incoming').length > 0 && (
+                    <>
+                      <div className="text-[10px] font-mono font-bold uppercase text-amber-400 tracking-wider flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                        Incoming Requests
+                      </div>
+                      {friendRequests
+                        .filter(r => r.direction === 'incoming')
+                        .map((req) => (
+                          <div
+                            key={req.id}
+                            className="card glass p-4 rounded-xl bg-[var(--bg-card)] border border-amber-500/20 flex flex-wrap items-center justify-between gap-4 hover:border-amber-500/40 transition-colors"
+                          >
+                            <div className="flex items-center gap-3">
+                              <PaddockAvatar
+                                avatarUrl={req.senderAvatar}
+                                avatarFrame={req.senderFrame || 'carbon'}
+                                name={req.senderName}
+                                size="md"
+                              />
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-sm text-white">{req.senderName}</span>
+                                  {req.senderTitle && (
+                                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/25 text-amber-400">
+                                      {req.senderTitle}
+                                    </span>
+                                  )}
+                                </div>
+                                {req.senderBio && (
+                                  <p className="text-[11px] text-neutral-400 mt-0.5 italic line-clamp-1">{req.senderBio}</p>
+                                )}
+                                <div className="text-[10px] font-mono text-neutral-500 mt-0.5">
+                                  {new Date(req.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                  {req.senderTeam && <> &bull; {req.senderTeam}</>}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => acceptFriendRequest(req.id)}
+                                className="flex items-center gap-1.5 py-1.5 px-4 rounded-lg text-xs font-mono font-bold uppercase tracking-wider bg-emerald-500 hover:bg-emerald-400 text-black transition-colors cursor-pointer border-none"
+                              >
+                                <CheckCircle2 size={14} />
+                                Accept
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => declineFriendRequest(req.id)}
+                                className="flex items-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-mono font-bold uppercase tracking-wider text-neutral-400 hover:text-red-400 bg-white/5 hover:bg-red-500/10 border border-white/10 hover:border-red-500/30 transition-colors cursor-pointer"
+                              >
+                                <XCircle size={14} />
+                                Decline
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                    </>
+                  )}
+
+                  {/* Outgoing Requests */}
+                  {friendRequests.filter(r => r.direction === 'outgoing').length > 0 && (
+                    <>
+                      <div className="text-[10px] font-mono font-bold uppercase text-neutral-400 tracking-wider mt-2 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-neutral-500" />
+                        Outgoing Requests
+                      </div>
+                      {friendRequests
+                        .filter(r => r.direction === 'outgoing')
+                        .map((req) => {
+                          const targetMember = SEED_PADDOCK_MEMBERS.find(m => m.id === req.receiverId)
+                          return (
+                            <div
+                              key={req.id}
+                              className="card glass p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)] flex flex-wrap items-center justify-between gap-4"
+                            >
+                              <div className="flex items-center gap-3">
+                                <PaddockAvatar
+                                  avatarUrl={targetMember?.avatarUrl}
+                                  avatarFrame={targetMember?.avatarFrame || 'carbon'}
+                                  name={targetMember?.displayName || req.receiverId}
+                                  size="md"
+                                />
+                                <div>
+                                  <span className="font-bold text-sm text-white">
+                                    {targetMember?.displayName || req.receiverId}
+                                  </span>
+                                  <div className="text-[10px] font-mono text-neutral-500 mt-0.5">
+                                    Sent {new Date(req.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                    &nbsp;&bull; Awaiting response
+                                  </div>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => cancelOutgoingRequest(req.id)}
+                                className="py-1.5 px-3 rounded-lg text-xs font-mono font-bold uppercase tracking-wider text-neutral-400 hover:text-red-400 bg-white/5 hover:bg-red-500/10 border border-white/10 transition-colors cursor-pointer"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          )
+                        })}
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ===== ADD FAVORITES MODAL ===== */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
@@ -746,6 +1248,30 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
+
+      {/* ===== PROFILE CUSTOMIZER MODAL ===== */}
+      {showCustomizerModal && profile && (
+        <ProfileCustomizerModal
+          isOpen={showCustomizerModal}
+          onClose={() => setShowCustomizerModal(false)}
+          profile={profile}
+          onSave={(updates) => updateProfileCustomization(updates)}
+        />
+      )}
+
+      {/* ===== PUBLIC PROFILE INSPECTOR MODAL ===== */}
+      <PublicProfileModal
+        member={inspectedMember}
+        isOpen={!!inspectedMember}
+        onClose={() => setInspectedMember(null)}
+        isFriend={inspectedMember ? isFriend(inspectedMember.id) : false}
+        pendingRequest={inspectedMember ? friendRequests.find(r => r.senderId === inspectedMember.id || r.receiverId === inspectedMember.id) : undefined}
+        onSendRequest={(m) => { sendFriendRequest(m); setInspectedMember(null) }}
+        onAcceptRequest={acceptFriendRequest}
+        onDeclineRequest={declineFriendRequest}
+        onCancelRequest={cancelOutgoingRequest}
+        onRemoveFriend={removeFriend}
+      />
 
     </main>
   )

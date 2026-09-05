@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, MouseEvent, useCallback } from 'react'
+import React, { useState, useRef, useEffect, MouseEvent, useCallback } from 'react'
 import { createWorker, Worker } from 'tesseract.js'
 import { 
   ScanText, 
@@ -19,6 +19,7 @@ import { SERIES_DRIVERS, SERIES_MAP } from '@/lib/data'
 
 interface BroadcastScannerProps {
   series?: string
+  isRaceDone?: boolean
   onScan: (data: CVData[]) => void
   onClose: () => void
 }
@@ -90,7 +91,7 @@ export const SERIES_OCR_PROFILES: Record<string, SeriesOcrProfile> = {
   }
 }
 
-export default function BroadcastScanner({ series = 'f2', onScan, onClose }: BroadcastScannerProps) {
+export default function BroadcastScanner({ series = 'f2', isRaceDone, onScan, onClose }: BroadcastScannerProps) {
   const initialProfileKey = SERIES_OCR_PROFILES[series] ? series : 'f2'
   const [selectedProfile, setSelectedProfile] = useState<string>(initialProfileKey)
   const [isDocked, setIsDocked] = useState(false)
@@ -173,6 +174,19 @@ export default function BroadcastScanner({ series = 'f2', onScan, onClose }: Bro
     setIsCapturing(false)
     stopScanning()
   }, [stopScanning])
+
+  // If session or race is done, automatically shut down broadcast scanner
+  const raceDoneHandled = React.useRef(false)
+  useEffect(() => {
+    if (isRaceDone && !raceDoneHandled.current) {
+      raceDoneHandled.current = true
+      // Defer state updates to avoid synchronous setState cascade within the effect
+      queueMicrotask(() => {
+        stopCapture()
+        onClose()
+      })
+    }
+  }, [isRaceDone, stopCapture, onClose])
 
   // Start Screen Capture
   const startCapture = async () => {

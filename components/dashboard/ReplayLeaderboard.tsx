@@ -169,7 +169,9 @@ export default function ReplayLeaderboard({ data, frame, selectedDrivers, onSele
               {/* Status / Gap */}
               <span className="ml-auto font-mono font-semibold text-[var(--text-secondary)] text-[10px]">
                 {d.inPit ? (
-                  <span className="text-amber-400 font-bold bg-amber-500/15 border border-amber-500/30 px-1.5 py-0.2 rounded text-[9px]">PIT</span>
+                  <span className="text-amber-400 font-bold bg-amber-500/15 border border-amber-500/30 px-1.5 py-0.2 rounded text-[9px]">
+                    {d.pitPhase === 'STOP' ? 'BOX' : 'PIT'}
+                  </span>
                 ) : d.retired ? (
                   <span className="text-red-400 font-bold bg-red-500/15 border border-red-500/30 px-1.5 py-0.2 rounded text-[9px]">OUT</span>
                 ) : d.finished && d.position === 1 ? (

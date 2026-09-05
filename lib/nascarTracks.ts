@@ -1,4 +1,5 @@
 import type { Point2D, TrackGeometry } from './replayTypes'
+import { generatePitLaneForTrack } from './pitLaneGenerator'
 
 type TrackKind = 'oval' | 'circuit' | 'street'
 
@@ -88,15 +89,17 @@ function geometry(spec: TrackSpec): TrackGeometry {
   const rawLine = catmullRomLoop(spec.points, 50)
   const referenceLine = normalizeCoordinates(rawLine)
   const width = spec.width ?? (spec.type === 'circuit' || spec.type === 'street' ? 14 : 26)
-  return {
+  const innerEdge = offsetLoop(referenceLine, width)
+  const outerEdge = offsetLoop(referenceLine, -width)
+  const baseGeom: TrackGeometry = {
     name: spec.name,
     country: spec.country ?? 'United States',
     lengthKm: spec.lengthKm,
     totalLaps: spec.laps,
     type: spec.type ?? 'oval',
     referenceLine,
-    innerEdge: offsetLoop(referenceLine, width),
-    outerEdge: offsetLoop(referenceLine, -width),
+    innerEdge,
+    outerEdge,
     startFinishIdx: 0,
     drsZones: [],
     sectors: [
@@ -105,6 +108,10 @@ function geometry(spec: TrackSpec): TrackGeometry {
       { name: 'S3', startIdx: Math.floor(referenceLine.length * 2 / 3), endIdx: referenceLine.length - 1 },
     ],
     rotation: 0,
+  }
+  return {
+    ...baseGeom,
+    pitLane: generatePitLaneForTrack(baseGeom),
   }
 }
 

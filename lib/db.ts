@@ -60,6 +60,31 @@ export function getDrivers() {
   `).all();
 }
 
+export function getDriversWithStats() {
+  const db = getDb();
+  return db.prepare(`
+    SELECT d.driverId, d.forename, d.surname, d.nationality,
+           COUNT(res.raceId) as totalRaces,
+           SUM(CASE WHEN res.positionOrder = 1 THEN 1 ELSE 0 END) as totalWins,
+           MAX(r.year) as lastYear,
+           MIN(r.year) as firstYear
+    FROM drivers d
+    LEFT JOIN results res ON d.driverId = res.driverId
+    LEFT JOIN races r ON res.raceId = r.raceId
+    GROUP BY d.driverId
+    ORDER BY totalWins DESC, totalRaces DESC, d.surname ASC
+  `).all() as {
+    driverId: number;
+    forename: string;
+    surname: string;
+    nationality: string;
+    totalRaces: number;
+    totalWins: number;
+    lastYear: number | null;
+    firstYear: number | null;
+  }[];
+}
+
 export function getHeadToHead(driver1Id: number, driver2Id: number) {
   const db = getDb();
   

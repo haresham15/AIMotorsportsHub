@@ -11,8 +11,10 @@ import DriverTelemetryPanel from './DriverTelemetryPanel'
 import DriverProfileModal from './DriverProfileModal'
 import TrackDetailsModal from './TrackDetailsModal'
 import RaceControlModal from './RaceControlModal'
-import { Radio, AlertTriangle, ListOrdered, Clock } from 'lucide-react'
+import { Radio, AlertTriangle, ListOrdered, Clock, Flag } from 'lucide-react'
 import Loader from '@/components/ui/Loader'
+import { getSessionDurationMs } from '@/lib/seriesSchedules'
+
 
 // Helper to run simulation — prefers Web Worker for off-main-thread
 // generation, but falls back to synchronous if Workers are unavailable
@@ -89,6 +91,7 @@ export default function LiveMap2D({
   onSelectDriver,
   isLiveSession = false,
   sessionStartTime = null,
+  roundStatus,
   cvData = [],
 }: LiveMap2DProps) {
   const parsedYear = typeof year === 'number' ? year : (parseInt(String(year), 10) || new Date().getFullYear())
@@ -358,11 +361,68 @@ export default function LiveMap2D({
     return replayData.frames[replayData.frames.length - 1]?.t ?? 0
   }, [isLiveSession, sessionStartTime, wallClockMs, replayData])
 
+  // ── Current frame ──────────────────────────────────────────────
+  const currentFrame: RaceFrame | null = useMemo(() => {
+    if (!replayData || replayData.frames.length === 0) return null
+    const idx = Math.min(Math.floor(playback.frameIndex), replayData.frames.length - 1)
+    return replayData.frames[idx] ?? null
+  }, [replayData, playback.frameIndex])
+
+  // Detect whether the session or race is done / concluded
+  const isRaceDone = useMemo(() => {
+    // 1. Explicit round or event status
+    if (roundStatus === 'completed' || roundStatus === 'final') return true
+
+    // 2. Real-world scheduled duration has passed
+    if (sessionStartTime) {
+      const startMs = new Date(sessionStartTime).getTime()
+      if (!isNaN(startMs)) {
+        const durationMs = getSessionDurationMs(sessionType)
+        if (wallClockMs > startMs + durationMs) {
+          return true
+        }
+      }
+    }
+
+    // 3. Live API feed indicates session is finished/chequered
+    if (
+      liveSessionData?.trackStatus === 'CHECKERED' ||
+      liveSessionData?.trackStatus === 'CHEQUERED' ||
+      liveSessionData?.trackStatus === 'FINISHED' ||
+      liveSessionData?.flagLabel === 'CHECKERED' ||
+      liveSessionData?.flagLabel === 'CHEQUERED' ||
+      liveSessionData?.flagLabel === 'FINISHED'
+    ) {
+      return true
+    }
+
+    // 4. In replay frame data: leader has finished or race has reached checkered flag
+    if (currentFrame) {
+      const drivers = Object.values(currentFrame.drivers)
+      const leader = drivers.find(d => d.position === 1)
+      if (leader?.finished) return true
+      if (replayData && currentFrame.lap >= replayData.totalLaps && (leader?.lap ?? 0) >= replayData.totalLaps) {
+        return true
+      }
+    }
+
+    return false
+  }, [roundStatus, sessionStartTime, sessionType, wallClockMs, liveSessionData, currentFrame, replayData])
+
+  const effectiveIsLive = Boolean(isLiveSession && !isRaceDone)
+
+  // When race finishes, immediately close out live mode
+  useEffect(() => {
+    if (isRaceDone && playback.isLiveMode) {
+      setPlayback(prev => ({ ...prev, isLiveMode: false }))
+    }
+  }, [isRaceDone, playback.isLiveMode])
+
   // Set initial frame index and playback state when replay data changes
   useEffect(() => {
     if (!replayData || replayData.frames.length === 0) return
 
-    if (isLiveSession) {
+    if (effectiveIsLive) {
       let targetFrame = 0
       if (sessionStartTime) {
         const startMs = new Date(sessionStartTime).getTime()
@@ -386,7 +446,7 @@ export default function LiveMap2D({
     } else {
       setPlayback(prev => ({ ...prev, frameIndex: 0, isPlaying: false, isLiveMode: false }))
     }
-  }, [replayData, isLiveSession, sessionStartTime])
+  }, [replayData, effectiveIsLive, sessionStartTime])
 
   // Jump/Sync directly to the current live moment
   const handleSyncToLive = useCallback(() => {
@@ -403,7 +463,7 @@ export default function LiveMap2D({
 
   // Continuous wall-clock synchronization while in live mode
   useEffect(() => {
-    if (!playback.isLiveMode || !isLiveSession || !sessionStartTime || !replayData || replayData.frames.length === 0) return
+    if (!playback.isLiveMode || !effectiveIsLive || !sessionStartTime || !replayData || replayData.frames.length === 0) return
 
     const syncWithWallClock = () => {
       const startMs = new Date(sessionStartTime).getTime()
@@ -433,12 +493,13 @@ export default function LiveMap2D({
       clearInterval(interval)
       document.removeEventListener('visibilitychange', handleVisibility)
     }
-  }, [playback.isLiveMode, isLiveSession, sessionStartTime, replayData])
+  }, [playback.isLiveMode, effectiveIsLive, sessionStartTime, replayData])
 
-  // Poll real-time live standings for live races (F1 & NASCAR)
+  // Poll real-time live standings for live races (F1 & NASCAR) - terminates once race is done
   useEffect(() => {
-    if (!isLiveSession) return
+    if (!effectiveIsLive) return
     let isCancelled = false
+
 
     const pollLiveData = async () => {
       try {
@@ -559,15 +620,8 @@ export default function LiveMap2D({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // ── Current frame ──────────────────────────────────────────────
-  const currentFrame: RaceFrame | null = useMemo(() => {
-    if (!replayData || replayData.frames.length === 0) return null
-    const idx = Math.min(Math.floor(playback.frameIndex), replayData.frames.length - 1)
-    return replayData.frames[idx] ?? null
-  }, [replayData, playback.frameIndex])
-
   const currentSec = currentFrame?.t ?? 0
-  const isBehindLive = Boolean(isLiveSession && (liveEdgeTimeSec - currentSec > 4))
+  const isBehindLive = Boolean(effectiveIsLive && (liveEdgeTimeSec - currentSec > 4))
   const liveLagSeconds = Math.max(0, Math.floor(liveEdgeTimeSec - currentSec))
 
   // Throttle live standings sync to ~10 FPS (100ms) during playback, instant when paused/seeking
@@ -583,7 +637,7 @@ export default function LiveMap2D({
       lastFrameIdxRef.current = playback.frameIndex
 
       // At live edge with verified live API telemetry, prioritize real API data
-      if (isLiveSession && playback.isLiveMode && !isBehindLive && liveApiStandings && liveApiStandings.length > 0) {
+      if (effectiveIsLive && playback.isLiveMode && !isBehindLive && liveApiStandings && liveApiStandings.length > 0) {
         onStandingsChange(liveApiStandings)
         return
       }
@@ -606,7 +660,7 @@ export default function LiveMap2D({
 
       onStandingsChange(synced)
     }
-  }, [currentFrame, replayData, onStandingsChange, series, playback.frameIndex, playback.isPlaying, cvData, isLiveSession, playback.isLiveMode, isBehindLive, liveApiStandings])
+  }, [currentFrame, replayData, onStandingsChange, series, playback.frameIndex, playback.isPlaying, cvData, effectiveIsLive, playback.isLiveMode, isBehindLive, liveApiStandings])
 
   const selectedDriver = playback.selectedDrivers.length === 1 ? playback.selectedDrivers[0] : null
 
@@ -631,7 +685,7 @@ export default function LiveMap2D({
   }
 
   // Track status indicator details
-  const trackStatus = (isLiveSession && playback.isLiveMode && !isBehindLive && liveSessionData?.trackStatus)
+  const trackStatus = (effectiveIsLive && playback.isLiveMode && !isBehindLive && liveSessionData?.trackStatus)
     ? liveSessionData.trackStatus
     : (currentFrame?.trackStatus || '1')
   const flagDetails = (() => {
@@ -690,7 +744,7 @@ export default function LiveMap2D({
 
         {/* Center: Track Condition Flag & Live Indicator */}
         <div className="hidden sm:flex items-center gap-2">
-          {isLiveSession && (
+          {effectiveIsLive && (
             isBehindLive ? (
               <button
                 onClick={handleSyncToLive}
@@ -709,6 +763,16 @@ export default function LiveMap2D({
                 <span>LIVE FEED</span>
               </div>
             )
+          )}
+
+          {isRaceDone && (
+            <div 
+              className="px-2.5 py-1 rounded-none border border-white/20 bg-white/5 text-white/80 text-[11px] font-mono font-bold flex items-center gap-1.5"
+              title="Official session results finalized"
+            >
+              <Flag size={12} className="text-white/60" />
+              <span>RACE CONCLUDED • FINAL</span>
+            </div>
           )}
 
           <button
@@ -745,6 +809,7 @@ export default function LiveMap2D({
             onPlaybackChange={handlePlaybackChange}
             onDriverSelect={handleDriverSelect}
             liveTrackStatus={trackStatus}
+            isRaceDone={isRaceDone}
           />
 
           {/* Compact Driver Telemetry HUD (docked bottom-left when focused) */}
@@ -792,12 +857,14 @@ export default function LiveMap2D({
         playback={playback}
         data={replayData}
         onChange={handlePlaybackChange}
-        isLiveSession={isLiveSession}
+        isLiveSession={effectiveIsLive}
         isBehindLive={isBehindLive}
         liveLagSeconds={liveLagSeconds}
-        liveEdgeTime={liveEdgeTimeSec}
-        onSyncToLive={handleSyncToLive}
+        liveEdgeTime={effectiveIsLive ? liveEdgeTimeSec : undefined}
+        onSyncToLive={effectiveIsLive ? handleSyncToLive : undefined}
+        isRaceDone={isRaceDone}
       />
+
 
       {/* ── Specialized Pop-up Modals ───────────────────────────────── */}
       <DriverProfileModal
@@ -816,11 +883,26 @@ export default function LiveMap2D({
                 tyreLife: currentFrame.drivers[inspectDriverCode].tyreLife,
                 drs: currentFrame.drivers[inspectDriverCode].drs >= 10,
                 position: currentFrame.drivers[inspectDriverCode].position,
+                isMph: series === 'top-fuel' || series === 'nascar' || series.startsWith('nascar-'),
+                chuteDeployed: currentFrame.drivers[inspectDriverCode].chuteDeployed,
+                attackMode: currentFrame.drivers[inspectDriverCode].attackMode,
+                energyPct: currentFrame.drivers[inspectDriverCode].energyPct,
+                carClass: currentFrame.drivers[inspectDriverCode].carClass,
+                stintNumber: currentFrame.drivers[inspectDriverCode].stintNumber,
+                stageNumber: currentFrame.drivers[inspectDriverCode].stageNumber,
                 gap: (() => {
                   const sorted = Object.values(currentFrame.drivers).sort((a, b) => a.position - b.position);
                   const leader = sorted[0];
                   const d = currentFrame.drivers[inspectDriverCode];
                   if (!leader || !d) return undefined;
+                  if (series === 'top-fuel') {
+                    if (d.position === 1) return d.finished ? 'WINNER' : 'LEADER';
+                    if (d.elapsedTime !== undefined && leader.elapsedTime !== undefined) {
+                      const delta = Math.max(0, d.elapsedTime - leader.elapsedTime);
+                      return `+${delta.toFixed(3)}s ET`;
+                    }
+                    return d.reactionTime ? `+${d.reactionTime.toFixed(3)}s RT` : '+0.040s';
+                  }
                   return calculateReplayGap(
                     d.position,
                     d.dist,

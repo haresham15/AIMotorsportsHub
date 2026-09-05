@@ -5,6 +5,7 @@
 import type { TrackGeometry, Point2D } from './replayTypes';
 import generatedTracks from './generatedTracks.json';
 import { getNascarTrack, NASCAR_TRACK_REGISTRY } from './nascarTracks';
+import { ensureTrackWithPitLane } from './pitLaneGenerator';
 
 // ── Utility: generate smooth curves ──────────────────────────────────
 function lerp(a: number, b: number, t: number): number {
@@ -115,11 +116,15 @@ const DRAG_STRIP: TrackGeometry = {
   startFinishIdx: 0
 };
 
-export const TRACK_REGISTRY: Record<string, TrackGeometry> = {
+const rawTrackRegistry: Record<string, TrackGeometry> = {
   ...(generatedTracks as Record<string, TrackGeometry>),
   ...NASCAR_TRACK_REGISTRY,
   'Drag Strip': DRAG_STRIP,
 };
+
+export const TRACK_REGISTRY: Record<string, TrackGeometry> = Object.fromEntries(
+  Object.entries(rawTrackRegistry).map(([name, geom]) => [name, ensureTrackWithPitLane(geom)])
+);
 
 /** Look up a circuit geometry by circuit name (fuzzy match), with series fallback */
 export function getTrackForCircuit(circuitName?: string, seriesId?: string): TrackGeometry {
@@ -137,13 +142,13 @@ export function getTrackForCircuit(circuitName?: string, seriesId?: string): Tra
     const venues = Object.entries(TRACK_REGISTRY).sort(([a], [b]) => b.length - a.length);
     for (const [venue, geometry] of venues) {
       if (lower.includes(venue.toLowerCase()) || venue.toLowerCase().includes(lower)) {
-        return geometry;
+        return ensureTrackWithPitLane(geometry);
       }
     }
   }
 
   // Fallback
-  return getTrackForSeries(seriesId || 'f1');
+  return ensureTrackWithPitLane(getTrackForSeries(seriesId || 'f1'));
 }
 
 /** Get the track geometry for a series, with fallback */
@@ -155,7 +160,11 @@ export function getTrackForSeries(seriesId: string): TrackGeometry {
       'nascar-xfinity': 'Charlotte Motor Speedway',
       'nascar-trucks': 'Bristol Motor Speedway',
     };
-    return NASCAR_TRACK_REGISTRY[fallbackMap[seriesId]] || NASCAR_TRACK_REGISTRY['Daytona International Speedway'] || Object.values(NASCAR_TRACK_REGISTRY)[0];
+    return ensureTrackWithPitLane(
+      NASCAR_TRACK_REGISTRY[fallbackMap[seriesId]] ||
+      NASCAR_TRACK_REGISTRY['Daytona International Speedway'] ||
+      Object.values(NASCAR_TRACK_REGISTRY)[0]
+    );
   }
 
   const fallbackMap: Record<string, string> = {

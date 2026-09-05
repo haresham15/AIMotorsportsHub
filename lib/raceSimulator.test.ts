@@ -208,4 +208,71 @@ describe('race simulator track math', () => {
     // Top LMGT3 driver has class position 1
     expect(frame.drivers['BAC'].classPosition).toBe(1)
   })
+
+  it('correctly uses gear 1 for standing starts and slow sections', () => {
+    const drivers = [{ code: 'HAM', name: 'Lewis Hamilton', number: 44, team: 'Ferrari', color: '#E80020' }]
+    const replay = generateReplayData('f1', monacoTrack, drivers, 'Race')
+    
+    // Check that gears are within legal range [0, 8] and gear 1 is utilized
+    const gearsUsed = new Set(replay.frames.map(f => f.drivers['HAM'].gear))
+    expect(gearsUsed.has(1)).toBe(true)
+    for (const g of gearsUsed) {
+      expect(g).toBeGreaterThanOrEqual(0)
+      expect(g).toBeLessThanOrEqual(8)
+    }
+  })
+
+  it('guarantees valid pitLane geometry and coordinates 3-phase pit stop timing', () => {
+    const drivers = [{ code: 'VER', name: 'Max Verstappen', number: 1, team: 'Red Bull', color: '#3671C6' }]
+    const replay = generateReplayData('f1', zandvoortTrack, drivers, 'Race')
+    
+    // Pit lane must be populated on trackGeometry
+    expect(replay.trackGeometry.pitLane).toBeDefined()
+    expect(replay.trackGeometry.pitLane!.length).toBeGreaterThanOrEqual(4)
+
+    // Check for pit phases throughout the race
+    let foundEntry = false
+    let foundStop = false
+    let foundExit = false
+    let stopDuration = 0
+
+    for (const frame of replay.frames) {
+      const d = frame.drivers['VER']
+      if (!d) continue
+
+      if (d.inPit) {
+        if (d.pitPhase === 'ENTRY') {
+          foundEntry = true
+          // Under pit speed limiter (80 km/h)
+          expect(d.speed).toBeLessThanOrEqual(85)
+        } else if (d.pitPhase === 'STOP') {
+          foundStop = true
+          // Stationary in pit box
+          expect(d.speed).toBe(0)
+          expect(d.gear).toBe(0)
+          expect(d.brake).toBe(100)
+          expect(d.throttle).toBe(0)
+          if (d.pitStopDuration) {
+            stopDuration = d.pitStopDuration
+          }
+        } else if (d.pitPhase === 'EXIT') {
+          foundExit = true
+          expect(d.speed).toBeLessThanOrEqual(85)
+        }
+      }
+    }
+
+    expect(foundEntry).toBe(true)
+    expect(foundStop).toBe(true)
+    expect(foundExit).toBe(true)
+    // F1 stop duration calibrated to 2.2 - 3.2s
+    expect(stopDuration).toBeGreaterThanOrEqual(2.0)
+    expect(stopDuration).toBeLessThanOrEqual(3.5)
+
+    // Pit entry and exit race control messages emitted
+    const pitMessages = replay.raceControlMessages?.filter(m => m.sector === 'Pit') ?? []
+    expect(pitMessages.length).toBeGreaterThanOrEqual(2)
+    expect(pitMessages.some(m => m.message.includes('ENTERED PIT LANE'))).toBe(true)
+    expect(pitMessages.some(m => m.message.includes('PIT STOP COMPLETED'))).toBe(true)
+  })
 })

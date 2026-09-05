@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   getSessionDurationMs,
   isSessionInProgress,
+  isSessionCompleted,
   findMostRecentSession,
   findCurrentOrRecentRound,
   getSeriesFallbackSchedule,
@@ -33,6 +34,23 @@ describe('seriesSchedules engine', () => {
     // 2 hours after start (Sprint duration is 1.25h): finished
     expect(isSessionInProgress(session, baseTime + 2 * 3600 * 1000)).toBe(false)
   })
+
+  it('detects when a session or race is done / completed', () => {
+    const baseTime = new Date('2025-06-28T14:00:00Z').getTime()
+    const session = {
+      name: 'Grand Prix Race',
+      dateStart: new Date(baseTime).toISOString(),
+      key: 102,
+    }
+
+    // While in progress: not completed
+    expect(isSessionCompleted(session, 'in_progress', baseTime + 30 * 60 * 1000)).toBe(false)
+    // Explicit completed status: completed
+    expect(isSessionCompleted(session, 'completed', baseTime + 30 * 60 * 1000)).toBe(true)
+    // 4 hours after start (GP duration 3h): completed
+    expect(isSessionCompleted(session, undefined, baseTime + 4 * 3600 * 1000)).toBe(true)
+  })
+
 
   it('findMostRecentSession picks the session that is currently live', () => {
     const base = new Date('2025-07-05T10:00:00Z').getTime()

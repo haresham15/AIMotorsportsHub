@@ -19,12 +19,13 @@ import RoundNavigator from '@/components/dashboard/RoundNavigator'
 import ChampionshipStandings from '@/components/dashboard/ChampionshipStandings'
 import { ArrowLeft, ChevronDown, AlertCircle, ShieldCheck, Check, Flame, Star } from 'lucide-react'
 import { useSeriesData } from '@/lib/hooks/useSeriesData'
-import { RaceData, CVData } from '@/lib/types'
-import { isSessionInProgress, findMostRecentSession } from '@/lib/seriesSchedules'
+import { isSessionInProgress, isSessionCompleted, findMostRecentSession } from '@/lib/seriesSchedules'
+
 import PodiumProbability from '@/components/dashboard/PodiumProbability'
 import DriverSimilarityMap from '@/components/dashboard/DriverSimilarityMap'
 import { useUserProfile } from '@/lib/userPreferences'
 import { toast } from 'sonner'
+import type { CVData, RaceData } from '@/lib/types'
 
 export default function SeriesDashboard() {
   const params = useParams()
@@ -67,6 +68,17 @@ export default function SeriesDashboard() {
 
   // Unified active standings: Replay takes absolute precedence when active
   const activeTelemetryData = (replayStandings && replayStandings.length > 0) ? replayStandings : liveRaceData
+
+  const currentRoundData = scheduleData?.rounds.find((r) => r.round === selectedRound)
+  const currentSession = currentRoundData?.sessions?.find((s) => s.key === selectedSessionKey) || findMostRecentSession(currentRoundData)
+  const sessionType = currentSession?.name || 'Race'
+  const sessionStartTime = currentSession?.dateStart || (currentRoundData?.date ? `${currentRoundData.date}T${currentRoundData.time || '00:00:00Z'}` : null)
+
+  const isCompleted = currentRoundData?.status === 'completed' || isSessionCompleted(currentSession, currentRoundData?.status, nowMs)
+  const isSessionLive = !isCompleted && (currentRoundData?.status === 'live' || isSessionInProgress(currentSession, nowMs))
+  const detailedEventName = currentRoundData
+    ? `${currentRoundData.name || currentRoundData.circuitName} - ${sessionType}`
+    : `${series.toUpperCase()} - ${sessionType}`
 
   if (!seriesInfo) {
     return (
@@ -118,9 +130,21 @@ export default function SeriesDashboard() {
 
             {/* Live/Simulated Status Pill */}
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-xs bg-[var(--surface-elevated)] border border-[var(--border-hairline)] text-xs font-mono">
-              <span className={`w-2 h-2 rounded-full ${series === 'f1' || series === 'nascar' || series.startsWith('nascar-') ? 'bg-[var(--flag-green)] shadow-[0_0_6px_var(--flag-green)] animate-pulse' : 'bg-[var(--amber-pit)] shadow-[0_0_6px_var(--amber-pit)]'}`} />
+              <span className={`w-2 h-2 rounded-full ${
+                isSessionLive
+                  ? 'bg-[var(--flag-green)] shadow-[0_0_6px_var(--flag-green)] animate-pulse'
+                  : isCompleted
+                  ? 'bg-zinc-500'
+                  : 'bg-[var(--amber-pit)] shadow-[0_0_6px_var(--amber-pit)]'
+              }`} />
               <span className="text-[var(--text-secondary)] font-medium tracking-wider">
-                {series === 'f1' || series === 'nascar' || series.startsWith('nascar-') ? 'LIVE TELEMETRY' : 'SIMULATION ENGINE'}
+                {isSessionLive
+                  ? 'LIVE TELEMETRY'
+                  : isCompleted
+                  ? 'SESSION REPLAY'
+                  : (series === 'f1' || series === 'nascar' || series.startsWith('nascar-'))
+                  ? 'TELEMETRY ARCHIVE'
+                  : 'SIMULATION ENGINE'}
               </span>
             </div>
           </div>
@@ -194,7 +218,6 @@ export default function SeriesDashboard() {
             {/* Check-In Action Button */}
             <div className="flex items-center gap-3">
               {(() => {
-                const currentRoundData = scheduleData?.rounds.find((r) => r.round === selectedRound)
                 const isCheckedIn = isCheckedInForRound(selectedRound, series)
                 const primaryDriver = followedDrivers.find(d => d.series === series) || followedDrivers[0]
 
@@ -260,38 +283,24 @@ export default function SeriesDashboard() {
 
         {/* ===== HERO MAP ===== */}
         <div className="console-panel overflow-hidden mb-8">
-          {(() => {
-            const currentRoundData = scheduleData?.rounds.find((r) => r.round === selectedRound)
-            const currentSession = currentRoundData?.sessions?.find((s) => s.key === selectedSessionKey) || findMostRecentSession(currentRoundData)
-            const sessionType = currentSession?.name || 'Race'
-            const sessionStartTime = currentSession?.dateStart || (currentRoundData?.date ? `${currentRoundData.date}T${currentRoundData.time || '00:00:00Z'}` : null)
-
-            const isSessionLive = currentRoundData?.status === 'live' || isSessionInProgress(currentSession)
-            const detailedEventName = currentRoundData
-              ? `${currentRoundData.name || currentRoundData.circuitName} - ${sessionType}`
-              : `${series.toUpperCase()} - ${sessionType}`
-            
-            return (
-              <LiveMap2D 
-                series={series} 
-                round={selectedRound} 
-                year={selectedYear}
-                sessionKey={selectedSessionKey} 
-                sessionType={sessionType}
-                circuitName={currentRoundData?.circuitName}
-                eventName={detailedEventName}
-                country={currentRoundData?.country}
-                driverStandings={standingsData?.driverStandings}
-                onStandingsChange={setReplayStandings}
-                selectedDriverCode={focusedDriverCode}
-                onSelectDriver={setFocusedDriverCode}
-                isLiveSession={isSessionLive}
-                sessionStartTime={sessionStartTime}
-                roundStatus={currentRoundData?.status}
-                cvData={cvData}
-              />
-            )
-          })()}
+          <LiveMap2D 
+            series={series} 
+            round={selectedRound} 
+            year={selectedYear}
+            sessionKey={selectedSessionKey} 
+            sessionType={sessionType}
+            circuitName={currentRoundData?.circuitName}
+            eventName={detailedEventName}
+            country={currentRoundData?.country}
+            driverStandings={standingsData?.driverStandings}
+            onStandingsChange={setReplayStandings}
+            selectedDriverCode={focusedDriverCode}
+            onSelectDriver={setFocusedDriverCode}
+            isLiveSession={isSessionLive}
+            sessionStartTime={sessionStartTime}
+            roundStatus={currentRoundData?.status}
+            cvData={cvData}
+          />
         </div>
 
         {/* ===== AI SUMMARY & NAVIGATION ===== */}
@@ -317,7 +326,7 @@ export default function SeriesDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* Missing Live Data Banner (Non-Live Series) */}
-          {series !== 'f1' && series !== 'nascar' && !series.startsWith('nascar-') && !isScanningActive && (
+          {isSessionLive && series !== 'f1' && series !== 'nascar' && !series.startsWith('nascar-') && !isScanningActive && (
             <div className="lg:col-span-3">
               <div className="console-panel px-5 py-3.5 flex justify-between items-center">
                 <div>
@@ -333,6 +342,7 @@ export default function SeriesDashboard() {
           {isScanningActive && (
             <BroadcastScanner 
               series={series} 
+              isRaceDone={isCompleted}
               onScan={setCvData} 
               onClose={() => { setIsScanningActive(false); setCvData([]); }} 
             />

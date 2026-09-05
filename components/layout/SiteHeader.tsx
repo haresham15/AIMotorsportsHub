@@ -21,10 +21,28 @@ import {
   ArrowUpRight,
   Menu,
   X,
+  Users,
+  Calendar,
+  MapPin,
 } from 'lucide-react';
 import { SERIES, SERIES_MAP } from '@/lib/data';
 import { useUserProfile } from '@/lib/userPreferences';
 import { openSuggestionsModal } from '@/components/SuggestionsModal';
+
+const SERIES_GROUPS = [
+  {
+    category: 'Open Wheel Formula',
+    ids: ['f1', 'f2', 'f3', 'formula-e'],
+  },
+  {
+    category: 'Endurance & GT Racing',
+    ids: ['gt-world-challenge', 'wec'],
+  },
+  {
+    category: 'Stock Car & Drag',
+    ids: ['nascar', 'top-fuel'],
+  },
+];
 
 export default function SiteHeader() {
   const pathname = usePathname();
@@ -124,9 +142,9 @@ export default function SiteHeader() {
               />
             </button>
 
-            {/* Series Dropdown Menu */}
+            {/* Series Dropdown Menu - Categorized */}
             {seriesDropdownOpen && (
-              <div className="absolute left-0 top-full mt-1.5 w-80 rounded-sm bg-[var(--surface-console)] border border-[var(--border-hairline)] shadow-xl p-2 z-50 animate-fade-in-up">
+              <div className="absolute left-0 top-full mt-1.5 w-84 rounded-sm bg-[var(--surface-console)] border border-[var(--border-hairline)] shadow-xl p-2 z-50 animate-fade-in-up">
                 <div className="px-2.5 py-1.5 border-b border-[var(--border-hairline)] flex items-center justify-between font-mono text-[10px]">
                   <span className="font-bold uppercase tracking-wider text-[var(--amber)]">
                     SELECT CHAMPIONSHIP
@@ -134,44 +152,52 @@ export default function SiteHeader() {
                   <span className="text-[var(--text-muted)]">2026 SEASON</span>
                 </div>
 
-                <div className="flex flex-col gap-0.5 mt-1">
-                  {SERIES.map((s) => {
-                    const isSelected = isDashboard && s.id === currentSeriesKey;
+                <div className="flex flex-col gap-2.5 mt-2">
+                  {SERIES_GROUPS.map((group) => {
+                    const groupSeries = SERIES.filter((s) => group.ids.includes(s.id));
                     return (
-                      <Link
-                        key={s.id}
-                        href={`/dashboard/${s.id}`}
-                        onClick={() => setSeriesDropdownOpen(false)}
-                        className={`flex items-center justify-between px-2.5 py-2 rounded-none transition-colors no-underline group ${
-                          isSelected
-                            ? 'bg-[var(--surface-elevated)] border-l-2 border-l-[var(--amber)] text-white'
-                            : 'hover:bg-[var(--surface-elevated)] text-[var(--text-secondary)] hover:text-white'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <span
-                            className="w-1 h-5 rounded-none shrink-0"
-                            style={{ backgroundColor: s.color }}
-                          />
-                          <div>
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-bold text-xs text-white group-hover:text-amber-300">
-                                {s.name}
-                              </span>
-                              <span className="font-mono text-[9px] px-1 py-0.2 rounded-none bg-white/5 text-[var(--text-muted)] border border-white/5">
-                                {s.shortName}
-                              </span>
-                            </div>
-                            <div className="text-[10px] text-[var(--text-muted)] font-mono truncate max-w-[170px]">
-                              {s.description}
-                            </div>
-                          </div>
+                      <div key={group.category} className="space-y-0.5">
+                        <div className="px-2.5 py-0.5 text-[9px] font-mono font-bold uppercase tracking-wider text-[var(--text-muted)] flex items-center gap-1.5">
+                          <span className="w-1 h-1 rounded-full bg-[var(--amber)] opacity-60" />
+                          <span>{group.category}</span>
                         </div>
+                        {groupSeries.map((s) => {
+                          const isSelected = isDashboard && s.id === currentSeriesKey;
+                          return (
+                            <Link
+                              key={s.id}
+                              href={`/dashboard/${s.id}`}
+                              onClick={() => setSeriesDropdownOpen(false)}
+                              className={`flex items-center justify-between px-2.5 py-1.5 rounded-none transition-colors no-underline group ${
+                                isSelected
+                                  ? 'bg-[var(--surface-elevated)] border-l-2 border-l-[var(--amber)] text-white'
+                                  : 'hover:bg-[var(--surface-elevated)] text-[var(--text-secondary)] hover:text-white'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2.5">
+                                <span
+                                  className="w-1 h-4 rounded-none shrink-0"
+                                  style={{ backgroundColor: s.color }}
+                                />
+                                <div>
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="font-bold text-xs text-white group-hover:text-amber-300">
+                                      {s.name}
+                                    </span>
+                                    <span className="font-mono text-[9px] px-1 py-0.2 rounded-none bg-white/5 text-[var(--text-muted)] border border-white/5">
+                                      {s.shortName}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
 
-                        {isSelected && (
-                          <span className="w-1.5 h-1.5 rounded-none bg-[var(--amber)] mr-1" />
-                        )}
-                      </Link>
+                              {isSelected && (
+                                <span className="w-1.5 h-1.5 rounded-none bg-[var(--amber)] mr-1" />
+                              )}
+                            </Link>
+                          );
+                        })}
+                      </div>
                     );
                   })}
                 </div>
@@ -195,7 +221,7 @@ export default function SiteHeader() {
             <span className="uppercase tracking-wider">Telemetry</span>
           </Link>
 
-          {/* 1. Analytics & History Dropdown */}
+          {/* 1. Analytics & History Dropdown (F1 Specification) */}
           <div className="relative" ref={analyticsRef}>
             <button
               onClick={() => {
@@ -208,9 +234,13 @@ export default function SiteHeader() {
                   ? 'text-white font-bold bg-[var(--surface-elevated)] border-b-2 border-b-[var(--amber)]'
                   : 'text-[var(--text-secondary)] hover:text-white hover:bg-[var(--surface-subtle)]'
               }`}
+              title="Formula 1 Analytics & Historical Archive (Other motorsports in development)"
             >
               <Database size={13} className={isAnalyticsActive ? 'text-[var(--amber)]' : 'text-[var(--text-muted)]'} />
-              <span>Analytics</span>
+              <span>F1 Analytics</span>
+              <span className="text-[9px] px-1 py-0.2 rounded-xs bg-red-600/15 text-red-400 border border-red-500/25 hidden xl:inline font-bold">
+                F1 ONLY
+              </span>
               <ChevronDown
                 size={11}
                 className={`transition-transform duration-150 ${
@@ -220,14 +250,29 @@ export default function SiteHeader() {
             </button>
 
             {analyticsDropdownOpen && (
-              <div className="absolute left-0 top-full mt-1.5 w-72 rounded-sm bg-[var(--surface-console)] border border-[var(--border-hairline)] shadow-xl p-1.5 z-50 animate-fade-in-up">
-                <div className="px-2.5 py-1.5 border-b border-[var(--border-hairline)]">
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[var(--amber)]">
-                    ANALYTICS &amp; ARCHIVE
+              <div className="absolute left-0 top-full mt-1.5 w-84 rounded-sm bg-[var(--surface-console)] border border-[var(--border-hairline)] shadow-xl p-1.5 z-50 animate-fade-in-up">
+                <div className="px-2.5 py-1.5 border-b border-[var(--border-hairline)] flex items-center justify-between font-mono text-[10px]">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#e10600]" />
+                    <span className="font-bold uppercase tracking-wider text-white">
+                      FORMULA 1 ANALYTICS
+                    </span>
+                  </div>
+                  <span className="text-[9px] px-1.5 py-0.2 rounded-none bg-red-600/15 text-red-400 border border-red-500/30 font-bold uppercase">
+                    F1 ONLY
                   </span>
                 </div>
 
-                <div className="flex flex-col gap-0.5 mt-1">
+                <div className="flex flex-col gap-0.5 mt-1 font-mono">
+                  {/* Category 1: F1 Historical Archive & Standings */}
+                  <div className="px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-[var(--text-muted)] bg-white/5 border-y border-[var(--border-hairline)] flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-1 h-1 rounded-full bg-[var(--amber)]" />
+                      <span>F1 Archive (1950–Present)</span>
+                    </div>
+                    <span className="text-[8px] text-[var(--amber)] font-bold">75 SEASONS</span>
+                  </div>
+
                   <Link
                     href="/history"
                     onClick={() => setAnalyticsDropdownOpen(false)}
@@ -236,13 +281,86 @@ export default function SiteHeader() {
                     <Database size={15} className="text-amber-400 mt-0.5 shrink-0" />
                     <div>
                       <div className="text-xs font-bold text-white group-hover:text-amber-300">
-                        Historical Archive
+                        Historical Archive Hub
                       </div>
                       <div className="text-[11px] text-[var(--text-muted)]">
                         70+ years of Grand Prix telemetry &amp; results
                       </div>
                     </div>
                   </Link>
+
+                  <Link
+                    href="/history/goat"
+                    onClick={() => setAnalyticsDropdownOpen(false)}
+                    className="p-2 rounded-none hover:bg-[var(--surface-elevated)] transition-colors no-underline flex items-start gap-2.5 group"
+                  >
+                    <Trophy size={15} className="text-amber-400 mt-0.5 shrink-0" />
+                    <div>
+                      <div className="text-xs font-bold text-white group-hover:text-amber-300">
+                        GOAT Debate (F1 Dual-Elo)
+                      </div>
+                      <div className="text-[11px] text-[var(--text-muted)]">
+                        Era-adjusted driver skill vs. machinery rating
+                      </div>
+                    </div>
+                  </Link>
+
+                  <Link
+                    href="/history/head-to-head"
+                    onClick={() => setAnalyticsDropdownOpen(false)}
+                    className="p-2 rounded-none hover:bg-[var(--surface-elevated)] transition-colors no-underline flex items-start gap-2.5 group"
+                  >
+                    <Users size={15} className="text-amber-400 mt-0.5 shrink-0" />
+                    <div>
+                      <div className="text-xs font-bold text-white group-hover:text-amber-300">
+                        Head-to-Head Comparison
+                      </div>
+                      <div className="text-[11px] text-[var(--text-muted)]">
+                        Teammate rivalries, shared starts &amp; qualifying deltas
+                      </div>
+                    </div>
+                  </Link>
+
+                  <Link
+                    href="/history/seasons"
+                    onClick={() => setAnalyticsDropdownOpen(false)}
+                    className="p-2 rounded-none hover:bg-[var(--surface-elevated)] transition-colors no-underline flex items-start gap-2.5 group"
+                  >
+                    <Calendar size={15} className="text-amber-400 mt-0.5 shrink-0" />
+                    <div>
+                      <div className="text-xs font-bold text-white group-hover:text-amber-300">
+                        Past Seasons Archive
+                      </div>
+                      <div className="text-[11px] text-[var(--text-muted)]">
+                        Every season standings from 1950 to 2025
+                      </div>
+                    </div>
+                  </Link>
+
+                  <Link
+                    href="/history/tracks"
+                    onClick={() => setAnalyticsDropdownOpen(false)}
+                    className="p-2 rounded-none hover:bg-[var(--surface-elevated)] transition-colors no-underline flex items-start gap-2.5 group"
+                  >
+                    <MapPin size={15} className="text-amber-400 mt-0.5 shrink-0" />
+                    <div>
+                      <div className="text-xs font-bold text-white group-hover:text-amber-300">
+                        Circuit Records &amp; Directory
+                      </div>
+                      <div className="text-[11px] text-[var(--text-muted)]">
+                        Track directory, host nations &amp; classics
+                      </div>
+                    </div>
+                  </Link>
+
+                  {/* Category 2: F1 AI Strategy & Telemetry */}
+                  <div className="px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-[var(--text-muted)] bg-white/5 border-y border-[var(--border-hairline)] mt-1 flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-1 h-1 rounded-full bg-sky-400" />
+                      <span>F1 AI Strategy &amp; Telemetry</span>
+                    </div>
+                    <span className="text-[8px] text-sky-400 font-bold">NEURAL ML</span>
+                  </div>
 
                   <Link
                     href="/history/what-if"
@@ -261,36 +379,38 @@ export default function SiteHeader() {
                   </Link>
 
                   <Link
-                    href="/history/goat"
-                    onClick={() => setAnalyticsDropdownOpen(false)}
-                    className="p-2 rounded-none hover:bg-[var(--surface-elevated)] transition-colors no-underline flex items-start gap-2.5 group"
-                  >
-                    <Trophy size={15} className="text-amber-400 mt-0.5 shrink-0" />
-                    <div>
-                      <div className="text-xs font-bold text-white group-hover:text-amber-300">
-                        GOAT Debate (Dual-Elo)
-                      </div>
-                      <div className="text-[11px] text-[var(--text-muted)]">
-                        Era-adjusted driver skill vs. machinery rating
-                      </div>
-                    </div>
-                  </Link>
-
-                  <Link
                     href="/models"
                     onClick={() => setAnalyticsDropdownOpen(false)}
-                    className="p-2 rounded-none hover:bg-[var(--surface-elevated)] transition-colors no-underline flex items-start gap-2.5 group border-t border-[var(--border-hairline)] mt-1"
+                    className="p-2 rounded-none hover:bg-[var(--surface-elevated)] transition-colors no-underline flex items-start gap-2.5 group"
                   >
                     <Cpu size={15} className="text-emerald-400 mt-0.5 shrink-0" />
                     <div>
                       <div className="text-xs font-bold text-white group-hover:text-emerald-300">
-                        Model Benchmarks
+                        Model Benchmarks &amp; Health
                       </div>
                       <div className="text-[11px] text-[var(--text-muted)]">
                         Real-time simulation error &amp; neural telemetry
                       </div>
                     </div>
                   </Link>
+
+                  {/* Multi-Motorsport Roadmap Notice */}
+                  <div className="mt-1 pt-1 border-t border-[var(--border-hairline)]">
+                    <div className="p-2 bg-[var(--surface-subtle)] border border-[var(--border-hairline)] rounded-none font-mono">
+                      <div className="flex items-center justify-between text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-1">
+                        <div className="flex items-center gap-1.5">
+                          <Layers size={10} className="text-[var(--amber)]" />
+                          <span>Other Motorsports Support</span>
+                        </div>
+                        <span className="text-[8px] text-[var(--amber)] border border-[var(--amber)]/30 px-1 rounded-xs bg-[var(--amber)]/10 font-bold">
+                          IN DEVELOPMENT
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-[var(--text-muted)] leading-[1.4] m-0">
+                        Analytics modules are currently calibrated for <strong className="text-white">Formula 1</strong>. Historical datasets and models for <span className="text-[var(--text-secondary)]">WEC, NASCAR, Formula E, and IndyCar</span> will launch in future updates.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -431,27 +551,44 @@ export default function SiteHeader() {
           {/* Section 1: Championships Grid */}
           <div className="mb-4">
             <div className="text-[10px] font-mono uppercase font-bold text-[var(--amber)] tracking-wider mb-2">
-              CHAMPIONSHIPS
+              CHAMPIONSHIPS BY CATEGORY
             </div>
-            <div className="grid grid-cols-2 gap-1.5">
-              {SERIES.map((s) => (
-                <Link
-                  key={s.id}
-                  href={`/dashboard/${s.id}`}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="px-2.5 py-1.5 rounded-xs bg-[var(--surface-subtle)] hover:bg-[var(--surface-elevated)] border border-[var(--border-hairline)] text-xs font-mono flex items-center gap-2 text-white no-underline"
-                >
-                  <span className="w-1.5 h-3 rounded-full" style={{ backgroundColor: s.color }} />
-                  <span className="truncate">{s.shortName}</span>
-                </Link>
-              ))}
+            <div className="space-y-2.5">
+              {SERIES_GROUPS.map((group) => {
+                const groupSeries = SERIES.filter((s) => group.ids.includes(s.id));
+                return (
+                  <div key={`mob-${group.category}`}>
+                    <div className="text-[9px] font-mono uppercase text-[var(--text-muted)] tracking-wider mb-1">
+                      {group.category}
+                    </div>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {groupSeries.map((s) => (
+                        <Link
+                          key={s.id}
+                          href={`/dashboard/${s.id}`}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="px-2.5 py-1.5 rounded-xs bg-[var(--surface-subtle)] hover:bg-[var(--surface-elevated)] border border-[var(--border-hairline)] text-xs font-mono flex items-center gap-2 text-white no-underline"
+                        >
+                          <span className="w-1.5 h-3 rounded-full" style={{ backgroundColor: s.color }} />
+                          <span className="truncate">{s.shortName}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
-          {/* Section 2: Analytics & AI */}
+          {/* Section 2: Analytics & AI (F1 Specification) */}
           <div className="mb-4 border-t border-[var(--border-hairline)] pt-3">
-            <div className="text-[10px] font-mono uppercase font-bold text-[var(--amber)] tracking-wider mb-2">
-              ANALYTICS &amp; ARCHIVE
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-[10px] font-mono uppercase font-bold text-[var(--amber)] tracking-wider">
+                F1 HISTORICAL ARCHIVE (F1 ONLY)
+              </div>
+              <span className="text-[8px] px-1.5 py-0.2 rounded-none bg-red-600/20 text-red-400 font-bold border border-red-500/30 uppercase">
+                F1 ACTIVE
+              </span>
             </div>
             <div className="flex flex-col gap-0.5 text-xs">
               <Link
@@ -460,8 +597,46 @@ export default function SiteHeader() {
                 className="px-2.5 py-1.5 rounded-xs text-[var(--text-secondary)] hover:text-white hover:bg-[var(--surface-subtle)] flex items-center gap-2.5 no-underline"
               >
                 <Database size={14} className="text-amber-400" />
-                <span>Historical Archive (1950–Present)</span>
+                <span>F1 Historical Archive (1950–Present)</span>
               </Link>
+              <Link
+                href="/history/goat"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-2.5 py-1.5 rounded-xs text-[var(--text-secondary)] hover:text-white hover:bg-[var(--surface-subtle)] flex items-center gap-2.5 no-underline"
+              >
+                <Trophy size={14} className="text-amber-400" />
+                <span>GOAT Debate (F1 Dual-Elo Ratings)</span>
+              </Link>
+              <Link
+                href="/history/head-to-head"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-2.5 py-1.5 rounded-xs text-[var(--text-secondary)] hover:text-white hover:bg-[var(--surface-subtle)] flex items-center gap-2.5 no-underline"
+              >
+                <Users size={14} className="text-amber-400" />
+                <span>F1 Head-to-Head Comparison</span>
+              </Link>
+              <Link
+                href="/history/seasons"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-2.5 py-1.5 rounded-xs text-[var(--text-secondary)] hover:text-white hover:bg-[var(--surface-subtle)] flex items-center gap-2.5 no-underline"
+              >
+                <Calendar size={14} className="text-amber-400" />
+                <span>F1 Past Seasons Archive</span>
+              </Link>
+              <Link
+                href="/history/tracks"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-2.5 py-1.5 rounded-xs text-[var(--text-secondary)] hover:text-white hover:bg-[var(--surface-subtle)] flex items-center gap-2.5 no-underline"
+              >
+                <MapPin size={14} className="text-amber-400" />
+                <span>F1 Circuit Records &amp; Directory</span>
+              </Link>
+            </div>
+
+            <div className="text-[10px] font-mono uppercase font-bold text-[var(--amber)] tracking-wider mt-3 mb-2">
+              F1 AI STRATEGY &amp; TELEMETRY (F1 ONLY)
+            </div>
+            <div className="flex flex-col gap-0.5 text-xs">
               <Link
                 href="/history/what-if"
                 onClick={() => setMobileMenuOpen(false)}
@@ -471,14 +646,6 @@ export default function SiteHeader() {
                 <span>&ldquo;What If?&rdquo; Strategy Simulator</span>
               </Link>
               <Link
-                href="/history/goat"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-2.5 py-1.5 rounded-xs text-[var(--text-secondary)] hover:text-white hover:bg-[var(--surface-subtle)] flex items-center gap-2.5 no-underline"
-              >
-                <Trophy size={14} className="text-amber-400" />
-                <span>GOAT Debate Dual-Elo Ratings</span>
-              </Link>
-              <Link
                 href="/models"
                 onClick={() => setMobileMenuOpen(false)}
                 className="px-2.5 py-1.5 rounded-xs text-[var(--text-secondary)] hover:text-white hover:bg-[var(--surface-subtle)] flex items-center gap-2.5 no-underline"
@@ -486,6 +653,17 @@ export default function SiteHeader() {
                 <Cpu size={14} className="text-emerald-400" />
                 <span>AI Model Accuracy &amp; Benchmarks</span>
               </Link>
+            </div>
+
+            {/* Other Motorsports Roadmap Card in Mobile */}
+            <div className="mt-3 p-2.5 rounded-xs bg-white/5 border border-white/10 text-[10px] font-mono text-[var(--text-muted)]">
+              <div className="text-amber-400 font-bold uppercase flex items-center gap-1.5 mb-1">
+                <Layers size={11} />
+                <span>Other Motorsports Roadmap</span>
+              </div>
+              <p className="leading-tight m-0 text-[10px] text-[var(--text-muted)]">
+                Analytics are currently F1-exclusive. Historical datasets for WEC, NASCAR, Formula E, and IndyCar will be integrated in future releases.
+              </p>
             </div>
           </div>
 

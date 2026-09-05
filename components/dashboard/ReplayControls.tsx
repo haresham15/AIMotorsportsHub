@@ -14,6 +14,7 @@ interface Props {
   liveLagSeconds?: number
   liveEdgeTime?: number
   onSyncToLive?: () => void
+  isRaceDone?: boolean
 }
 
 export default function ReplayControls({
@@ -25,7 +26,9 @@ export default function ReplayControls({
   liveLagSeconds = 0,
   liveEdgeTime,
   onSyncToLive,
+  isRaceDone = false,
 }: Props) {
+
   const totalFrames = data.frames.length
   const maxFrameIndex = Math.max(0, totalFrames - 1)
   const progress = totalFrames > 0 ? playback.frameIndex / totalFrames : 0
@@ -94,13 +97,14 @@ export default function ReplayControls({
         />
 
         {/* Live Edge Line Indicator */}
-        {isLiveSession && liveEdgeTime !== undefined && totalTime > 0 && (
+        {isLiveSession && !isRaceDone && liveEdgeTime !== undefined && totalTime > 0 && (
           <div 
             className="absolute top-0 bottom-0 w-[2px] bg-emerald-400 z-15 pointer-events-none"
             style={{ left: `${Math.min(100, (liveEdgeTime / totalTime) * 100)}%` }}
             title={`Live Race Edge (${fmtTime(liveEdgeTime)})`}
           />
         )}
+
 
         {/* Track Status Periods (Safety Car / Yellow / Red Zones) */}
         {data.trackStatuses.map((ts, i) => {
@@ -255,43 +259,38 @@ export default function ReplayControls({
             <SkipBack size={16} />
           </button>
 
-          {/* Live / Sync to Live Button */}
-          <button
-            onClick={() => {
-              if (onSyncToLive) {
-                onSyncToLive()
-              } else {
-                onChange({ frameIndex: maxFrameIndex, isPlaying: true, speed: 1, isLiveMode: true })
+          {/* Live / Sync to Live Button (only active during live session before race finishes) */}
+          {isLiveSession && !isRaceDone && (
+            <button
+              onClick={() => {
+                if (onSyncToLive) {
+                  onSyncToLive()
+                } else {
+                  onChange({ frameIndex: maxFrameIndex, isPlaying: true, speed: 1, isLiveMode: true })
+                }
+              }}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-mono font-bold transition-all cursor-pointer border rounded-none ${
+                !isBehindLive
+                  ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
+                  : 'bg-amber-500/20 border-amber-500/50 text-amber-300 hover:bg-amber-500/30'
+              }`}
+              title={
+                isBehindLive
+                  ? `Behind live by ${fmtTime(liveLagSeconds)}. Click to sync to live.`
+                  : 'Synchronized with live race time'
               }
-            }}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-mono font-bold transition-all cursor-pointer border rounded-none ${
-              isLiveSession && !isBehindLive
-                ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
-                : isLiveSession && isBehindLive
-                ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 hover:bg-amber-500/30'
-                : playback.isLiveMode
-                ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400'
-                : 'bg-transparent border-white/20 text-[var(--text-muted)] hover:text-white hover:bg-white/10'
-            }`}
-            title={
-              isBehindLive
-                ? `Behind live by ${fmtTime(liveLagSeconds)}. Click to sync to live.`
-                : isLiveSession
-                ? 'Synchronized with live race time'
-                : 'Toggle live playback'
-            }
-          >
-            <span className={`w-2 h-2 ${
-              (isLiveSession && !isBehindLive) || playback.isLiveMode
-                ? 'bg-emerald-400 animate-pulse'
-                : isBehindLive
-                ? 'bg-amber-400'
-                : 'bg-white/40'
-            }`} />
-            <span>
-              {isBehindLive ? `-${fmtTime(liveLagSeconds)} SYNC` : 'LIVE'}
-            </span>
-          </button>
+            >
+              <span className={`w-2 h-2 ${
+                !isBehindLive
+                  ? 'bg-emerald-400 animate-pulse'
+                  : 'bg-amber-400'
+              }`} />
+              <span>
+                {isBehindLive ? `-${fmtTime(liveLagSeconds)} SYNC` : 'LIVE'}
+              </span>
+            </button>
+          )}
+
 
           {/* Play / Pause */}
           <button

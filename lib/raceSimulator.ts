@@ -30,6 +30,7 @@ import {
   computeCumulativeDistances,
   positionAtDistance,
 } from './trackData';
+import { ensureTrackWithPitLane } from './pitLaneGenerator';
 
 // ── Seeded pseudo-random for deterministic replays ─────────────────
 class SeededRNG {
@@ -229,6 +230,10 @@ interface DriverSimState {
   tyre: string;
   tyreLife: number;
   inPit: boolean;
+  pitPhase?: 'ENTRY' | 'STOP' | 'EXIT';
+  pitProgress: number;   // distance along pit lane in world units
+  stationaryTimer: number;
+  stationaryDuration: number;
   pitTimer: number;
   nextPitLap: number;
   plannedPitLaps: number[];
@@ -344,6 +349,7 @@ export function generateReplayData(
   sessionType: string = 'Race',
   sessionMeta?: ReplaySessionMeta
 ): ReplayData {
+  track = ensureTrackWithPitLane(track);
   const config = SERIES_CONFIGS[seriesId] || SERIES_CONFIGS.f1;
   const rng = new SeededRNG(seriesId.length * 1000 + track.referenceLine.length);
 
@@ -380,6 +386,24 @@ export function generateReplayData(
   const trackLengthMetres = Math.max(1, (track.lengthKm || 1) * 1000);
   const worldUnitsPerMetre = trackLength / trackLengthMetres;
   const lapDistWorld = trackLength;
+
+  // Pit lane cumulative distances and geometry markers
+  const pitCumDists = (track.pitLane && track.pitLane.length >= 4)
+    ? computeCumulativeDistances(track.pitLane)
+    : [];
+  const pitLaneLength = pitCumDists.length > 0 ? pitCumDists[pitCumDists.length - 1] : 0;
+
+  const sfIdx = track.startFinishIdx ?? 0;
+  const refN = track.referenceLine.length;
+  const halfSpan = Math.max(12, Math.min(45, Math.round(refN * 0.065)));
+  const entryIdx = (sfIdx - halfSpan + refN) % refN;
+  const exitIdx = (sfIdx + halfSpan) % refN;
+  const entryTrackDist = cumDists[entryIdx];
+  const exitTrackDist = cumDists[exitIdx];
+
+  // Pit speed limiter in world units (80 km/h for F1/WEC, 75 km/h for NASCAR)
+  const pitLimiterKmh = (seriesId === 'nascar' || seriesId?.startsWith('nascar-')) ? 75 : 80;
+  const pitLimiterWorld = (pitLimiterKmh / 3.6) * worldUnitsPerMetre;
 
   // Dynamic lap time calculation based on track length and realistic series speeds
   const targetAvgSpeedKmh = config.targetAvgSpeedKmh || (track.lengthKm ? 220 : 200);
@@ -454,19 +478,21 @@ export function generateReplayData(
     const initialSpeedKmh = (initialSpeed / worldUnitsPerMetre) * 3.6;
     let initialGear = 1;
     if (seriesId === 'nascar' || seriesId?.startsWith('nascar-')) {
-      if (initialSpeedKmh < 90) initialGear = 2;
-      else if (initialSpeedKmh < 150) initialGear = 3;
-      else if (initialSpeedKmh < 220) initialGear = 4;
+      if (initialSpeedKmh < 80) initialGear = 1;
+      else if (initialSpeedKmh < 135) initialGear = 2;
+      else if (initialSpeedKmh < 195) initialGear = 3;
+      else if (initialSpeedKmh < 255) initialGear = 4;
       else initialGear = 5;
     } else if (seriesId === 'formula-e' || seriesId === 'top-fuel' || track.type === 'drag') {
       initialGear = 1;
     } else {
-      if (initialSpeedKmh < 105) initialGear = 2;
-      else if (initialSpeedKmh < 145) initialGear = 3;
-      else if (initialSpeedKmh < 190) initialGear = 4;
-      else if (initialSpeedKmh < 235) initialGear = 5;
-      else if (initialSpeedKmh < 275) initialGear = 6;
-      else if (initialSpeedKmh < 310) initialGear = 7;
+      if (initialSpeedKmh < 85) initialGear = 1;
+      else if (initialSpeedKmh < 125) initialGear = 2;
+      else if (initialSpeedKmh < 165) initialGear = 3;
+      else if (initialSpeedKmh < 205) initialGear = 4;
+      else if (initialSpeedKmh < 245) initialGear = 5;
+      else if (initialSpeedKmh < 280) initialGear = 6;
+      else if (initialSpeedKmh < 315) initialGear = 7;
       else initialGear = 8;
     }
 
@@ -496,6 +522,10 @@ export function generateReplayData(
       tyre,
       tyreLife: 0,
       inPit: false,
+      pitPhase: undefined,
+      pitProgress: 0,
+      stationaryTimer: 0,
+      stationaryDuration: 0,
       pitTimer: 0,
       nextPitLap,
       plannedPitLaps,
@@ -646,44 +676,194 @@ export function generateReplayData(
     for (const ds of driverStates) {
       if (ds.retired || ds.finished) continue;
 
+      // Track distance
+      const trackDist = ((ds.dist % lapDistWorld) + lapDistWorld) % lapDistWorld;
+
       // Pit stop logic
       if (ds.inPit) {
-        ds.pitTimer -= dt;
-        if (ds.pitTimer <= 0) {
-          ds.inPit = false;
-          ds.tyreLife = 0;
-          // Change tyre compound
-          ds.tyre = config.tyreCompounds[rng.int(0, config.tyreCompounds.length - 1)];
-          ds.pitStopIndex++;
-          ds.nextPitLap = ds.pitStopIndex < ds.plannedPitLaps.length
-            ? ds.plannedPitLaps[ds.pitStopIndex]
-            : Infinity;
-        }
-        ds.currentSpeed = 0;
-        ds.gear = 0;
-        ds.throttle = 0;
-        ds.brake = 100;
-        ds.drs = 0;
-        continue; // Don't move while in pit
-      }
+        if (pitLaneLength > 0) {
+          const boxStopTarget = pitLaneLength * 0.5;
 
-      // Check if should pit this lap
-      if (ds.lap >= ds.nextPitLap && ds.dist > 0) {
-        const lapProgress = (ds.dist % lapDistWorld) / lapDistWorld;
-        if (lapProgress > 0.85 && lapProgress < 0.95) {
-          ds.inPit = true;
-          ds.pitTimer = config.pitStopDurationS * rng.range(0.9, 1.1);
+          if (ds.pitPhase === 'ENTRY') {
+            const distToBox = boxStopTarget - ds.pitProgress;
+
+            if (distToBox <= Math.max(1.5 * worldUnitsPerMetre, ds.currentSpeed * dt * 1.2)) {
+              // Arrived at team pit box
+              ds.pitProgress = boxStopTarget;
+              ds.pitPhase = 'STOP';
+              ds.currentSpeed = 0;
+              ds.gear = 0; // Neutral
+              ds.throttle = 0;
+              ds.brake = 100;
+              ds.drs = 0;
+            } else if (distToBox < 18 * worldUnitsPerMetre) {
+              // Braking into pit box
+              const decelRate = 35 * worldUnitsPerMetre;
+              ds.currentSpeed = Math.max(2 * worldUnitsPerMetre, ds.currentSpeed - decelRate * dt);
+              ds.throttle = 0;
+              ds.brake = 85;
+              ds.gear = 1;
+              ds.drs = 0;
+              ds.pitProgress += ds.currentSpeed * dt;
+            } else {
+              // Pit lane limiter cruise
+              const speedDiff = pitLimiterWorld - ds.currentSpeed;
+              const maxRate = (speedDiff < 0 ? 45 : 15) * worldUnitsPerMetre;
+              ds.currentSpeed += Math.sign(speedDiff) * Math.min(Math.abs(speedDiff), maxRate * dt);
+              ds.throttle = ds.currentSpeed < pitLimiterWorld ? 35 : 15;
+              ds.brake = speedDiff < -5 * worldUnitsPerMetre ? 50 : 0;
+              ds.gear = 2;
+              ds.drs = 0;
+              ds.pitProgress += ds.currentSpeed * dt;
+            }
+          } else if (ds.pitPhase === 'STOP') {
+            // Stationary in pit box
+            ds.currentSpeed = 0;
+            ds.gear = 0; // Neutral
+            ds.throttle = 0;
+            ds.brake = 100;
+            ds.drs = 0;
+            ds.stationaryTimer -= dt;
+
+            if (ds.stationaryTimer <= 0) {
+              // Fresh tyres fitted, exit pit box
+              ds.tyreLife = 0;
+              const compounds = config.tyreCompounds.length > 0 ? config.tyreCompounds : ['MEDIUM'];
+              ds.tyre = compounds[rng.int(0, compounds.length - 1)];
+              ds.pitStopIndex++;
+              ds.nextPitLap = ds.pitStopIndex < ds.plannedPitLaps.length
+                ? ds.plannedPitLaps[ds.pitStopIndex]
+                : Infinity;
+              ds.lap++; // Crossing start-finish in pit lane completes the lap
+              if (ds.lap > totalLaps) {
+                ds.lap = totalLaps;
+                ds.finished = true;
+              }
+              ds.pitPhase = 'EXIT';
+              ds.gear = 1;
+              ds.throttle = 80;
+              ds.brake = 0;
+
+              const driverInfo = activeDrivers.find(d => d.code === ds.code);
+              raceControlMessages.push({
+                time: Math.round(t),
+                category: 'CarEvent',
+                message: `CAR ${driverInfo?.number ?? ''} (${ds.code}) PIT STOP COMPLETED (${ds.stationaryDuration.toFixed(1)}s) - ${ds.tyre}`,
+                flag: 'CLEAR',
+                scope: 'Track',
+                sector: 'Pit',
+                racingNumber: String(driverInfo?.number ?? ''),
+              });
+            }
+          } else if (ds.pitPhase === 'EXIT') {
+            if (ds.pitProgress >= pitLaneLength) {
+              // Blended back onto main circuit
+              ds.inPit = false;
+              ds.pitPhase = undefined;
+              ds.dist = (ds.lap - 1) * lapDistWorld + exitTrackDist;
+              ds.throttle = 100;
+              ds.brake = 0;
+              ds.gear = 3;
+
+              const driverInfo = activeDrivers.find(d => d.code === ds.code);
+              raceControlMessages.push({
+                time: Math.round(t),
+                category: 'CarEvent',
+                message: `CAR ${driverInfo?.number ?? ''} (${ds.code}) REJOINED TRACK FROM PIT EXIT`,
+                flag: 'CLEAR',
+                scope: 'Track',
+                sector: 'Pit',
+                racingNumber: String(driverInfo?.number ?? ''),
+              });
+            } else {
+              // Accelerating down pit exit up to limiter
+              const speedDiff = pitLimiterWorld - ds.currentSpeed;
+              const maxRate = 18 * worldUnitsPerMetre;
+              ds.currentSpeed = Math.min(pitLimiterWorld, ds.currentSpeed + maxRate * dt);
+              ds.gear = ds.currentSpeed < pitLimiterWorld * 0.5 ? 1 : 2;
+              ds.throttle = ds.currentSpeed < pitLimiterWorld * 0.95 ? 75 : 30;
+              ds.brake = 0;
+              ds.drs = 0;
+              ds.pitProgress += ds.currentSpeed * dt;
+            }
+          }
+
+          // Maintain distance along circuit during pit stop
+          const entryToExitTrackDelta = ((exitTrackDist - entryTrackDist) % lapDistWorld + lapDistWorld) % lapDistWorld;
+          const pitFraction = Math.max(0, Math.min(1, ds.pitProgress / pitLaneLength));
+          const simTrackDist = (entryTrackDist + pitFraction * entryToExitTrackDelta) % lapDistWorld;
+          ds.dist = (ds.lap - 1) * lapDistWorld + simTrackDist;
+        } else {
+          // Fallback if no pit lane geometry
+          ds.stationaryTimer -= dt;
+          if (ds.stationaryTimer <= 0) {
+            ds.inPit = false;
+            ds.tyreLife = 0;
+            const compounds = config.tyreCompounds.length > 0 ? config.tyreCompounds : ['MEDIUM'];
+            ds.tyre = compounds[rng.int(0, compounds.length - 1)];
+            ds.pitStopIndex++;
+            ds.nextPitLap = ds.pitStopIndex < ds.plannedPitLaps.length
+              ? ds.plannedPitLaps[ds.pitStopIndex]
+              : Infinity;
+          }
           ds.currentSpeed = 0;
           ds.gear = 0;
           ds.throttle = 0;
           ds.brake = 100;
           ds.drs = 0;
-          continue;
         }
+        continue;
       }
 
-      // Track distance
-      const trackDist = ((ds.dist % lapDistWorld) + lapDistWorld) % lapDistWorld;
+      // Check if driver should enter pit this lap
+      if (ds.lap >= ds.nextPitLap && ds.dist > 0 && !ds.retired && !ds.finished) {
+        if (pitLaneLength > 0) {
+          const distToEntry = ((entryTrackDist - trackDist) % lapDistWorld + lapDistWorld) % lapDistWorld;
+          const entryWindow = Math.max(25 * worldUnitsPerMetre, ds.currentSpeed * dt * 1.5);
+          if (distToEntry < entryWindow || distToEntry > lapDistWorld - 10 * worldUnitsPerMetre) {
+            ds.inPit = true;
+            ds.pitPhase = 'ENTRY';
+            ds.pitProgress = 0;
+            ds.currentSpeed = Math.min(ds.currentSpeed, pitLimiterWorld);
+            ds.gear = 2;
+            ds.throttle = 30;
+            ds.brake = 0;
+            ds.stationaryDuration = seriesId === 'f1' ? rng.range(2.2, 3.2)
+              : (seriesId === 'f2' || seriesId === 'f3') ? rng.range(5.0, 7.0)
+              : (seriesId === 'nascar' || seriesId?.startsWith('nascar-')) ? rng.range(9.5, 12.5)
+              : seriesId === 'wec' ? rng.range(12.0, 18.0)
+              : seriesId === 'gt-world-challenge' ? rng.range(25.0, 35.0)
+              : 3.5;
+            ds.stationaryTimer = ds.stationaryDuration;
+
+            const driverInfo = activeDrivers.find(d => d.code === ds.code);
+            raceControlMessages.push({
+              time: Math.round(t),
+              category: 'CarEvent',
+              message: `CAR ${driverInfo?.number ?? ''} (${ds.code}) ENTERED PIT LANE`,
+              flag: 'CLEAR',
+              scope: 'Track',
+              sector: 'Pit',
+              racingNumber: String(driverInfo?.number ?? ''),
+            });
+            continue;
+          }
+        } else {
+          // Fallback trigger without pitLane
+          const lapProgress = (ds.dist % lapDistWorld) / lapDistWorld;
+          if (lapProgress > 0.85 && lapProgress < 0.95) {
+            ds.inPit = true;
+            ds.stationaryDuration = config.pitStopDurationS * rng.range(0.9, 1.1);
+            ds.stationaryTimer = ds.stationaryDuration;
+            ds.currentSpeed = 0;
+            ds.gear = 0;
+            ds.throttle = 0;
+            ds.brake = 100;
+            ds.drs = 0;
+            continue;
+          }
+        }
+      }
 
       // Speed calculation from physics profile
       const driverPace = ds.baseSpeed / baseSpeedWorld;
@@ -775,19 +955,24 @@ export function generateReplayData(
 
         // Dynamic Gear shifting
         if (seriesId === 'nascar' || seriesId?.startsWith('nascar-')) {
-          if (speedKmh < 90) ds.gear = 2;
-          else if (speedKmh < 150) ds.gear = 3;
-          else if (speedKmh < 220) ds.gear = 4;
+          if (speedKmh < 8) ds.gear = ds.throttle > 10 ? 1 : 0;
+          else if (speedKmh < 80) ds.gear = 1;
+          else if (speedKmh < 135) ds.gear = 2;
+          else if (speedKmh < 195) ds.gear = 3;
+          else if (speedKmh < 255) ds.gear = 4;
           else ds.gear = 5;
         } else if (seriesId === 'formula-e') {
           ds.gear = 1;
         } else {
-          if (speedKmh < 105) ds.gear = 2;
-          else if (speedKmh < 145) ds.gear = 3;
-          else if (speedKmh < 190) ds.gear = 4;
-          else if (speedKmh < 235) ds.gear = 5;
-          else if (speedKmh < 275) ds.gear = 6;
-          else if (speedKmh < 310) ds.gear = 7;
+          // Open-Wheel (F1/F2/F3) & Sports Cars / WEC: 8-speed / 7-speed
+          if (speedKmh < 8) ds.gear = ds.throttle > 10 ? 1 : 0;
+          else if (speedKmh < 85) ds.gear = 1;
+          else if (speedKmh < 125) ds.gear = 2;
+          else if (speedKmh < 165) ds.gear = 3;
+          else if (speedKmh < 205) ds.gear = 4;
+          else if (speedKmh < 245) ds.gear = 5;
+          else if (speedKmh < 280) ds.gear = 6;
+          else if (speedKmh < 315) ds.gear = 7;
           else ds.gear = 8;
         }
 
@@ -911,13 +1096,19 @@ export function generateReplayData(
 
     for (const ds of driverStates) {
       const trackDist = ((ds.dist % lapDistWorld) + lapDistWorld) % lapDistWorld;
-      let pos = positionAtDistance(track.referenceLine, cumDists, trackDist);
+      let pos: { x: number; y: number };
 
-      // For drag strip, offset parallel lanes so cars run side-by-side
-      if (track.type === 'drag') {
-        const driverIdx = activeDrivers.findIndex(d => d.code === ds.code);
-        const laneOffset = driverIdx === 0 ? -10 : 10;
-        pos = { x: pos.x, y: pos.y + laneOffset };
+      if (ds.inPit && pitCumDists.length > 0 && track.pitLane && track.pitLane.length >= 2) {
+        // Driver is navigating the pit lane (entry, box stop, or exit)
+        pos = positionAtDistance(track.pitLane, pitCumDists, Math.min(pitLaneLength, Math.max(0, ds.pitProgress)));
+      } else {
+        pos = positionAtDistance(track.referenceLine, cumDists, trackDist);
+        // For drag strip, offset parallel lanes so cars run side-by-side
+        if (track.type === 'drag') {
+          const driverIdx = activeDrivers.findIndex(d => d.code === ds.code);
+          const laneOffset = driverIdx === 0 ? -10 : 10;
+          pos = { x: pos.x, y: pos.y + laneOffset };
+        }
       }
 
       // Calculate speed in km/h (approximate)
@@ -939,6 +1130,8 @@ export function generateReplayData(
         throttle: ds.throttle,
         brake: ds.brake,
         inPit: ds.inPit,
+        pitPhase: ds.pitPhase,
+        pitStopDuration: ds.stationaryDuration,
         retired: ds.retired,
         finished: ds.finished,
         reactionTime: ds.reactionTime,

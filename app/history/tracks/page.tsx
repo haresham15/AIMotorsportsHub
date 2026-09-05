@@ -1,44 +1,32 @@
 import Link from 'next/link';
 import { getTrackRecords } from '@/lib/db';
+import HistoryNav from '@/components/history/HistoryNav';
+import TracksExplorer from '@/components/history/TracksExplorer';
 
 export const metadata = {
-  title: 'Track Records - Historical Data',
+  title: 'Track Records & Circuit Directory - Historical Archive',
+  description: 'Explore 70+ years of Formula 1 circuit records, host countries, and Grand Prix race counts.',
 };
 
 export default function TracksPage() {
   const tracks = getTrackRecords() as { circuitId: number; name: string; country: string; racesHosted: number }[];
 
   return (
-    <main className="max-w-[800px] mx-auto px-6 py-12">
-      <Link href="/history" className="text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">← Back to History</Link>
-      <div className="eyebrow mt-8">Historical Archive</div>
-      <h1 className="text-4xl md:text-5xl font-extrabold mt-2 mb-4 tracking-tight font-[family-name:var(--font-disp)] uppercase">Track Records</h1>
-      <p className="text-[var(--text-secondary)] text-[18px] max-w-[640px] mb-12 leading-[1.65]">
-        A comprehensive look at the raceways and circuits that define motorsports, featuring race counts, locations, and historical significance.
+    <main className="max-w-[1000px] mx-auto px-4 sm:px-6 py-10">
+      {/* Historical Sub-Navigation */}
+      <HistoryNav activeTab="tracks" />
+
+      <div className="eyebrow mt-6">Historical Archive</div>
+      <h1 className="text-3xl md:text-5xl font-black mt-2 mb-3 tracking-tight font-[family-name:var(--font-disp)] uppercase">
+        Circuit Records &amp; Directory
+      </h1>
+      <p className="text-[var(--text-secondary)] text-sm md:text-base max-w-[700px] mb-8 leading-[1.6]">
+        A comprehensive catalog of every circuit to host an official Formula 1 World Championship Grand Prix since 1950, featuring race counts, host nations, and venue pedigree.
       </p>
-      
-      <div className="card glass rounded-[var(--radius-xl)] overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left whitespace-nowrap">
-            <thead className="text-xs uppercase text-[var(--text-muted)] bg-[var(--surface-sunken)] border-b border-[var(--border-subtle)]">
-              <tr>
-                <th className="px-6 py-4 font-bold tracking-wider">Circuit Name</th>
-                <th className="px-6 py-4 font-bold tracking-wider">Country</th>
-                <th className="px-6 py-4 font-bold tracking-wider text-right">Races Hosted</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[var(--border-subtle)]">
-              {tracks.map((t) => (
-                <tr key={t.circuitId} className="hover:bg-[var(--surface-highlight)] transition-colors group">
-                  <td className="px-6 py-4 font-semibold text-[var(--text-primary)]">{t.name}</td>
-                  <td className="px-6 py-4 text-[var(--text-secondary)]">{t.country}</td>
-                  <td className="px-6 py-4 text-right font-mono font-medium text-[var(--amber)]">{t.racesHosted}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+
+      {/* Interactive Explorer with Organized Dropdowns & Search */}
+      <TracksExplorer tracks={tracks} />
     </main>
   );
 }
+

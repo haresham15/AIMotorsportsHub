@@ -37,6 +37,24 @@ export function isSessionInProgress(session: RoundSession | null | undefined, cu
 }
 
 /**
+ * Checks whether a given session or race is concluded/completed.
+ */
+export function isSessionCompleted(
+  session: RoundSession | null | undefined,
+  roundStatus?: string,
+  customNowMs?: number
+): boolean {
+  if (roundStatus === 'completed' || roundStatus === 'final') return true;
+  if (!session || !session.dateStart) return false;
+  const startMs = new Date(session.dateStart).getTime();
+  if (isNaN(startMs)) return false;
+  const durationMs = getSessionDurationMs(session.name);
+  const nowMs = customNowMs ?? Date.now();
+  return nowMs > (startMs + durationMs);
+}
+
+
+/**
  * Determines the most recent, active, or relevant session for a given round.
  * Prioritizes:
  * 1. A session currently IN PROGRESS (live / in the middle of it)
