@@ -129,6 +129,110 @@ const CIRCUIT_SPECS: Record<string, {
     grip: '31° High-Banked Superspeedway Draft Pack',
     wind: '16 km/h E (Atlantic Coast Wind)',
   },
+  'Sakhir': {
+    officialName: 'Bahrain International Circuit',
+    lengthKm: 5.412,
+    turns: 15,
+    drsZones: 3,
+    lapRecord: '1:31.447',
+    recordHolder: 'Pedro de la Rosa',
+    recordYear: 2005,
+    ambientTemp: 27,
+    trackTemp: 31,
+    grip: 'Abrasive Granite Surface / High Tire Degradation',
+    wind: '12 km/h NE (Desert Crosswinds)',
+  },
+  'Suzuka': {
+    officialName: 'Suzuka International Racing Course',
+    lengthKm: 5.807,
+    turns: 18,
+    drsZones: 1,
+    lapRecord: '1:30.983',
+    recordHolder: 'Lewis Hamilton',
+    recordYear: 2019,
+    ambientTemp: 20,
+    trackTemp: 29,
+    grip: 'High Downforce Figure-8 / Esses Flow',
+    wind: '10 km/h SE (Ise Bay Breeze)',
+  },
+  'Interlagos': {
+    officialName: 'Autódromo José Carlos Pace',
+    lengthKm: 4.309,
+    turns: 15,
+    drsZones: 2,
+    lapRecord: '1:10.540',
+    recordHolder: 'Valtteri Bottas',
+    recordYear: 2018,
+    ambientTemp: 23,
+    trackTemp: 36,
+    grip: 'Counter-Clockwise Undulating Bowl',
+    wind: '14 km/h S (São Paulo Humidity)',
+  },
+  'Austin': {
+    officialName: 'Circuit of the Americas',
+    lengthKm: 5.513,
+    turns: 20,
+    drsZones: 2,
+    lapRecord: '1:36.169',
+    recordHolder: 'Charles Leclerc',
+    recordYear: 2019,
+    ambientTemp: 28,
+    trackTemp: 41,
+    grip: 'Blind Elevation Climb / Turn 1 Crest',
+    wind: '8 km/h NW (Texas Plains)',
+  },
+  'Circuit de la Sarthe': {
+    officialName: 'Circuit des 24 Heures du Mans',
+    lengthKm: 13.626,
+    turns: 38,
+    drsZones: 0,
+    lapRecord: '3:17.297',
+    recordHolder: 'Mike Conway',
+    recordYear: 2019,
+    ambientTemp: 18,
+    trackTemp: 24,
+    grip: 'Hybrid Public Road Surface / High Top Speed Mulsanne',
+    wind: '7 km/h W (Loire Valley Draft)',
+  },
+  'Talladega Superspeedway': {
+    officialName: 'Talladega Superspeedway',
+    lengthKm: 4.280,
+    turns: 4,
+    drsZones: 0,
+    lapRecord: '44.998s (212.809 mph)',
+    recordHolder: 'Bill Elliott',
+    recordYear: 1987,
+    ambientTemp: 25,
+    trackTemp: 38,
+    grip: '33° Steepest Banking in NASCAR / Pure Aerodynamic Draft',
+    wind: '13 km/h SE (Alabama Valley Breeze)',
+  },
+  'Charlotte Motor Speedway': {
+    officialName: 'Charlotte Motor Speedway',
+    lengthKm: 2.414,
+    turns: 4,
+    drsZones: 0,
+    lapRecord: '27.167s (198.771 mph)',
+    recordHolder: 'Denny Hamlin',
+    recordYear: 2013,
+    ambientTemp: 22,
+    trackTemp: 33,
+    grip: '24° Quad-Oval Banking / Night Race Cooling Grip',
+    wind: '8 km/h SW (Piedmont Gusts)',
+  },
+  'Bristol Motor Speedway': {
+    officialName: 'Bristol Motor Speedway',
+    lengthKm: 0.858,
+    turns: 4,
+    drsZones: 0,
+    lapRecord: '14.573s (131.668 mph)',
+    recordHolder: 'Chase Elliott',
+    recordYear: 2019,
+    ambientTemp: 21,
+    trackTemp: 30,
+    grip: '28° Concrete Colosseum High G-Load',
+    wind: '5 km/h E (Appalachian Basin Calm)',
+  },
 };
 
 export default function TrackDetailsModal({
@@ -140,20 +244,32 @@ export default function TrackDetailsModal({
 }: TrackDetailsModalProps) {
   if (!isOpen) return null;
 
-  const specs = CIRCUIT_SPECS[circuitName] || {
-    officialName: circuitName,
-    lengthKm: 4.8,
-    turns: 16,
-    drsZones: 2,
-    lapRecord: '1:18.450',
-    recordHolder: 'Max Verstappen',
-    recordYear: 2023,
-    ambientTemp: 24,
-    trackTemp: 35,
-    grip: 'Optimal Racing Surface',
-    wind: '10 km/h',
+  const findSpecs = () => {
+    if (CIRCUIT_SPECS[circuitName]) return CIRCUIT_SPECS[circuitName];
+    const target = circuitName?.toLowerCase() || '';
+    for (const [key, val] of Object.entries(CIRCUIT_SPECS)) {
+      const k = key.toLowerCase();
+      const off = val.officialName.toLowerCase();
+      if (target.includes(k) || k.includes(target) || target.includes(off) || off.includes(target)) {
+        return val;
+      }
+    }
+    return {
+      officialName: circuitName || 'Circuit Technical Dossier',
+      lengthKm: 4.8,
+      turns: 16,
+      drsZones: 2,
+      lapRecord: '1:18.450',
+      recordHolder: 'Track Record',
+      recordYear: 2023,
+      ambientTemp: 24,
+      trackTemp: 35,
+      grip: 'Optimal Racing Surface',
+      wind: '10 km/h',
+    };
   };
 
+  const specs = findSpecs();
   const availableTracks = Object.keys(CIRCUIT_SPECS);
 
   return (
@@ -250,7 +366,7 @@ export default function TrackDetailsModal({
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {availableTracks.map((name) => {
-                  const isActive = name === circuitName;
+                  const isActive = name === circuitName || Boolean(circuitName && (circuitName.toLowerCase().includes(name.toLowerCase()) || name.toLowerCase().includes(circuitName.toLowerCase())));
                   return (
                     <button
                       key={name}

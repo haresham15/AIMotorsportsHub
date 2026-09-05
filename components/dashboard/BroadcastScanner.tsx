@@ -96,7 +96,6 @@ export default function BroadcastScanner({ series = 'f2', onScan, onClose }: Bro
   const [isDocked, setIsDocked] = useState(false)
 
   const [isCapturing, setIsCapturing] = useState(false)
-  const [stream, setStream] = useState<MediaStream | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const videoContainerRef = useRef<HTMLDivElement>(null)
@@ -156,14 +155,41 @@ export default function BroadcastScanner({ series = 'f2', onScan, onClose }: Bro
     })
   }, [])
 
+  // Stop Scanning Loop
+  const stopScanning = useCallback(() => {
+    setIsScanning(false)
+    if (scanIntervalRef.current) {
+      clearInterval(scanIntervalRef.current)
+      scanIntervalRef.current = null
+    }
+  }, [])
+
+  // Stop Screen Capture
+  const stopCapture = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(t => t.stop())
+    }
+    streamRef.current = null
+    setIsCapturing(false)
+    stopScanning()
+  }, [stopScanning])
+
   // Start Screen Capture
   const startCapture = async () => {
     try {
       const displayStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false })
-      setStream(displayStream)
       streamRef.current = displayStream
+      const videoTrack = displayStream.getVideoTracks()[0]
+      if (videoTrack) {
+        videoTrack.onended = () => {
+          stopCapture()
+        }
+      }
       if (videoRef.current) {
         videoRef.current.srcObject = displayStream
+        videoRef.current.onloadedmetadata = () => {
+          applyProfile(selectedProfile)
+        }
         videoRef.current.play()
       }
       setIsCapturing(true)
@@ -171,21 +197,10 @@ export default function BroadcastScanner({ series = 'f2', onScan, onClose }: Bro
       // Apply initial profile bounding box as soon as video loads
       setTimeout(() => {
         applyProfile(selectedProfile)
-      }, 500)
+      }, 300)
     } catch (err) {
       console.error('[BroadcastScanner] Failed to capture screen:', err)
     }
-  }
-
-  // Stop Screen Capture
-  const stopCapture = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(t => t.stop())
-    }
-    setStream(null)
-    streamRef.current = null
-    setIsCapturing(false)
-    stopScanning()
   }
 
   useEffect(() => {
@@ -230,7 +245,7 @@ export default function BroadcastScanner({ series = 'f2', onScan, onClose }: Bro
   }
 
   // Roster-aware OCR text parsing
-  const parseOcrText = (text: string) => {
+  const parseOcrText = useCallback((text: string) => {
     const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0)
     const results: CVData[] = []
     
@@ -314,143 +329,141 @@ export default function BroadcastScanner({ series = 'f2', onScan, onClose }: Bro
       setScanCount(c => c + 1)
       setLastScanTime(new Date())
     }
-  }
+  }, [series, onScan])
+
+  // Single frame capture and OCR
+  const scanFrame = useCallback(async () => {
+    const video = videoRef.current
+    if (!video || !cropBox) return
+    if (!video.videoWidth || !video.videoHeight) return
+
+    const domRect = video.getBoundingClientRect()
+    if (!domRect.width || !domRect.height) return
+    const scaleX = video.videoWidth / domRect.width
+    const scaleY = video.videoHeight / domRect.height
+
+    const canvas = document.createElement('canvas')
+    canvas.width = Math.max(1, Math.round(cropBox.w * scaleX))
+    canvas.height = Math.max(1, Math.round(cropBox.h * scaleY))
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    ctx.drawImage(
+      video,
+      cropBox.x * scaleX,
+      cropBox.y * scaleY,
+      cropBox.w * scaleX,
+      cropBox.h * scaleY,
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    )
+
+    const dataUrl = canvas.toDataURL('image/png')
+    canvas.width = 0
+    canvas.height = 0
+    try {
+      if (!workerRef.current) return
+      const { data: { text } } = await workerRef.current.recognize(dataUrl)
+      parseOcrText(text)
+    } catch (err) {
+      console.error('[BroadcastScanner] OCR Error:', err)
+    }
+  }, [cropBox, parseOcrText])
 
   // Scanning loop
   const startScanning = () => {
     if (!cropBox || !videoRef.current || scanIntervalRef.current) return
     setIsScanning(true)
-
-    scanIntervalRef.current = setInterval(async () => {
-      const video = videoRef.current
-      if (!video) return
-      if (!video.videoWidth || !video.videoHeight) return
-
-      const domRect = video.getBoundingClientRect()
-      if (!domRect.width || !domRect.height) return
-      const scaleX = video.videoWidth / domRect.width
-      const scaleY = video.videoHeight / domRect.height
-
-      const canvas = document.createElement('canvas')
-      canvas.width = Math.max(1, Math.round(cropBox.w * scaleX))
-      canvas.height = Math.max(1, Math.round(cropBox.h * scaleY))
-      const ctx = canvas.getContext('2d')
-      if (!ctx) return
-
-      ctx.drawImage(
-        video,
-        cropBox.x * scaleX,
-        cropBox.y * scaleY,
-        cropBox.w * scaleX,
-        cropBox.h * scaleY,
-        0,
-        0,
-        canvas.width,
-        canvas.height
-      )
-
-      const dataUrl = canvas.toDataURL('image/png')
-      try {
-        if (!workerRef.current) return
-        const { data: { text } } = await workerRef.current.recognize(dataUrl)
-        parseOcrText(text)
-      } catch (err) {
-        console.error('[BroadcastScanner] OCR Error:', err)
-      }
-    }, 5000)
-  }
-
-  const stopScanning = () => {
-    setIsScanning(false)
-    if (scanIntervalRef.current) {
-      clearInterval(scanIntervalRef.current)
-      scanIntervalRef.current = null
-    }
+    // Run immediately once so user gets instant telemetry update
+    scanFrame()
+    scanIntervalRef.current = setInterval(scanFrame, 5000)
   }
 
   // ═══════════════════════════════════════════════════════════════════
-  // DOCKED PIT-WALL WIDGET (MINIMIZED VIEW)
-  // ═══════════════════════════════════════════════════════════════════
-  if (isDocked) {
-    return (
-      <div className="fixed bottom-6 left-6 z-[100] bg-[var(--surface-console)] border border-[var(--border-hairline)] shadow-2xl p-3 w-80 font-mono select-none">
-        <div className="flex items-center justify-between pb-2 mb-2 border-b border-[var(--border-hairline)]">
-          <div className="flex items-center gap-2">
-            <span className={`w-2 h-2 rounded-full ${isScanning ? 'bg-[var(--flag-green)] shadow-[0_0_6px_var(--flag-green)] animate-pulse' : 'bg-[var(--amber-pit)]'}`} />
-            <span className="text-[11px] font-bold text-white uppercase tracking-wider">
-              {isScanning ? 'CV Live Sync Active' : 'Scanner Paused'}
-            </span>
-          </div>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => setIsDocked(false)}
-              title="Expand to Full Console"
-              className="p-1 hover:bg-[var(--surface-elevated)] text-[var(--text-secondary)] hover:text-white transition-colors cursor-pointer"
-            >
-              <Maximize2 size={13} />
-            </button>
-            <button
-              onClick={() => {
-                stopCapture()
-                onClose()
-              }}
-              title="Disconnect Scanner"
-              className="p-1 hover:bg-red-500/20 text-[var(--text-muted)] hover:text-red-400 transition-colors cursor-pointer"
-            >
-              <X size={13} />
-            </button>
-          </div>
-        </div>
-
-        <div className="text-[11px] text-[var(--text-secondary)] space-y-1 mb-2.5">
-          <div className="flex justify-between">
-            <span className="text-[var(--text-muted)]">Series:</span>
-            <span className="text-white font-bold uppercase">{seriesInfo?.name || series}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-[var(--text-muted)]">Synced Drivers:</span>
-            <span className="text-[var(--amber-pit)] font-bold">{lastScanResults.length} drivers</span>
-          </div>
-          {lastScanTime && (
-            <div className="flex justify-between">
-              <span className="text-[var(--text-muted)]">Last Scan:</span>
-              <span className="text-white">{lastScanTime.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
-            </div>
-          )}
-        </div>
-
-        <div className="flex gap-2">
-          <button
-            onClick={() => setIsDocked(false)}
-            className="flex-1 py-1 px-2 text-[10px] uppercase font-bold bg-[var(--surface-elevated)] hover:bg-[var(--surface-pressed)] text-white border border-[var(--border-hairline)] transition-colors cursor-pointer text-center"
-          >
-            Expand Console
-          </button>
-          {isScanning ? (
-            <button
-              onClick={stopScanning}
-              className="py-1 px-2.5 text-[10px] uppercase font-bold bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/40 transition-colors cursor-pointer"
-            >
-              Pause
-            </button>
-          ) : (
-            <button
-              onClick={startScanning}
-              className="py-1 px-2.5 text-[10px] uppercase font-bold bg-[var(--flag-green)]/20 hover:bg-[var(--flag-green)]/30 text-[var(--flag-green)] border border-[var(--flag-green)]/40 transition-colors cursor-pointer"
-            >
-              Resume
-            </button>
-          )}
-        </div>
-      </div>
-    )
-  }
-
-  // ═══════════════════════════════════════════════════════════════════
-  // FULL CONSOLE OVERLAY (EXPANDED VIEW)
+  // CONSOLE RENDER (DOCKED WIDGET + ACTIVE BACKGROUND STREAM)
   // ═══════════════════════════════════════════════════════════════════
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/75 backdrop-blur-[2px]">
+    <>
+      {/* ── Docked Pit-Wall Widget ── */}
+      {isDocked && (
+        <div className="fixed bottom-6 left-6 z-[100] bg-[var(--surface-console)] border border-[var(--border-hairline)] shadow-2xl p-3 w-80 font-mono select-none">
+          <div className="flex items-center justify-between pb-2 mb-2 border-b border-[var(--border-hairline)]">
+            <div className="flex items-center gap-2">
+              <span className={`w-2 h-2 rounded-full ${isScanning ? 'bg-[var(--flag-green)] shadow-[0_0_6px_var(--flag-green)] animate-pulse' : 'bg-[var(--amber-pit)]'}`} />
+              <span className="text-[11px] font-bold text-white uppercase tracking-wider">
+                {isScanning ? 'CV Live Sync Active' : 'Scanner Paused'}
+              </span>
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setIsDocked(false)}
+                title="Expand to Full Console"
+                className="p-1 hover:bg-[var(--surface-elevated)] text-[var(--text-secondary)] hover:text-white transition-colors cursor-pointer"
+              >
+                <Maximize2 size={13} />
+              </button>
+              <button
+                onClick={() => {
+                  stopCapture()
+                  onClose()
+                }}
+                title="Disconnect Scanner"
+                className="p-1 hover:bg-red-500/20 text-[var(--text-muted)] hover:text-red-400 transition-colors cursor-pointer"
+              >
+                <X size={13} />
+              </button>
+            </div>
+          </div>
+
+          <div className="text-[11px] text-[var(--text-secondary)] space-y-1 mb-2.5">
+            <div className="flex justify-between">
+              <span className="text-[var(--text-muted)]">Series:</span>
+              <span className="text-white font-bold uppercase">{seriesInfo?.name || series}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-[var(--text-muted)]">Synced Drivers:</span>
+              <span className="text-[var(--amber-pit)] font-bold">{lastScanResults.length} drivers</span>
+            </div>
+            {lastScanTime && (
+              <div className="flex justify-between">
+                <span className="text-[var(--text-muted)]">Last Scan:</span>
+                <span className="text-white">{lastScanTime.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              onClick={() => setIsDocked(false)}
+              className="flex-1 py-1 px-2 text-[10px] uppercase font-bold bg-[var(--surface-elevated)] hover:bg-[var(--surface-pressed)] text-white border border-[var(--border-hairline)] transition-colors cursor-pointer text-center"
+            >
+              Expand Console
+            </button>
+            {isScanning ? (
+              <button
+                onClick={stopScanning}
+                className="py-1 px-2.5 text-[10px] uppercase font-bold bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/40 transition-colors cursor-pointer"
+              >
+                Pause
+              </button>
+            ) : (
+              <button
+                onClick={startScanning}
+                className="py-1 px-2.5 text-[10px] uppercase font-bold bg-[var(--flag-green)]/20 hover:bg-[var(--flag-green)]/30 text-[var(--flag-green)] border border-[var(--flag-green)]/40 transition-colors cursor-pointer"
+              >
+                Resume
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Full Console Overlay (Preserved in DOM to maintain active video stream & crop coordinates) ── */}
+      <div className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/75 backdrop-blur-[2px] ${
+        isDocked ? 'opacity-0 pointer-events-none -z-50' : ''
+      }`}>
       <div 
         className="console-panel bg-[var(--surface-console)] border border-[var(--border-hairline)] shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[92vh]"
         onClick={(e) => e.stopPropagation()}
@@ -661,5 +674,6 @@ export default function BroadcastScanner({ series = 'f2', onScan, onClose }: Bro
         </div>
       </div>
     </div>
-  )
+  </>
+)
 }

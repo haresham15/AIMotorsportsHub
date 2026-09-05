@@ -11,21 +11,38 @@ export async function GET(
   const driver = searchParams.get('driver_number') || '1' // Default to Verstappen
 
   try {
-    // 1. Fetch all laps for the driver in this session
-    const lapsRes = await fetch(`https://api.openf1.org/v1/laps?session_key=${sessionKey}&driver_number=${driver}`)
-    if (!lapsRes.ok) throw new Error('Failed to fetch laps')
-    const laps = await lapsRes.json()
+    // 1. Fetch laps for the requested driver, or fallback to any driver in this session
+    let laps: any[] = []
+    const requestedDriver = searchParams.get('driver_number')
+    if (requestedDriver) {
+      try {
+        const lapsRes = await fetch(`https://api.openf1.org/v1/laps?session_key=${sessionKey}&driver_number=${requestedDriver}`)
+        if (lapsRes.ok) {
+          laps = await lapsRes.json()
+        }
+      } catch {
+        // Fallback to all laps
+      }
+    }
 
-    if (!laps || laps.length === 0) {
-      return NextResponse.json({ error: 'No laps found' }, { status: 404 })
+    if (!Array.isArray(laps) || laps.length === 0) {
+      const allLapsRes = await fetch(`https://api.openf1.org/v1/laps?session_key=${sessionKey}`)
+      if (allLapsRes.ok) {
+        laps = await allLapsRes.json()
+      }
+    }
+
+    if (!Array.isArray(laps) || laps.length === 0) {
+      return NextResponse.json({ error: 'No laps found for session' }, { status: 404 })
     }
 
     // 2. Find a valid fast lap to ensure a clean trace of the circuit
-    const validLaps = laps.filter((l: any) => l.lap_duration && l.lap_duration > 50)
+    const validLaps = laps.filter((l: any) => l.lap_duration && l.lap_duration > 50 && l.date_start)
     if (validLaps.length === 0) {
       return NextResponse.json({ error: 'No valid laps found' }, { status: 404 })
     }
     const bestLap = validLaps.sort((a: any, b: any) => a.lap_duration - b.lap_duration)[0]
+    const lapDriver = String(bestLap.driver_number || driver)
 
     // 3. Define time window for the lap
     const start = new Date(bestLap.date_start).getTime()
@@ -35,10 +52,10 @@ export async function GET(
     const startIso = new Date(start).toISOString()
     const endIso = new Date(end).toISOString()
 
-    // 4. Fetch the location data for this exact lap
+    // 4. Fetch the location data for this exact lap and driver
     const queryParams = new URLSearchParams({
       session_key: sessionKey,
-      driver_number: driver,
+      driver_number: lapDriver,
       'date>=': startIso,
       'date<': endIso
     })

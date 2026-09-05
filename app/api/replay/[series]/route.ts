@@ -15,7 +15,7 @@ export async function GET(
   const { series } = await params;
   const { searchParams } = new URL(request.url);
 
-  const VALID_SERIES = ['f1', 'f2', 'f3', 'formula-e', 'nascar', 'nascar-cup', 'nascar-xfinity', 'nascar-trucks', 'gt-world-challenge', 'top-fuel'];
+  const VALID_SERIES = ['f1', 'f2', 'f3', 'formula-e', 'nascar', 'nascar-cup', 'nascar-xfinity', 'nascar-trucks', 'gt-world-challenge', 'top-fuel', 'wec'];
   if (!VALID_SERIES.includes(series)) {
     return NextResponse.json({ error: 'Invalid series requested.' }, { status: 400 });
   }

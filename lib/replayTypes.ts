@@ -21,6 +21,19 @@ export interface DriverFrameState {
   inPit: boolean;
   retired: boolean;
   finished?: boolean;
+  // Series-specific telemetry details
+  reactionTime?: number;    // Top Fuel: reaction time in seconds (e.g. 0.038)
+  elapsedTime?: number;     // Top Fuel: 1,000-ft elapsed time in seconds (e.g. 3.682)
+  chuteDeployed?: boolean;  // Top Fuel: parachute deployment in shutdown
+  energyPct?: number;       // Formula E: usable battery percentage (0–100%)
+  attackMode?: boolean;     // Formula E: 350 kW Attack Mode boost active
+  regenKw?: number;         // Formula E: regeneration power under braking in kW
+  carClass?: 'HYPERCAR' | 'LMGT3'; // WEC: car class category
+  classPosition?: number;   // WEC: position within vehicle class
+  stintNumber?: number;     // WEC: stint index
+  stageNumber?: number;     // NASCAR: current race stage (1, 2, or 3)
+  stageLapsToGo?: number;   // NASCAR: laps remaining in current stage
+  qualifyingPhase?: string; // Qualifying: Q1, Q2, Q3, or Shootout
 }
 
 /** Safety car state within a frame */
@@ -235,12 +248,47 @@ export function frameToRaceData(
       leaderRelDist
     );
 
+    const isTopFuel = series === 'top-fuel';
+    const isNascar = series === 'nascar' || series.startsWith('nascar-');
+    const isFormulaE = series === 'formula-e';
+
+    let gapDisplay = gap;
+    if (isTopFuel) {
+      if (d.position === 1) {
+        gapDisplay = d.finished ? 'WINNER' : 'LEADER';
+      } else {
+        const leaderEt = sorted[0]?.[1]?.elapsedTime;
+        if (d.elapsedTime !== undefined && leaderEt !== undefined) {
+          const delta = Math.max(0, d.elapsedTime - leaderEt);
+          gapDisplay = `+${delta.toFixed(3)}s ET`;
+        }
+      }
+    }
+
+    let lastLapDisplay = `${d.speed} km/h`;
+    if (isTopFuel) {
+      const speedMph = Math.round(d.speed * 0.621371);
+      if (d.elapsedTime !== undefined) {
+        lastLapDisplay = `${d.elapsedTime.toFixed(3)}s (${speedMph} mph)`;
+      } else {
+        lastLapDisplay = `${speedMph} mph`;
+      }
+    } else if (isNascar) {
+      lastLapDisplay = `${Math.round(d.speed * 0.621371)} mph`;
+    } else if (isFormulaE && d.energyPct !== undefined) {
+      lastLapDisplay = `${d.speed} km/h • ⚡${Math.round(d.energyPct)}%`;
+    }
+
+    if (d.inPit) lastLapDisplay = 'PIT';
+    else if (d.retired) lastLapDisplay = 'OUT';
+    else if (d.finished) lastLapDisplay = isTopFuel ? (d.position === 1 ? 'WIN' : 'RU') : 'FIN';
+
     return {
       driver_id: code,
       car_number: driverInfo?.number ? String(driverInfo.number) : undefined,
       position: d.position,
-      gap_to_leader: d.inPit ? 'PIT' : d.retired ? 'OUT' : gap,
-      last_lap: d.inPit ? 'PIT' : d.retired ? 'OUT' : d.finished ? 'FIN' : `${d.speed} km/h`,
+      gap_to_leader: d.inPit ? 'PIT' : d.retired ? 'OUT' : gapDisplay,
+      last_lap: lastLapDisplay,
       tire_compound: d.tyre || 'MEDIUM',
       team_name: driverInfo?.team,
       laps_completed: d.lap,

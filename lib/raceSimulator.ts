@@ -13,7 +13,18 @@ import type {
   TrackStatusPeriod,
   WeatherState,
   SafetyCarState,
+  RaceControlMessage,
 } from './replayTypes';
+
+export interface ReplaySessionMeta {
+  year?: number;
+  round?: number;
+  circuitName?: string;
+  country?: string;
+  eventName?: string;
+  seriesName?: string;
+  sessionType?: string;
+}
 import { REPLAY_FPS } from './replayTypes';
 import {
   computeCumulativeDistances,
@@ -181,7 +192,7 @@ const SERIES_CONFIGS: Record<string, SeriesConfig> = {
   'top-fuel': {
     baseSpeedFactor: 2.5,
     speedVariation: 0.04,
-    lapTimeSeconds: 4,
+    lapTimeSeconds: 3.7, // calibrated to ~3.7s 1,000-ft NHRA pass
     pitStopDurationS: 0,
     pitStopLaps: [],
     tyreCompounds: ['STOCK'],
@@ -189,7 +200,7 @@ const SERIES_CONFIGS: Record<string, SeriesConfig> = {
     hasSafetyCar: false,
     driverCount: 2,
     gridSpreadFactor: 0.0,
-    defaultLaps: 1, // single quarter-mile pass
+    defaultLaps: 1, // single 1,000-ft elimination pass
   },
   wec: {
     baseSpeedFactor: 0.90,
@@ -229,6 +240,19 @@ interface DriverSimState {
   drs: number;
   throttle: number;
   brake: number;
+  // Specialized series telemetry:
+  reactionTime?: number;
+  elapsedTime?: number;
+  chuteDeployed?: boolean;
+  energyPct?: number;
+  attackMode?: boolean;
+  regenKw?: number;
+  carClass?: 'HYPERCAR' | 'LMGT3';
+  classPosition?: number;
+  stintNumber?: number;
+  stageNumber?: number;
+  stageLapsToGo?: number;
+  qualifyingPhase?: string;
 }
 
 // ── Track Velocity & Telemetry Physics Engine ──────────────────────────
@@ -317,7 +341,8 @@ export function generateReplayData(
   seriesId: string,
   track: TrackGeometry,
   drivers: DriverInfo[],
-  sessionType: string = 'Race'
+  sessionType: string = 'Race',
+  sessionMeta?: ReplaySessionMeta
 ): ReplayData {
   const config = SERIES_CONFIGS[seriesId] || SERIES_CONFIGS.f1;
   const rng = new SeededRNG(seriesId.length * 1000 + track.referenceLine.length);
@@ -332,12 +357,17 @@ export function generateReplayData(
       drivers: drivers.slice(0, config.driverCount),
       driverColors: {},
       trackStatuses: [],
+      raceControlMessages: [],
       totalLaps: 0,
       sessionInfo: {
-        seriesId, seriesName: seriesId.toUpperCase(),
-        eventName: track.name, circuitName: track.name,
-        country: track.country, year: new Date().getFullYear(),
-        round: 1, sessionType: sessionType,
+        seriesId,
+        seriesName: sessionMeta?.seriesName || seriesId.toUpperCase(),
+        eventName: sessionMeta?.eventName || track.name,
+        circuitName: sessionMeta?.circuitName || track.name,
+        country: sessionMeta?.country || track.country,
+        year: sessionMeta?.year || new Date().getFullYear(),
+        round: sessionMeta?.round || 1,
+        sessionType: sessionMeta?.sessionType || sessionType,
       },
     };
   }
@@ -367,14 +397,16 @@ export function generateReplayData(
   // ── Dynamic lap count: use series config, then track data, then fallback ──
   let totalLaps = config.defaultLaps ?? track.totalLaps ?? 50;
   
-  // Adjust lap count based on session type
+  // Adjust lap count based on session type and circuit configuration
   const sTypeLower = sessionType.toLowerCase();
-  if (sTypeLower.includes('sprint')) {
-    totalLaps = Math.max(1, Math.ceil(totalLaps / 3));
-  } else if (sTypeLower.includes('qualifying')) {
-    totalLaps = 3; // Out lap, push lap, in lap
+  if (track.type === 'drag' || seriesId === 'top-fuel') {
+    totalLaps = 1;
+  } else if (sTypeLower.includes('sprint')) {
+    totalLaps = Math.max(12, Math.min(24, Math.ceil(totalLaps / 3)));
+  } else if (sTypeLower.includes('qualifying') || sTypeLower.includes('hyperpole') || sTypeLower.includes('shootout')) {
+    totalLaps = Math.max(12, Math.min(20, Math.ceil(totalLaps * 0.35)));
   } else if (sTypeLower.includes('practice')) {
-    totalLaps = 5; // A short practice stint
+    totalLaps = Math.max(15, Math.min(30, Math.ceil(totalLaps * 0.4)));
   }
 
   // ── Frame budget: downsample FPS for very long races to stay under
@@ -383,10 +415,12 @@ export function generateReplayData(
   const effectiveFPS = rawFrameCount > MAX_FRAMES
     ? Math.max(5, Math.floor(MAX_FRAMES / (totalLaps * effectiveLapTimeSeconds)))
     : REPLAY_FPS;
-  const totalFrames = Math.min(
-    MAX_FRAMES,
-    Math.ceil(totalLaps * effectiveLapTimeSeconds * effectiveFPS * 1.5)
-  );
+  const totalFrames = (track.type === 'drag' || seriesId === 'top-fuel')
+    ? Math.ceil(6.5 * REPLAY_FPS)
+    : Math.min(
+        MAX_FRAMES,
+        Math.ceil(totalLaps * effectiveLapTimeSeconds * effectiveFPS * 1.5)
+      );
   const dt = 1 / effectiveFPS;
 
   // Initialize driver states
@@ -424,7 +458,7 @@ export function generateReplayData(
       else if (initialSpeedKmh < 150) initialGear = 3;
       else if (initialSpeedKmh < 220) initialGear = 4;
       else initialGear = 5;
-    } else if (seriesId === 'formula-e') {
+    } else if (seriesId === 'formula-e' || seriesId === 'top-fuel' || track.type === 'drag') {
       initialGear = 1;
     } else {
       if (initialSpeedKmh < 105) initialGear = 2;
@@ -436,12 +470,29 @@ export function generateReplayData(
       else initialGear = 8;
     }
 
+    const isTopFuel = seriesId === 'top-fuel' || track.type === 'drag';
+    const isWec = seriesId === 'wec';
+    const isFormulaE = seriesId === 'formula-e';
+    const isNascar = seriesId === 'nascar' || seriesId?.startsWith('nascar-');
+
+    // Top Fuel: staged on the start line with realistic reaction time delay (~0.035 to 0.048s)
+    const rt = isTopFuel ? Math.round((0.036 + (idx * 0.009) + rng.range(-0.001, 0.003)) * 1000) / 1000 : undefined;
+    const startDist = isTopFuel ? 0 : -startOffset;
+    const carSpeed = isTopFuel ? 0 : initialSpeed;
+    const carThrottle = isTopFuel ? 0 : 98;
+    const carBrake = isTopFuel ? 100 : 0;
+    const carClass: 'HYPERCAR' | 'LMGT3' | undefined = isWec
+      ? (idx < Math.ceil(activeDrivers.length / 2) ? 'HYPERCAR' : 'LMGT3')
+      : undefined;
+
+    const s1End = isNascar ? Math.max(1, Math.round(totalLaps * 0.3)) : undefined;
+
     return {
       code: driver.code,
-      dist: -startOffset,  // negative = behind start line
+      dist: startDist,  // negative = behind start line (0 for drag staging)
       lap: 1,
       baseSpeed: baseSpeedWorld * speedMult,
-      currentSpeed: initialSpeed,
+      currentSpeed: carSpeed,
       tyre,
       tyreLife: 0,
       inPit: false,
@@ -454,15 +505,27 @@ export function generateReplayData(
       position: idx + 1,
       gear: initialGear,
       drs: 0,
-      throttle: 98,
-      brake: 0,
+      throttle: carThrottle,
+      brake: carBrake,
+      reactionTime: rt,
+      elapsedTime: undefined,
+      chuteDeployed: false,
+      energyPct: isFormulaE ? 100.0 : undefined,
+      attackMode: false,
+      regenKw: 0,
+      carClass,
+      classPosition: isWec ? (idx % Math.ceil(activeDrivers.length / 2)) + 1 : undefined,
+      stintNumber: isWec ? 1 : undefined,
+      stageNumber: isNascar ? 1 : undefined,
+      stageLapsToGo: isNascar ? s1End : undefined,
+      qualifyingPhase: (sTypeLower.includes('qualifying') || sTypeLower.includes('shootout')) ? 'Q1' : undefined,
     };
   });
 
-  // Generate safety car deployment (random lap if applicable)
+  // Generate safety car deployment (random lap if applicable for races)
   let scDeployLap = Infinity;
   let scDuration = 0;
-  if (config.hasSafetyCar && totalLaps > 5 && rng.next() > 0.4) {
+  if (config.hasSafetyCar && !sTypeLower.includes('qualifying') && !sTypeLower.includes('practice') && totalLaps > 5 && rng.next() > 0.4) {
     scDeployLap = rng.int(3, Math.floor(totalLaps * 0.6));
     scDuration = rng.range(2, 4) * config.lapTimeSeconds;
   }
@@ -479,6 +542,39 @@ export function generateReplayData(
 
   const frames: RaceFrame[] = [];
   const trackStatuses: TrackStatusPeriod[] = [];
+  const initialSessionMessage = (() => {
+    if (track.type === 'drag' || seriesId === 'top-fuel') {
+      return 'TOP FUEL ELIMINATIONS - STAGING BEAMS ACTIVE / GREEN LIGHT';
+    }
+    if (sTypeLower.includes('sprint')) {
+      return 'SPRINT RACE - FORMATION LAP COMPLETE / GREEN FLAG';
+    }
+    if (sTypeLower.includes('qualifying') || sTypeLower.includes('hyperpole') || sTypeLower.includes('shootout')) {
+      return `${sessionType.toUpperCase()} - PIT EXIT OPEN / GREEN FLAG`;
+    }
+    return 'GREEN FLAG - SESSION STARTED';
+  })();
+
+  const raceControlMessages: RaceControlMessage[] = [
+    {
+      time: 0,
+      category: 'Flag',
+      message: initialSessionMessage,
+      flag: 'GREEN',
+      scope: 'Track',
+      sector: 'All',
+      racingNumber: '',
+    },
+    {
+      time: Math.min(120, Math.round(effectiveLapTimeSeconds * 1.5)),
+      category: 'Drs',
+      message: 'DRS ENABLED IN DESIGNATED ZONES',
+      flag: 'CLEAR',
+      scope: 'Track',
+      sector: 'All',
+      racingNumber: '',
+    },
+  ];
   let scActive = false;
   let scStartTime = -1;
   let scEndTime = -1;
@@ -503,10 +599,47 @@ export function generateReplayData(
         startTime: t,
         endTime: t + scDuration,
       });
+
+      // Designate an incident driver causing the safety car (only if more than 2 drivers on track)
+      if (driverStates.length > 2) {
+        const incidentDriver = driverStates[driverStates.length - 1];
+        if (incidentDriver && !incidentDriver.retired) {
+          incidentDriver.retired = true;
+          const driverInfo = activeDrivers.find(d => d.code === incidentDriver.code);
+          raceControlMessages.push({
+            time: Math.round(t),
+            category: 'CarEvent',
+            message: `INCIDENT: CAR ${driverInfo?.number ?? ''} (${incidentDriver.code}) STOPPED ON TRACK`,
+            flag: 'YELLOW',
+            scope: 'Sector',
+            sector: '2',
+            racingNumber: String(driverInfo?.number ?? ''),
+          });
+        }
+      }
+
+      raceControlMessages.push({
+        time: Math.round(t + 2),
+        category: 'SafetyCar',
+        message: 'SAFETY CAR DEPLOYED - INCIDENT IN SECTOR 2',
+        flag: 'SAFETY CAR',
+        scope: 'Track',
+        sector: 'All',
+        racingNumber: '',
+      });
     }
 
     if (scActive && t >= scEndTime) {
       scActive = false;
+      raceControlMessages.push({
+        time: Math.round(t),
+        category: 'SafetyCar',
+        message: 'SAFETY CAR IN THIS LAP - TRACK CLEAR',
+        flag: 'CLEAR',
+        scope: 'Track',
+        sector: 'All',
+        racingNumber: '',
+      });
     }
 
     // Update each driver
@@ -568,101 +701,207 @@ export function generateReplayData(
       // Random micro-variation per frame (simulates driver throttle control)
       targetSpeed *= rng.range(0.99, 1.01);
 
-      // For drag racing: acceleration curve
-      if (seriesId === 'top-fuel') {
-        const elapsed = t;
-        const accCurve = Math.min(1, elapsed / 2.5);
-        targetSpeed = ds.baseSpeed * accCurve * accCurve;
-      }
+      // For drag racing (Top Fuel): NHRA 1,000-ft pass + parachute deployment in shutdown area
+      if (seriesId === 'top-fuel' || track.type === 'drag') {
+        const rt = ds.reactionTime ?? 0.038;
+        if (t < rt) {
+          // Staging lights active - stationary on the start line
+          ds.currentSpeed = 0;
+          ds.throttle = 0;
+          ds.brake = 100;
+          ds.gear = 1;
+          ds.drs = 0;
+          ds.chuteDeployed = false;
+        } else if (!ds.finished) {
+          const passTime = t - rt;
+          // NHRA 1,000-ft acceleration: reaches ~535 km/h (332+ mph) in ~3.68 - 3.75s
+          const progressFactor = Math.min(1.0, passTime / 3.70);
+          const trapSpeedKmh = 535 * driverPace;
+          const currentSpeedKmh = Math.min(trapSpeedKmh, 30 + Math.pow(progressFactor, 1.05) * (trapSpeedKmh - 30));
+          ds.currentSpeed = (currentSpeedKmh / 3.6) * worldUnitsPerMetre;
+          ds.dist += ds.currentSpeed * dt;
+          ds.throttle = 100;
+          ds.brake = 0;
+          ds.gear = 1; // Direct drive centrifugal clutch
+          ds.drs = 0;
+          ds.chuteDeployed = false;
 
-      // Smooth acceleration / deceleration towards target speed
-      const speedDiff = targetSpeed - ds.currentSpeed;
-      const maxRate = (speedDiff < 0 ? 46 : 11) * worldUnitsPerMetre;
-      ds.currentSpeed += Math.sign(speedDiff) * Math.min(Math.abs(speedDiff), maxRate * dt);
-      ds.currentSpeed = Number.isFinite(ds.currentSpeed) ? ds.currentSpeed : targetSpeed;
-
-      ds.dist += ds.currentSpeed * dt;
-
-      // Update lap count
-      const newLap = Math.floor(ds.dist / lapDistWorld) + 1;
-      if (newLap > ds.lap) {
-        ds.tyreLife++;
-        ds.lap = newLap;
-      }
-
-      // Check if race is finished
-      if (ds.lap > totalLaps) {
-        ds.lap = totalLaps;
-        ds.finished = true; // Finished
-      }
-
-      // Simulated telemetry values
-      const speedKmh = (ds.currentSpeed / worldUnitsPerMetre) * 3.6;
-      const lookaheadDist = Math.max(25, lapDistWorld * 0.015);
-      const speedAheadWorld = sampleSpeedProfile(speedProfile, trackDist + lookaheadDist) * driverPace;
-      const speedAheadKmh = (speedAheadWorld / worldUnitsPerMetre) * 3.6;
-      const deltaAhead = speedAheadKmh - speedKmh;
-
-      // Dynamic Gear shifting
-      if (seriesId === 'nascar' || seriesId?.startsWith('nascar-')) {
-        if (speedKmh < 90) ds.gear = 2;
-        else if (speedKmh < 150) ds.gear = 3;
-        else if (speedKmh < 220) ds.gear = 4;
-        else ds.gear = 5;
-      } else if (seriesId === 'formula-e') {
-        ds.gear = 1;
-      } else {
-        if (speedKmh < 105) ds.gear = 2;
-        else if (speedKmh < 145) ds.gear = 3;
-        else if (speedKmh < 190) ds.gear = 4;
-        else if (speedKmh < 235) ds.gear = 5;
-        else if (speedKmh < 275) ds.gear = 6;
-        else if (speedKmh < 310) ds.gear = 7;
-        else ds.gear = 8;
-      }
-
-      // Dynamic Throttle & Brake Pedals
-      if (deltaAhead < -14) {
-        // Heavy braking zone
-        ds.throttle = 0;
-        ds.brake = Math.min(100, Math.max(70, Math.round(Math.abs(deltaAhead) * 2.8)));
-        ds.drs = 0;
-      } else if (deltaAhead < -4) {
-        // Trail braking turning into apex
-        ds.throttle = 0;
-        ds.brake = Math.min(65, Math.max(15, Math.round(Math.abs(deltaAhead) * 2.2)));
-        ds.drs = 0;
-      } else if (deltaAhead < 4 && speedKmh < 165) {
-        // Corner apex: partial throttle balancing car
-        ds.brake = 0;
-        ds.throttle = Math.min(55, Math.max(30, Math.round(35 + (speedKmh / 165) * 15)));
-        ds.drs = 0;
-      } else {
-        // Accelerating on exit or full speed down straight
-        ds.brake = 0;
-        if (speedKmh > 265 || deltaAhead >= 0) {
-          ds.throttle = Math.round(rng.range(96, 100));
+          // Check for 1,000-ft (304.8m) finish beam
+          if (ds.dist >= lapDistWorld || passTime >= 3.70) {
+            ds.finished = true;
+            ds.elapsedTime = Math.round(passTime * 1000) / 1000;
+            ds.chuteDeployed = true;
+          }
         } else {
-          ds.throttle = Math.min(95, Math.round(55 + (speedKmh / 265) * 40));
+          // Shutdown area: Dual parachutes deployed past 1,000 ft, heavy deceleration
+          ds.chuteDeployed = true;
+          ds.throttle = 0;
+          ds.brake = 95;
+          ds.gear = 1;
+          ds.drs = 0;
+          const decelKmh = 145 * dt;
+          const currentSpeedKmh = Math.max(15, (ds.currentSpeed / worldUnitsPerMetre) * 3.6 - decelKmh);
+          ds.currentSpeed = (currentSpeedKmh / 3.6) * worldUnitsPerMetre;
+          ds.dist += ds.currentSpeed * dt;
+        }
+      } else {
+        // Smooth acceleration / deceleration towards target speed
+        const speedDiff = targetSpeed - ds.currentSpeed;
+        const maxRate = (speedDiff < 0 ? 46 : 11) * worldUnitsPerMetre;
+        ds.currentSpeed += Math.sign(speedDiff) * Math.min(Math.abs(speedDiff), maxRate * dt);
+        ds.currentSpeed = Number.isFinite(ds.currentSpeed) ? ds.currentSpeed : targetSpeed;
+
+        ds.dist += ds.currentSpeed * dt;
+
+        // Update lap count
+        const newLap = Math.floor(ds.dist / lapDistWorld) + 1;
+        if (newLap > ds.lap) {
+          ds.tyreLife++;
+          ds.lap = newLap;
         }
 
-        // DRS simulation on high-speed straights
-        if (config.hasDRS && !scActive && ds.gear >= 7 && ds.throttle >= 95) {
-          ds.drs = 12;
+        // Check if race is finished
+        if (ds.lap > totalLaps) {
+          ds.lap = totalLaps;
+          ds.finished = true; // Finished
+        }
+
+        // Simulated telemetry values
+        const speedKmh = (ds.currentSpeed / worldUnitsPerMetre) * 3.6;
+        const lookaheadDist = Math.max(25, lapDistWorld * 0.015);
+        const speedAheadWorld = sampleSpeedProfile(speedProfile, trackDist + lookaheadDist) * driverPace;
+        const speedAheadKmh = (speedAheadWorld / worldUnitsPerMetre) * 3.6;
+        const deltaAhead = speedAheadKmh - speedKmh;
+
+        // Dynamic Gear shifting
+        if (seriesId === 'nascar' || seriesId?.startsWith('nascar-')) {
+          if (speedKmh < 90) ds.gear = 2;
+          else if (speedKmh < 150) ds.gear = 3;
+          else if (speedKmh < 220) ds.gear = 4;
+          else ds.gear = 5;
+        } else if (seriesId === 'formula-e') {
+          ds.gear = 1;
         } else {
+          if (speedKmh < 105) ds.gear = 2;
+          else if (speedKmh < 145) ds.gear = 3;
+          else if (speedKmh < 190) ds.gear = 4;
+          else if (speedKmh < 235) ds.gear = 5;
+          else if (speedKmh < 275) ds.gear = 6;
+          else if (speedKmh < 310) ds.gear = 7;
+          else ds.gear = 8;
+        }
+
+        // Dynamic Throttle & Brake Pedals
+        if (deltaAhead < -14) {
+          // Heavy braking zone
+          ds.throttle = 0;
+          ds.brake = Math.min(100, Math.max(70, Math.round(Math.abs(deltaAhead) * 2.8)));
           ds.drs = 0;
+        } else if (deltaAhead < -4) {
+          // Trail braking turning into apex
+          ds.throttle = 0;
+          ds.brake = Math.min(65, Math.max(15, Math.round(Math.abs(deltaAhead) * 2.2)));
+          ds.drs = 0;
+        } else if (deltaAhead < 4 && speedKmh < 165) {
+          // Corner apex: partial throttle balancing car
+          ds.brake = 0;
+          ds.throttle = Math.min(55, Math.max(30, Math.round(35 + (speedKmh / 165) * 15)));
+          ds.drs = 0;
+        } else {
+          // Accelerating on exit or full speed down straight
+          ds.brake = 0;
+          if (speedKmh > 265 || deltaAhead >= 0) {
+            ds.throttle = Math.round(rng.range(96, 100));
+          } else {
+            ds.throttle = Math.min(95, Math.round(55 + (speedKmh / 265) * 40));
+          }
+
+          // DRS simulation on high-speed straights
+          if (config.hasDRS && !scActive && ds.gear >= 7 && ds.throttle >= 95) {
+            ds.drs = 12;
+          } else {
+            ds.drs = 0;
+          }
+        }
+
+        // Formula E energy management & Attack Mode
+        if (seriesId === 'formula-e') {
+          ds.gear = 1;
+          ds.attackMode = (ds.lap >= 10 && ds.lap <= 14) || (ds.lap >= 22 && ds.lap <= 26);
+          if (ds.energyPct !== undefined) {
+            if (ds.throttle > 50) {
+              const drainRate = ds.attackMode ? 0.040 : 0.028;
+              ds.energyPct = Math.max(1.5, ds.energyPct - dt * drainRate * (ds.throttle / 100));
+              ds.regenKw = 0;
+            } else if (ds.brake > 10) {
+              const regenRate = 0.015;
+              ds.energyPct = Math.min(100, ds.energyPct + dt * regenRate * (ds.brake / 100));
+              ds.regenKw = Math.round((ds.brake / 100) * 250);
+            } else {
+              ds.regenKw = 0;
+            }
+          }
+        }
+
+        // NASCAR stage tracking
+        if (seriesId === 'nascar' || seriesId?.startsWith('nascar-')) {
+          const s1End = Math.max(1, Math.round(totalLaps * 0.3));
+          const s2End = Math.max(s1End + 1, Math.round(totalLaps * 0.6));
+          if (ds.lap <= s1End) {
+            ds.stageNumber = 1;
+            ds.stageLapsToGo = s1End - ds.lap + 1;
+          } else if (ds.lap <= s2End) {
+            ds.stageNumber = 2;
+            ds.stageLapsToGo = s2End - ds.lap + 1;
+          } else {
+            ds.stageNumber = 3;
+            ds.stageLapsToGo = totalLaps - ds.lap + 1;
+          }
+        }
+
+        // WEC stint tracker
+        if (seriesId === 'wec') {
+          ds.stintNumber = 1 + ds.pitStopIndex;
+        }
+
+        // Qualifying shootout knockout phase
+        if (sTypeLower.includes('qualifying') || sTypeLower.includes('shootout')) {
+          const qProg = fi / totalFrames;
+          ds.qualifyingPhase = qProg < 0.42 ? 'Q1' : qProg < 0.76 ? 'Q2' : 'Q3';
         }
       }
     }
 
-    // Sort by distance to determine positions
+    // Sort by distance to determine positions (or reaction + ET for Top Fuel)
     const activeDriversSorted = [...driverStates]
       .filter(d => !d.retired)
-      .sort((a, b) => b.dist - a.dist);
+      .sort((a, b) => {
+        if (seriesId === 'top-fuel' || track.type === 'drag') {
+          if (a.finished && b.finished) {
+            const aTotal = (a.reactionTime ?? 0) + (a.elapsedTime ?? 999);
+            const bTotal = (b.reactionTime ?? 0) + (b.elapsedTime ?? 999);
+            return aTotal - bTotal;
+          }
+        }
+        return b.dist - a.dist;
+      });
 
     activeDriversSorted.forEach((ds, idx) => {
       ds.position = idx + 1;
     });
+
+    // Multiclass position ranking for WEC (Hypercar vs LMGT3)
+    if (seriesId === 'wec') {
+      let hypRank = 1;
+      let gtRank = 1;
+      activeDriversSorted.forEach(ds => {
+        if (ds.carClass === 'HYPERCAR') {
+          ds.classPosition = hypRank++;
+        } else {
+          ds.classPosition = gtRank++;
+        }
+      });
+    }
 
     // Check if every driver has finished or retired
     allFinished = driverStates.every(ds => ds.retired || ds.finished);
@@ -672,17 +911,25 @@ export function generateReplayData(
 
     for (const ds of driverStates) {
       const trackDist = ((ds.dist % lapDistWorld) + lapDistWorld) % lapDistWorld;
-      const pos = positionAtDistance(track.referenceLine, cumDists, trackDist);
+      let pos = positionAtDistance(track.referenceLine, cumDists, trackDist);
+
+      // For drag strip, offset parallel lanes so cars run side-by-side
+      if (track.type === 'drag') {
+        const driverIdx = activeDrivers.findIndex(d => d.code === ds.code);
+        const laneOffset = driverIdx === 0 ? -10 : 10;
+        pos = { x: pos.x, y: pos.y + laneOffset };
+      }
 
       // Calculate speed in km/h (approximate)
       const speedKmh = (ds.currentSpeed / worldUnitsPerMetre) * 3.6;
+      const safeScale = (worldUnitsPerMetre > 0 && Number.isFinite(worldUnitsPerMetre)) ? worldUnitsPerMetre : 1;
 
       driversRecord[ds.code] = {
         x: pos.x,
         y: pos.y,
         position: ds.position,
         lap: Math.max(1, Math.min(ds.lap, totalLaps)),
-        dist: ds.dist,
+        dist: Math.round(ds.dist / safeScale),
         relDist: (trackDist / lapDistWorld),
         speed: Math.round(speedKmh),
         gear: ds.gear,
@@ -694,6 +941,18 @@ export function generateReplayData(
         inPit: ds.inPit,
         retired: ds.retired,
         finished: ds.finished,
+        reactionTime: ds.reactionTime,
+        elapsedTime: ds.elapsedTime,
+        chuteDeployed: ds.chuteDeployed,
+        energyPct: ds.energyPct !== undefined ? Math.round(ds.energyPct * 10) / 10 : undefined,
+        attackMode: ds.attackMode,
+        regenKw: ds.regenKw,
+        carClass: ds.carClass,
+        classPosition: ds.classPosition,
+        stintNumber: ds.stintNumber,
+        stageNumber: ds.stageNumber,
+        stageLapsToGo: ds.stageLapsToGo,
+        qualifyingPhase: ds.qualifyingPhase,
       };
     }
 
@@ -736,6 +995,8 @@ export function generateReplayData(
       weather,
       trackStatus: scActive ? '4' : '1',
     });
+
+    allFinished = driverStates.every(d => d.finished || d.retired);
   }
 
   // Build driver colors map
@@ -750,16 +1011,17 @@ export function generateReplayData(
     drivers: activeDrivers,
     driverColors,
     trackStatuses,
+    raceControlMessages,
     totalLaps,
     sessionInfo: {
       seriesId,
-      seriesName: seriesId.toUpperCase(),
-      eventName: track.name,
-      circuitName: track.name,
-      country: track.country,
-      year: new Date().getFullYear(),
-      round: 1,
-      sessionType: sessionType,
+      seriesName: sessionMeta?.seriesName || seriesId.toUpperCase(),
+      eventName: sessionMeta?.eventName || track.name,
+      circuitName: sessionMeta?.circuitName || track.name,
+      country: sessionMeta?.country || track.country,
+      year: sessionMeta?.year || new Date().getFullYear(),
+      round: sessionMeta?.round || 1,
+      sessionType: sessionMeta?.sessionType || sessionType,
     },
   };
 }

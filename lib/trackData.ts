@@ -106,12 +106,12 @@ export function offsetPolyline(line: Point2D[], dist: number): Point2D[] {
 const DRAG_STRIP: TrackGeometry = {
   name: 'Drag Strip',
   country: 'USA',
-  lengthKm: 0.402,
+  lengthKm: 0.3048, // NHRA 1,000-foot competition distance (304.8m)
   totalLaps: 1,
   type: 'drag',
-  innerEdge: [{ x: -400, y: -20 }, { x: 400, y: -20 }],
-  outerEdge: [{ x: -400, y: 20 }, { x: 400, y: 20 }],
-  referenceLine: [{ x: -400, y: 0 }, { x: 400, y: 0 }],
+  innerEdge: [{ x: -450, y: -22 }, { x: 450, y: -22 }],
+  outerEdge: [{ x: -450, y: 22 }, { x: 450, y: 22 }],
+  referenceLine: [{ x: -450, y: 0 }, { x: 450, y: 0 }],
   startFinishIdx: 0
 };
 

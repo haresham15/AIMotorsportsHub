@@ -113,7 +113,8 @@ export default function LiveStandings({
 
           if (isReplayActiveRef.current) return
 
-          const nextRaceData: RaceData[] = await response.json()
+          const json = await response.json()
+          const nextRaceData: RaceData[] = Array.isArray(json) ? json : (json.standings || [])
           const top20 = nextRaceData.slice(0, 20)
           if (!isReplayActiveRef.current) {
             setRaceData(top20)
@@ -164,6 +165,39 @@ export default function LiveStandings({
 
       fetchLiveNascarData()
       intervalId = setInterval(fetchLiveNascarData, 10000)
+    } else if (dataSource === 'live' && ['wec', 'formula-e', 'gt-world-challenge', 'imsa', 'elms'].includes(series)) {
+      const fetchLiveAlKamelData = async () => {
+        if (isFetchingRef.current || isReplayActiveRef.current) return
+        isFetchingRef.current = true
+
+        try {
+          const response = await fetch(`/api/alkamel/live?series=${encodeURIComponent(series)}`)
+          if (!response.ok) {
+            applyFallback()
+            setLoading(false)
+            return
+          }
+          if (isReplayActiveRef.current) return
+          const payload: { standings?: RaceData[] } = await response.json()
+          const top20 = (payload.standings || []).slice(0, 20)
+          if (!isReplayActiveRef.current && top20.length > 0) {
+            setRaceData(top20)
+            hasLiveData.current = true
+            setLoading(false)
+          } else {
+            applyFallback()
+            setLoading(false)
+          }
+        } catch {
+          applyFallback()
+          setLoading(false)
+        } finally {
+          isFetchingRef.current = false
+        }
+      }
+
+      fetchLiveAlKamelData()
+      intervalId = setInterval(fetchLiveAlKamelData, 10000)
     } else if (dataSource === 'cv') {
       if (externalData && externalData.length > 0) {
         const nextRaceData = externalData.map((entry) => ({

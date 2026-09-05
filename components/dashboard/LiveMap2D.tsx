@@ -11,13 +11,19 @@ import DriverTelemetryPanel from './DriverTelemetryPanel'
 import DriverProfileModal from './DriverProfileModal'
 import TrackDetailsModal from './TrackDetailsModal'
 import RaceControlModal from './RaceControlModal'
-import { Radio, AlertTriangle, Flag, ListOrdered, Tag, Eye } from 'lucide-react'
+import { Radio, AlertTriangle, ListOrdered, Clock } from 'lucide-react'
 import Loader from '@/components/ui/Loader'
 
 // Helper to run simulation — prefers Web Worker for off-main-thread
 // generation, but falls back to synchronous if Workers are unavailable
 // (e.g., SSR, strict CSP, or certain browser extensions).
-const generateReplayDataAsync = async (series: string, track: TrackGeometry, driversList: DriverInfo[], sessionType?: string): Promise<ReplayData> => {
+const generateReplayDataAsync = async (
+  series: string,
+  track: TrackGeometry,
+  driversList: DriverInfo[],
+  sessionType?: string,
+  sessionMeta?: import('@/lib/raceSimulator').ReplaySessionMeta
+): Promise<ReplayData> => {
   try {
     return await new Promise((resolve, reject) => {
       const worker = new Worker(new URL('../../workers/simulator.worker.ts', import.meta.url))
@@ -30,24 +36,26 @@ const generateReplayDataAsync = async (series: string, track: TrackGeometry, dri
         reject(err)
         worker.terminate()
       }
-      worker.postMessage({ series, track, driversList, sessionType })
+      worker.postMessage({ series, track, driversList, sessionType, sessionMeta })
     })
   } catch {
     // Fallback: run synchronously on main thread if Worker fails
     console.warn('[LiveMap2D] Web Worker unavailable, running simulation synchronously')
     const { generateReplayData } = await import('@/lib/raceSimulator')
-    return generateReplayData(series, track, driversList, sessionType)
+    return generateReplayData(series, track, driversList, sessionType, sessionMeta)
   }
 }
 
-import { frameToRaceData, findFrameIndexForTime } from '@/lib/replayTypes'
+import { frameToRaceData, findFrameIndexForTime, calculateReplayGap } from '@/lib/replayTypes'
 import type { RaceData, CVData } from '@/lib/types'
 
 interface LiveMap2DProps {
   series: string
   round?: number
+  year?: number | string
   sessionKey?: number | null
   circuitName?: string
+  eventName?: string
   country?: string
   driverStandings?: Array<{
     code: string;
@@ -69,9 +77,11 @@ interface LiveMap2DProps {
 export default function LiveMap2D({
   series,
   round = 1,
+  year = new Date().getFullYear(),
   sessionKey = null,
   sessionType = 'Race',
   circuitName,
+  eventName,
   country,
   driverStandings,
   onStandingsChange,
@@ -79,9 +89,9 @@ export default function LiveMap2D({
   onSelectDriver,
   isLiveSession = false,
   sessionStartTime = null,
-  roundStatus,
   cvData = [],
 }: LiveMap2DProps) {
+  const parsedYear = typeof year === 'number' ? year : (parseInt(String(year), 10) || new Date().getFullYear())
   const [replayData, setReplayData] = useState<ReplayData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -90,6 +100,17 @@ export default function LiveMap2D({
   const [isTrackModalOpen, setIsTrackModalOpen] = useState(false)
   const [isRaceControlModalOpen, setIsRaceControlModalOpen] = useState(false)
   const [customTrackName, setCustomTrackName] = useState<string | null>(null)
+  const [liveApiStandings, setLiveApiStandings] = useState<RaceData[] | null>(null)
+  const [liveSessionData, setLiveSessionData] = useState<{
+    trackStatus?: string;
+    flagLabel?: string;
+    bulletins?: Array<{
+      time?: string | number;
+      message: string;
+      flag?: string;
+      category?: string;
+    }>;
+  } | null>(null)
 
   const [playback, setPlayback] = useState<PlaybackState>({
     frameIndex: 0,
@@ -101,6 +122,34 @@ export default function LiveMap2D({
     showDriverLabels: true,
     showDrsZones: true,
   })
+
+  // Format scheduled start time in UTC and user's local timezone
+  const formattedStartTime = useMemo(() => {
+    if (!sessionStartTime) return null
+    try {
+      const date = new Date(sessionStartTime)
+      if (isNaN(date.getTime())) return null
+
+      // UTC time (e.g. 14:00 UTC)
+      const utcTime = new Intl.DateTimeFormat('en-GB', {
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'UTC',
+        hour12: false,
+      }).format(date) + ' UTC'
+
+      // Local time (e.g. 10:00 AM EDT or 4:00 PM CEST)
+      const localTime = new Intl.DateTimeFormat(undefined, {
+        hour: 'numeric',
+        minute: '2-digit',
+        timeZoneName: 'short',
+      }).format(date)
+
+      return { utc: utcTime, local: localTime }
+    } catch {
+      return null
+    }
+  }, [sessionStartTime])
 
   // ── Load data ──────────────────────────────────────────────────
   useEffect(() => {
@@ -171,29 +220,49 @@ export default function LiveMap2D({
               outerEdge: []
             }
 
-            const simData = await generateReplayDataAsync(series, track, driversList, sessionType)
+            const effectiveCircuitName = customTrackName || circuitName;
+            const sessionMeta = {
+              year: parsedYear,
+              round,
+              circuitName: effectiveCircuitName,
+              country,
+              eventName: eventName || effectiveCircuitName,
+              sessionType,
+            };
+
+            const simData = await generateReplayDataAsync(series, track, driversList, sessionType, sessionMeta)
             
-            if (cancelled) return
             setReplayData(simData)
             setDataSource('openf1')
+            if (simData.frames.length > 0) {
+              onStandingsChange?.(frameToRaceData(simData.frames[0], simData, series))
+            }
             setLoading(false)
             return
           }
         }
 
+        const effectiveCircuitName = customTrackName || circuitName;
+        const sessionMeta = {
+          year: parsedYear,
+          round,
+          circuitName: effectiveCircuitName,
+          country,
+          eventName: eventName || effectiveCircuitName,
+          sessionType,
+        };
+
         // Fallback: try fetching pre-computed Python data
         const sessionParam = encodeURIComponent(sessionType?.toLowerCase() || 'race')
-        const res = await fetch(`/api/replay/${series}?year=2024&round=${round}&session=${sessionParam}`)
+        const res = await fetch(`/api/replay/${series}?year=${parsedYear}&round=${round}&session=${sessionParam}`)
         const json = await res.json()
 
         if (cancelled) return
 
-        const effectiveCircuitName = customTrackName || circuitName;
-
         if (json.source === 'simulation' || !json.frames || customTrackName) {
           console.log(`[LiveMap2D] Loading simulation for ${series} on ${effectiveCircuitName}`)
           const track = getTrackForCircuit(effectiveCircuitName, series)
-          const simData = await generateReplayDataAsync(series, track, driversList, sessionType)
+          const simData = await generateReplayDataAsync(series, track, driversList, sessionType, sessionMeta)
           if (cancelled) return
           setReplayData(simData)
           setDataSource('simulation')
@@ -212,6 +281,14 @@ export default function LiveMap2D({
         }
       } catch (err) {
         const effectiveCircuitName = customTrackName || circuitName;
+        const sessionMeta = {
+          year: parsedYear,
+          round,
+          circuitName: effectiveCircuitName,
+          country,
+          eventName: eventName || effectiveCircuitName,
+          sessionType,
+        };
         console.warn(`[LiveMap2D] Fetch failed for ${series}, using simulation on ${effectiveCircuitName}:`, err)
         if (cancelled) return
         const track = getTrackForCircuit(effectiveCircuitName, series)
@@ -223,7 +300,7 @@ export default function LiveMap2D({
           color: getDriverColor(series, d.code) || '#ffffff'
         })) : (SERIES_DRIVERS[series] || SERIES_DRIVERS['f1'])
 
-        const simData = await generateReplayDataAsync(series, track, fallbackDrivers, sessionType)
+        const simData = await generateReplayDataAsync(series, track, fallbackDrivers, sessionType, sessionMeta)
         if (cancelled) return
         setReplayData(simData)
         setDataSource('simulation')
@@ -237,7 +314,7 @@ export default function LiveMap2D({
 
     loadData()
     return () => { cancelled = true }
-  }, [series, round, sessionKey, circuitName, country, driverStandings, sessionType, customTrackName])
+  }, [series, round, parsedYear, sessionKey, circuitName, eventName, country, driverStandings, sessionType, customTrackName, onStandingsChange])
 
   // ── Playback state handler ─────────────────────────────────────
   const lastSyncTimeRef = useRef(0)
@@ -262,18 +339,24 @@ export default function LiveMap2D({
     onSelectDriver?.(codes.length === 1 ? codes[0] : null)
   }, [onSelectDriver])
 
+  const [wallClockMs, setWallClockMs] = useState(() => Date.now())
+  useEffect(() => {
+    if (!isLiveSession) return
+    const timer = setInterval(() => setWallClockMs(Date.now()), 2000)
+    return () => clearInterval(timer)
+  }, [isLiveSession])
+
   // Compute live edge time in seconds from session start
   const liveEdgeTimeSec = useMemo(() => {
     if (isLiveSession && sessionStartTime) {
       const startMs = new Date(sessionStartTime).getTime()
       if (!isNaN(startMs)) {
-        const nowMs = Date.now()
-        return Math.max(0, (nowMs - startMs) / 1000)
+        return Math.max(0, (wallClockMs - startMs) / 1000)
       }
     }
     if (!replayData || replayData.frames.length === 0) return 0
     return replayData.frames[replayData.frames.length - 1]?.t ?? 0
-  }, [isLiveSession, sessionStartTime, replayData])
+  }, [isLiveSession, sessionStartTime, wallClockMs, replayData])
 
   // Set initial frame index and playback state when replay data changes
   useEffect(() => {
@@ -363,11 +446,13 @@ export default function LiveMap2D({
           const sessionParam = sessionKey || 'latest'
           const res = await fetch(`/api/f1/live?sessionKey=${sessionParam}`)
           if (!res.ok || isCancelled) return
-          const liveStandings: RaceData[] = await res.json()
+          const json = await res.json()
+          const liveStandings: RaceData[] = Array.isArray(json) ? json : (json.standings || [])
           if (Array.isArray(liveStandings) && liveStandings.length > 0 && !isCancelled) {
-            if (playback.isLiveMode && onStandingsChange) {
-              onStandingsChange(liveStandings)
-            }
+            setLiveApiStandings(liveStandings)
+          }
+          if (json.session && !isCancelled) {
+            setLiveSessionData(json.session)
           }
         } else if (series === 'nascar' || series.startsWith('nascar-')) {
           const nascarParam = series === 'nascar' ? 'nascar-cup' : series
@@ -375,9 +460,51 @@ export default function LiveMap2D({
           if (!res.ok || isCancelled) return
           const data = await res.json()
           if (data.standings && Array.isArray(data.standings) && data.standings.length > 0 && !isCancelled) {
-            if (playback.isLiveMode && onStandingsChange) {
-              onStandingsChange(data.standings)
-            }
+            setLiveApiStandings(data.standings)
+          }
+          if (data.session && !isCancelled) {
+            const flagState = data.session.flagState;
+            const statusStr = flagState === 3 ? '5' : flagState === 2 ? '2' : '1';
+            setLiveSessionData({
+              trackStatus: statusStr,
+              flagLabel: data.session.flagLabel || 'GREEN',
+              bulletins: [
+                {
+                  time: data.session.lapNumber ? `Lap ${data.session.lapNumber}` : 'LIVE',
+                  message: `NASCAR FLAG: ${data.session.flagLabel || 'GREEN'} • Cautions: ${data.session.cautionSegments || 0} (${data.session.cautionLaps || 0} laps)`,
+                  flag: data.session.flagLabel || 'GREEN',
+                  category: 'RaceControl',
+                },
+                ...(data.session.leadChanges !== undefined ? [{
+                  time: 'Session',
+                  message: `Lead Changes: ${data.session.leadChanges} across ${data.session.leaders || 1} leaders`,
+                  flag: 'INFO',
+                  category: 'Statistics',
+                }] : [])
+              ]
+            })
+          }
+        } else if (['wec', 'formula-e', 'gt-world-challenge', 'imsa', 'elms'].includes(series)) {
+          const res = await fetch(`/api/alkamel/live?series=${encodeURIComponent(series)}`)
+          if (!res.ok || isCancelled) return
+          const data = await res.json()
+          if (data.standings && Array.isArray(data.standings) && data.standings.length > 0 && !isCancelled) {
+            setLiveApiStandings(data.standings)
+          }
+          if (data.session && !isCancelled) {
+            const trackStatus = data.session.track_status === 'YELLOW' ? '2' : data.session.track_status === 'RED' ? '5' : '1';
+            setLiveSessionData({
+              trackStatus,
+              flagLabel: data.session.track_status || 'GREEN',
+              bulletins: [
+                {
+                  time: data.session.lap_number ? `Lap ${data.session.lap_number}` : 'LIVE',
+                  message: `RACE FLAG: ${data.session.track_status || 'GREEN'} • ${data.session.session_name || 'Race Session'}`,
+                  flag: data.session.track_status || 'GREEN',
+                  category: 'RaceControl',
+                }
+              ]
+            })
           }
         }
       } catch (err) {
@@ -385,12 +512,13 @@ export default function LiveMap2D({
       }
     }
 
+    pollLiveData()
     const pollInterval = setInterval(pollLiveData, 8000)
     return () => {
       isCancelled = true
       clearInterval(pollInterval)
     }
-  }, [isLiveSession, series, sessionKey, playback.isLiveMode, onStandingsChange])
+  }, [isLiveSession, series, sessionKey])
 
   // Keyboard navigation for playback controls
   useEffect(() => {
@@ -438,6 +566,10 @@ export default function LiveMap2D({
     return replayData.frames[idx] ?? null
   }, [replayData, playback.frameIndex])
 
+  const currentSec = currentFrame?.t ?? 0
+  const isBehindLive = Boolean(isLiveSession && (liveEdgeTimeSec - currentSec > 4))
+  const liveLagSeconds = Math.max(0, Math.floor(liveEdgeTimeSec - currentSec))
+
   // Throttle live standings sync to ~10 FPS (100ms) during playback, instant when paused/seeking
   useEffect(() => {
     if (!currentFrame || !replayData || !onStandingsChange) return
@@ -449,6 +581,13 @@ export default function LiveMap2D({
     if (shouldSync) {
       lastSyncTimeRef.current = now
       lastFrameIdxRef.current = playback.frameIndex
+
+      // At live edge with verified live API telemetry, prioritize real API data
+      if (isLiveSession && playback.isLiveMode && !isBehindLive && liveApiStandings && liveApiStandings.length > 0) {
+        onStandingsChange(liveApiStandings)
+        return
+      }
+
       const synced = frameToRaceData(currentFrame, replayData, series)
 
       // HYBRID CV OVERRIDE: If we have CV OCR data, overwrite the simulated positions/gaps
@@ -467,7 +606,7 @@ export default function LiveMap2D({
 
       onStandingsChange(synced)
     }
-  }, [currentFrame, replayData, onStandingsChange, series, playback.frameIndex, playback.isPlaying, cvData])
+  }, [currentFrame, replayData, onStandingsChange, series, playback.frameIndex, playback.isPlaying, cvData, isLiveSession, playback.isLiveMode, isBehindLive, liveApiStandings])
 
   const selectedDriver = playback.selectedDrivers.length === 1 ? playback.selectedDrivers[0] : null
 
@@ -492,7 +631,9 @@ export default function LiveMap2D({
   }
 
   // Track status indicator details
-  const trackStatus = currentFrame?.trackStatus || '1'
+  const trackStatus = (isLiveSession && playback.isLiveMode && !isBehindLive && liveSessionData?.trackStatus)
+    ? liveSessionData.trackStatus
+    : (currentFrame?.trackStatus || '1')
   const flagDetails = (() => {
     switch (trackStatus) {
       case '2':
@@ -507,10 +648,6 @@ export default function LiveMap2D({
         return { label: 'TRACK CLEAR', color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30', dot: 'bg-emerald-400' }
     }
   })()
-
-  const currentSec = currentFrame?.t ?? 0
-  const isBehindLive = Boolean(isLiveSession && (liveEdgeTimeSec - currentSec > 4))
-  const liveLagSeconds = Math.max(0, Math.floor(liveEdgeTimeSec - currentSec))
 
   const formatLag = (s: number) => {
     const m = Math.floor(s / 60)
@@ -537,6 +674,18 @@ export default function LiveMap2D({
               {replayData.sessionInfo.country} • {replayData.sessionInfo.sessionType}
             </span>
           </button>
+
+          {formattedStartTime && (
+            <div 
+              className="hidden md:flex items-center gap-2 px-2.5 py-1 bg-black/40 border border-white/20 text-[11px] font-mono text-white/90"
+              title={`Scheduled Start: ${formattedStartTime.utc} (${formattedStartTime.local})`}
+            >
+              <Clock size={12} className="text-amber-400 shrink-0" />
+              <span className="text-white/50 text-[10px] uppercase font-bold tracking-wider">Start</span>
+              <span className="text-amber-300 font-bold">{formattedStartTime.utc}</span>
+              <span className="text-white/40">({formattedStartTime.local})</span>
+            </div>
+          )}
         </div>
 
         {/* Center: Track Condition Flag & Live Indicator */}
@@ -595,6 +744,7 @@ export default function LiveMap2D({
             playback={playback}
             onPlaybackChange={handlePlaybackChange}
             onDriverSelect={handleDriverSelect}
+            liveTrackStatus={trackStatus}
           />
 
           {/* Compact Driver Telemetry HUD (docked bottom-left when focused) */}
@@ -603,6 +753,8 @@ export default function LiveMap2D({
               data={replayData}
               frame={currentFrame}
               driverCode={selectedDriver}
+              series={series}
+              sessionType={sessionType}
               onClose={() => handleDriverSelect([])}
               onInspect={(code) => setInspectDriverCode(code)}
             />
@@ -652,6 +804,7 @@ export default function LiveMap2D({
         driverCode={inspectDriverCode}
         isOpen={!!inspectDriverCode}
         onClose={() => setInspectDriverCode(null)}
+        series={series}
         telemetry={
           inspectDriverCode && currentFrame?.drivers[inspectDriverCode]
             ? {
@@ -663,6 +816,21 @@ export default function LiveMap2D({
                 tyreLife: currentFrame.drivers[inspectDriverCode].tyreLife,
                 drs: currentFrame.drivers[inspectDriverCode].drs >= 10,
                 position: currentFrame.drivers[inspectDriverCode].position,
+                gap: (() => {
+                  const sorted = Object.values(currentFrame.drivers).sort((a, b) => a.position - b.position);
+                  const leader = sorted[0];
+                  const d = currentFrame.drivers[inspectDriverCode];
+                  if (!leader || !d) return undefined;
+                  return calculateReplayGap(
+                    d.position,
+                    d.dist,
+                    d.lap,
+                    d.relDist,
+                    leader.dist,
+                    leader.lap,
+                    leader.relDist
+                  );
+                })(),
               }
             : undefined
         }
@@ -679,7 +847,12 @@ export default function LiveMap2D({
       <RaceControlModal
         isOpen={isRaceControlModalOpen}
         onClose={() => setIsRaceControlModalOpen(false)}
-        trackStatus={currentFrame?.trackStatus || '1'}
+        trackStatus={trackStatus}
+        messages={
+          (isLiveSession && liveSessionData?.bulletins && liveSessionData.bulletins.length > 0)
+            ? liveSessionData.bulletins
+            : (replayData.raceControlMessages || [])
+        }
       />
     </div>
   )

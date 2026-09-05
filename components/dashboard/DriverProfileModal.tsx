@@ -10,6 +10,7 @@ interface DriverProfileModalProps {
   driverCode: string | null;
   isOpen: boolean;
   onClose: () => void;
+  series?: string;
   telemetry?: {
     speed?: number;
     gear?: number;
@@ -129,32 +130,37 @@ export default function DriverProfileModal({
   driverCode,
   isOpen,
   onClose,
+  series = 'f1',
   telemetry,
 }: DriverProfileModalProps) {
   const { toggleDriver, isDriverFollowed } = useUserProfile();
 
   if (!isOpen || !driverCode) return null;
 
+  // Lookup driver across series roster if not in DOSSIER
+  const seriesRoster = SERIES_DRIVERS[series] || SERIES_DRIVERS['f1'] || [];
+  const rosterDriver = seriesRoster.find(d => d.code === driverCode);
+
   const driverData = DRIVER_DOSSIER[driverCode] || {
-    name: driverCode,
-    number: '00',
-    team: 'Formula 1 Competitor',
+    name: rosterDriver?.name || driverCode,
+    number: rosterDriver ? String(rosterDriver.number) : '00',
+    team: rosterDriver?.team || `${series.toUpperCase()} Competitor`,
     country: 'International',
     championshipPoints: 12,
     podiums: 1,
     wins: 0,
-    bio: 'Paddock Grand Prix competitor competing at the highest tier of global motorsport engineering.',
+    bio: `${rosterDriver?.name || driverCode} competing for ${rosterDriver?.team || 'the team'} in ${series.toUpperCase()} championship competition.`,
   };
 
-  const teamColor = getDriverColor('f1', driverCode) || '#fbbf24';
-  const isFollowed = isDriverFollowed(driverCode, 'f1');
+  const teamColor = rosterDriver?.color || getDriverColor(series, driverCode) || '#fbbf24';
+  const isFollowed = isDriverFollowed(driverCode, series);
 
   const handleToggleFollow = () => {
     toggleDriver({
       code: driverCode,
       name: driverData.name,
       team: driverData.team,
-      series: 'f1',
+      series: series,
       color: teamColor,
     });
     if (!isFollowed) {

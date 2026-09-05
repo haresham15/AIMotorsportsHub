@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { SERIES, SERIES_MAP } from '@/lib/data'
@@ -20,6 +20,7 @@ import ChampionshipStandings from '@/components/dashboard/ChampionshipStandings'
 import { ArrowLeft, ChevronDown, AlertCircle, ShieldCheck, Check, Flame, Star } from 'lucide-react'
 import { useSeriesData } from '@/lib/hooks/useSeriesData'
 import { RaceData, CVData } from '@/lib/types'
+import { isSessionInProgress, findMostRecentSession } from '@/lib/seriesSchedules'
 import PodiumProbability from '@/components/dashboard/PodiumProbability'
 import DriverSimilarityMap from '@/components/dashboard/DriverSimilarityMap'
 import { useUserProfile } from '@/lib/userPreferences'
@@ -47,6 +48,12 @@ export default function SeriesDashboard() {
   const [replayStandings, setReplayStandings] = useState<RaceData[] | null>(null)
   const [focusedDriverCode, setFocusedDriverCode] = useState<string | null>(null)
   const { profile, isLoggedIn, followedDrivers, isCheckedInForRound, checkIn } = useUserProfile()
+  const [nowMs, setNowMs] = useState(() => Date.now())
+
+  useEffect(() => {
+    const timer = setInterval(() => setNowMs(Date.now()), 30000)
+    return () => clearInterval(timer)
+  }, [])
 
   // Reset replay state during render on round/session change to avoid stale cross-circuit sync
   const [prevSelectionKey, setPrevSelectionKey] = useState(`${series}-${selectedRound}-${selectedSessionKey}-${selectedYear}`)
@@ -255,26 +262,24 @@ export default function SeriesDashboard() {
         <div className="console-panel overflow-hidden mb-8">
           {(() => {
             const currentRoundData = scheduleData?.rounds.find((r) => r.round === selectedRound)
-            const currentSession = currentRoundData?.sessions.find((s) => s.key === selectedSessionKey)
+            const currentSession = currentRoundData?.sessions?.find((s) => s.key === selectedSessionKey) || findMostRecentSession(currentRoundData)
             const sessionType = currentSession?.name || 'Race'
             const sessionStartTime = currentSession?.dateStart || (currentRoundData?.date ? `${currentRoundData.date}T${currentRoundData.time || '00:00:00Z'}` : null)
 
-            const isSessionLive = currentRoundData?.status === 'live' || (() => {
-              if (!sessionStartTime) return false
-              const startMs = new Date(sessionStartTime).getTime()
-              if (isNaN(startMs)) return false
-              const nowMs = Date.now()
-              // Active if started in the last 3 hours and round is not marked completed
-              return currentRoundData?.status !== 'completed' && nowMs >= startMs && (nowMs - startMs) < 3 * 60 * 60 * 1000
-            })()
+            const isSessionLive = currentRoundData?.status === 'live' || isSessionInProgress(currentSession)
+            const detailedEventName = currentRoundData
+              ? `${currentRoundData.name || currentRoundData.circuitName} - ${sessionType}`
+              : `${series.toUpperCase()} - ${sessionType}`
             
             return (
               <LiveMap2D 
                 series={series} 
                 round={selectedRound} 
+                year={selectedYear}
                 sessionKey={selectedSessionKey} 
                 sessionType={sessionType}
                 circuitName={currentRoundData?.circuitName}
+                eventName={detailedEventName}
                 country={currentRoundData?.country}
                 driverStandings={standingsData?.driverStandings}
                 onStandingsChange={setReplayStandings}
@@ -293,7 +298,7 @@ export default function SeriesDashboard() {
         <div className="flex flex-col gap-6 mb-8">
           <AiSummary series={series} />
           
-          {(series === 'f1' || series === 'nascar' || series.startsWith('nascar-')) && scheduleData && (
+          {scheduleData && scheduleData.rounds?.length > 0 && (
             <RoundNavigator 
               rounds={scheduleData.rounds}
               series={series}

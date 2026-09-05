@@ -2,6 +2,7 @@
 
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
 import { Round } from '@/lib/types'
+import { findMostRecentSession, isSessionInProgress } from '@/lib/seriesSchedules'
 
 interface Props {
   rounds: Round[]
@@ -31,15 +32,21 @@ export default function RoundNavigator({
 
   const handlePrev = () => {
     if (selectedRound > 1) {
-      onSelectRound(selectedRound - 1)
-      onSelectSession(null)
+      const prevRoundNum = selectedRound - 1
+      const prevRound = rounds.find(r => r.round === prevRoundNum)
+      const recentSession = findMostRecentSession(prevRound)
+      onSelectRound(prevRoundNum)
+      onSelectSession(recentSession ? recentSession.key : null)
     }
   }
 
   const handleNext = () => {
     if (selectedRound < rounds.length) {
-      onSelectRound(selectedRound + 1)
-      onSelectSession(null)
+      const nextRoundNum = selectedRound + 1
+      const nextRound = rounds.find(r => r.round === nextRoundNum)
+      const recentSession = findMostRecentSession(nextRound)
+      onSelectRound(nextRoundNum)
+      onSelectSession(recentSession ? recentSession.key : null)
     }
   }
 
@@ -112,15 +119,26 @@ export default function RoundNavigator({
       {current?.sessions && current.sessions.length > 0 ? (
         <div className="round-nav__sessions relative">
           <div className="flex gap-2 overflow-x-auto">
-            {current.sessions.map(s => (
-              <button
-                key={s.key}
-                className={`round-nav__session-btn ${selectedSessionKey === s.key ? 'active' : ''}`}
-                onClick={() => onSelectSession(s.key)}
-              >
-                {s.name}
-              </button>
-            ))}
+            {current.sessions.map(s => {
+              const isLive = isSessionInProgress(s)
+              return (
+                <button
+                  key={s.key}
+                  className={`round-nav__session-btn ${selectedSessionKey === s.key ? 'active' : ''} inline-flex items-center gap-1.5`}
+                  onClick={() => onSelectSession(s.key)}
+                >
+                  {isLive && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />
+                  )}
+                  <span>{s.name}</span>
+                  {isLive && (
+                    <span className="text-[9px] font-mono font-black uppercase px-1 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-xs leading-none">
+                      LIVE
+                    </span>
+                  )}
+                </button>
+              )
+            })}
           </div>
           {series === 'f1' && current.status === 'completed' && (
             <a 

@@ -122,21 +122,118 @@ export default function ReplayControls({
 
       {/* ── Transport Deck ─────────────────────────────────────────── */}
       <div className="flex flex-wrap items-center justify-between px-4 py-2.5 gap-3">
-        {/* Left: Lap Pill & Time Readout */}
-        <div className="flex items-center gap-2.5">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-transparent border border-white/20 text-xs font-mono font-bold text-white rounded-none">
-            <span className="text-[10px] text-[var(--text-muted)] uppercase">LAP</span>
-            <span className="text-[var(--amber)]">{currentFrame?.lap ?? 1}</span>
-            <span className="text-[var(--text-muted)]">/</span>
-            <span>{data.totalLaps}</span>
-          </div>
+        {/* Left: Series-Aware Lap & Time Readout */}
+        {(() => {
+          const seriesId = data.sessionInfo?.seriesId || 'f1';
+          const isTopFuel = seriesId === 'top-fuel' || data.trackGeometry?.type === 'drag';
+          const isWec = seriesId === 'wec' || seriesId === 'gt-world-challenge';
+          const isNascar = seriesId === 'nascar' || seriesId?.startsWith('nascar-');
+          const isFormulaE = seriesId === 'formula-e';
 
-          <div className="font-mono text-xs font-semibold flex items-center gap-1 text-[var(--text-muted)]">
-            <span className="text-white font-bold">{fmtTime(currentTime)}</span>
-            <span>/</span>
-            <span>{fmtTime(totalTime)}</span>
-          </div>
-        </div>
+          const leaderDriver = currentFrame ? Object.values(currentFrame.drivers).find(d => d.position === 1) : null;
+
+          if (isTopFuel) {
+            return (
+              <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-transparent border border-amber-500/40 text-xs font-mono font-bold text-amber-300 rounded-none">
+                  <span className="text-[10px] text-amber-400 uppercase font-black">1,000 FT</span>
+                  <span className="text-white/40">|</span>
+                  <span>PASS 1/1</span>
+                </div>
+                <div className="font-mono text-xs font-semibold flex items-center gap-1 text-[var(--text-muted)]">
+                  <span className="text-white font-bold">{currentTime.toFixed(3)}s</span>
+                  <span>/</span>
+                  <span>{totalTime.toFixed(3)}s ET</span>
+                </div>
+              </div>
+            );
+          }
+
+          if (isNascar) {
+            const stageNum = leaderDriver?.stageNumber || 1;
+            const stageName = stageNum === 3 ? 'FINAL' : `STG ${stageNum}`;
+            const toGo = leaderDriver?.stageLapsToGo;
+            return (
+              <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-transparent border border-white/20 text-xs font-mono font-bold text-white rounded-none">
+                  <span className="text-[10px] text-[var(--amber)] uppercase">{stageName}</span>
+                  <span className="text-white/20">•</span>
+                  <span>L{currentFrame?.lap ?? 1}/{data.totalLaps}</span>
+                  {toGo !== undefined && (
+                    <span className="text-[10px] text-amber-300 font-normal">({toGo} to go)</span>
+                  )}
+                </div>
+                <div className="font-mono text-xs font-semibold flex items-center gap-1 text-[var(--text-muted)]">
+                  <span className="text-white font-bold">{fmtTime(currentTime)}</span>
+                  <span>/</span>
+                  <span>{fmtTime(totalTime)}</span>
+                </div>
+              </div>
+            );
+          }
+
+          if (isWec) {
+            const durationSec = data.sessionInfo?.eventName?.includes('24') ? 24 * 3600 : 6 * 3600;
+            const remSec = Math.max(0, durationSec - currentTime);
+            return (
+              <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-transparent border border-white/20 text-xs font-mono font-bold text-white rounded-none">
+                  <span className="text-[10px] text-[var(--text-muted)] uppercase">STINT {leaderDriver?.stintNumber || 1}</span>
+                  <span className="text-white/20">•</span>
+                  <span className="text-[var(--amber)]">L{currentFrame?.lap ?? 1}</span>
+                  <span className="text-[var(--text-muted)]">/</span>
+                  <span>{data.totalLaps}</span>
+                </div>
+                <div className="font-mono text-xs font-semibold flex items-center gap-1.5 text-[var(--text-muted)]">
+                  <span className="text-white font-bold">{fmtTime(currentTime)}</span>
+                  <span>/</span>
+                  <span>{fmtTime(totalTime)}</span>
+                  <span className="hidden sm:inline text-amber-300 text-[11px]">(REM: {fmtTime(remSec)})</span>
+                </div>
+              </div>
+            );
+          }
+
+          if (isFormulaE) {
+            return (
+              <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-transparent border border-white/20 text-xs font-mono font-bold text-white rounded-none">
+                  <span className="text-[10px] text-sky-400 uppercase font-black">E-PRIX</span>
+                  <span className="text-white/20">•</span>
+                  <span className="text-[var(--amber)]">{currentFrame?.lap ?? 1}</span>
+                  <span className="text-[var(--text-muted)]">/</span>
+                  <span>{data.totalLaps}</span>
+                </div>
+                <div className="font-mono text-xs font-semibold flex items-center gap-1.5 text-[var(--text-muted)]">
+                  <span className="text-white font-bold">{fmtTime(currentTime)}</span>
+                  <span>/</span>
+                  <span>{fmtTime(totalTime)}</span>
+                  {leaderDriver?.energyPct !== undefined && (
+                    <span className="text-sky-400 text-[11px] font-bold">⚡ {leaderDriver.energyPct.toFixed(1)}%</span>
+                  )}
+                </div>
+              </div>
+            );
+          }
+
+          // F1 & Standard circuit
+          return (
+            <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-transparent border border-white/20 text-xs font-mono font-bold text-white rounded-none">
+                <span className="text-[10px] text-[var(--text-muted)] uppercase">LAP</span>
+                <span className="text-[var(--amber)]">{currentFrame?.lap ?? 1}</span>
+                <span className="text-[var(--text-muted)]">/</span>
+                <span>{data.totalLaps}</span>
+              </div>
+
+              <div className="font-mono text-xs font-semibold flex items-center gap-1 text-[var(--text-muted)]">
+                <span className="text-white font-bold">{fmtTime(currentTime)}</span>
+                <span>/</span>
+                <span>{fmtTime(totalTime)}</span>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Center: Playback Controls */}
         <div className="flex items-center justify-center gap-1.5 sm:gap-2">
