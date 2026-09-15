@@ -87,6 +87,16 @@ describe('Race Engineer Local Intent Engine', () => {
     expect(res).toContain('Loud and clear')
   })
 
+  it('returns grounded track status when flag info is present in contextData', () => {
+    const yellowContext = { ...mockContext, flagLabel: 'YELLOW FLAG' }
+    const yellowRes = resolveLocalTelemetryIntent('Is there a safety car or yellow flag?', 'Formula 1', yellowContext)
+    expect(yellowRes).toContain('YELLOW FLAG')
+
+    const scContext = { ...mockContext, session: { trackStatus: '4', flagLabel: 'SAFETY CAR' } }
+    const scRes = resolveLocalTelemetryIntent('Safety car status?', 'Formula 1', scContext)
+    expect(scRes).toContain('SAFETY CAR')
+  })
+
   it('returns null for open-ended questions to allow Gemini to handle', () => {
     const res = resolveLocalTelemetryIntent('Explain the aerodynamic ground effect in racing cars', 'Formula 1', mockContext)
     expect(res).toBeNull()

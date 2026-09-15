@@ -777,7 +777,6 @@ export function generateReplayData(
               });
             } else {
               // Accelerating down pit exit up to limiter
-              const speedDiff = pitLimiterWorld - ds.currentSpeed;
               const maxRate = 18 * worldUnitsPerMetre;
               ds.currentSpeed = Math.min(pitLimiterWorld, ds.currentSpeed + maxRate * dt);
               ds.gear = ds.currentSpeed < pitLimiterWorld * 0.5 ? 1 : 2;

@@ -94,7 +94,7 @@ function normalizeCoordinates(points: Point2D[]): Point2D[] {
   const lookahead = Math.floor(centered.length * 0.05) || 1;
   const dx = centered[lookahead].x - centered[0].x;
   const dy = centered[lookahead].y - centered[0].y;
-  let angle = Math.atan2(dy, dx);
+  const angle = Math.atan2(dy, dx);
   // We want this angle to be 0 (pointing right)
   const rotationAngle = -angle;
 

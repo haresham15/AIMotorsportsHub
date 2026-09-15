@@ -3,10 +3,46 @@
  * Resolves standard pit-wall queries in < 1ms using live telemetry in memory
  */
 
+export interface LiveDriverData {
+  position?: number;
+  driver_id?: string;
+  car_number?: string | number;
+  tire_compound?: string;
+  gap_to_leader?: string;
+  last_lap?: string;
+  drs_active?: boolean;
+  team_name?: string;
+  drivers?: {
+    name?: string;
+    code?: string;
+    team?: string;
+  };
+}
+
+export interface StandingsDriver {
+  position: number;
+  firstName: string;
+  lastName: string;
+  points: number;
+}
+
+export interface RaceIntentContext {
+  liveRaceData?: LiveDriverData[];
+  standingsData?: {
+    driverStandings?: StandingsDriver[];
+  };
+  session?: {
+    flagLabel?: string;
+    trackStatus?: string;
+  };
+  flagLabel?: string;
+  trackStatus?: string;
+}
+
 export function resolveLocalTelemetryIntent(
   userPrompt: string,
   seriesName: string,
-  contextData?: any
+  contextData?: RaceIntentContext
 ): string | null {
   if (!userPrompt) return null;
   const q = userPrompt.toLowerCase().trim();
@@ -20,9 +56,9 @@ export function resolveLocalTelemetryIntent(
 
   // 2. Gaps to P1 / Intervals / Deltas (checked before P1 to prevent matching "gaps to p1")
   if (/\b(gaps?|intervals?|deltas?|distance to (leader|p1)|time gap)\b/i.test(q)) {
-    if (hasLive) {
+    if (hasLive && live) {
       const top5 = live.slice(0, 5);
-      const list = top5.map((d: any) => `P${d.position} ${d.drivers?.name || d.driver_id} (${d.gap_to_leader || 'LEADER'})`).join('; ');
+      const list = top5.map((d) => `P${d.position} ${d.drivers?.name || d.driver_id} (${d.gap_to_leader || 'LEADER'})`).join('; ');
       return `Pit wall confirming intervals to P1: ${list}. DRS zones remain active. Keep hitting your apexes and manage the exit.`;
     }
   }
@@ -32,9 +68,9 @@ export function resolveLocalTelemetryIntent(
     /\b(who('?s| is)? leading|who('?s| is)? in (the )?lead|who('?s| is)? in p1|who('?s| is)? p1\??|who is first|who is in 1st|race leader|current leader)\b/i.test(q) ||
     /^(p1\??|leader\??|first place\??)$/i.test(q)
   ) {
-    if (hasLive) {
-      const p1 = live.find((d: any) => d.position === 1) || live[0];
-      const p2 = live.find((d: any) => d.position === 2);
+    if (hasLive && live) {
+      const p1 = live.find((d) => d.position === 1) || live[0];
+      const p2 = live.find((d) => d.position === 2);
       const name = p1.drivers?.name || p1.driver_id;
       const num = p1.car_number ? `#${p1.car_number}` : '';
       const tyre = p1.tire_compound || 'Hard';
@@ -46,10 +82,10 @@ export function resolveLocalTelemetryIntent(
 
   // 4. Tyre compound strategy / degradation
   if (/\b(t[yi]res?|compounds?|strategy|pit window|degradation|wear|box box|undercut)\b/i.test(q)) {
-    if (hasLive) {
-      const hard = live.filter((d: any) => (d.tire_compound || '').toUpperCase().includes('HARD')).length;
-      const med = live.filter((d: any) => (d.tire_compound || '').toUpperCase().includes('MED')).length;
-      const soft = live.filter((d: any) => (d.tire_compound || '').toUpperCase().includes('SOFT')).length;
+    if (hasLive && live) {
+      const hard = live.filter((d) => (d.tire_compound || '').toUpperCase().includes('HARD')).length;
+      const med = live.filter((d) => (d.tire_compound || '').toUpperCase().includes('MED')).length;
+      const soft = live.filter((d) => (d.tire_compound || '').toUpperCase().includes('SOFT')).length;
       return `Tyre briefing: Grid split is currently ${hard} on Hard, ${med} on Medium, ${soft} on Soft. Tyre degradation is within telemetry parameters. Primary pit window will depend on safety car windows.`;
     }
   }
@@ -58,7 +94,7 @@ export function resolveLocalTelemetryIntent(
   if (/\b(championship|driver standings|points table|who is winning the championship|title battle|standings)\b/i.test(q)) {
     const drivers = contextData?.standingsData?.driverStandings;
     if (Array.isArray(drivers) && drivers.length > 0) {
-      const top3 = drivers.slice(0, 3).map((d: any) => `P${d.position} ${d.firstName} ${d.lastName} (${d.points} pts)`).join(', ');
+      const top3 = drivers.slice(0, 3).map((d) => `P${d.position} ${d.firstName} ${d.lastName} (${d.points} pts)`).join(', ');
       return `Drivers' Championship standings update: ${top3}. Every point matters in this phase of the season.`;
     }
   }
@@ -88,6 +124,21 @@ export function resolveLocalTelemetryIntent(
 
   // 7. Track status / flags / safety car
   if (/\b(safety car|vsc|yellow flag|red flag|track status|flag condition)\b/i.test(q)) {
+    const flagLabel = contextData?.session?.flagLabel || contextData?.flagLabel;
+    const trackStatus = contextData?.session?.trackStatus || contextData?.trackStatus;
+
+    if (flagLabel && flagLabel !== 'TRACK CLEAR') {
+      return `Race Control Notice: Track condition is currently ${flagLabel.toUpperCase()}. Maintain delta, observe board signals, and stand by for instructions.`;
+    }
+    if (trackStatus === '4') {
+      return `Race Control Notice: SAFETY CAR deployed on circuit. Delta management active, pit entry open.`;
+    }
+    if (trackStatus === '5') {
+      return `Race Control Notice: RED FLAG in effect. Session suspended. Return to pit lane immediately.`;
+    }
+    if (trackStatus === '6') {
+      return `Race Control Notice: VIRTUAL SAFETY CAR active. Maintain positive delta across all microsectors.`;
+    }
     return `Track status confirmation: Session track is CLEAR under green flag conditions. Marshals reporting all sectors open.`;
   }
 

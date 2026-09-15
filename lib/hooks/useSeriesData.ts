@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Round, DriverStanding, ConstructorStanding } from '@/lib/types'
+import { DriverStanding, ConstructorStanding } from '@/lib/types'
 import {
   findCurrentOrRecentRound,
   findMostRecentSession,
@@ -25,16 +25,20 @@ export function useSeriesData(series: string): SeriesDataResult {
   const [selectedYear, setSelectedYear] = useState(() => isNascar ? '2025' : new Date().getFullYear().toString())
   const [selectedRound, setSelectedRound] = useState<number>(1)
   const [selectedSessionKey, setSelectedSessionKey] = useState<number | null>(null)
+  const [prevSeries, setPrevSeries] = useState(series)
+
+  // Reset data when switching series during render to prevent stale cross-series flashes
+  if (series !== prevSeries) {
+    setPrevSeries(series)
+    setScheduleData(null)
+    setStandingsData(null)
+  }
 
   const queryYear = isNascar ? '2025' : selectedYear
 
   // Primary data fetcher when series or year changes
   useEffect(() => {
     let isCancelled = false
-
-    // Reset data when switching series to prevent stale cross-series flashes
-    setScheduleData(null)
-    setStandingsData(null)
 
     if (series === 'f1') {
       const fetchData = async () => {
@@ -139,27 +143,19 @@ export function useSeriesData(series: string): SeriesDataResult {
     }
   }, [series, queryYear, isNascar])
 
-  // Automatically keep session aligned whenever selectedRound changes
-  useEffect(() => {
-    if (!scheduleData?.rounds?.length) return
-    const roundData = scheduleData.rounds.find(r => r.round === selectedRound)
-    if (!roundData || !roundData.sessions?.length) return
-
-    const sessionExistsInRound = roundData.sessions.some(s => s.key === selectedSessionKey)
-    if (!sessionExistsInRound) {
-      const recentSession = findMostRecentSession(roundData)
-      if (recentSession) {
-        setSelectedSessionKey(recentSession.key)
-      }
-    }
-  }, [selectedRound, scheduleData, selectedSessionKey])
+  // Derive session key to ensure it always aligns with selectedRound without cascading renders
+  const roundData = scheduleData?.rounds?.find(r => r.round === selectedRound)
+  const sessionExistsInRound = roundData?.sessions?.some(s => s.key === selectedSessionKey)
+  const activeSessionKey = sessionExistsInRound
+    ? selectedSessionKey
+    : (roundData ? (findMostRecentSession(roundData)?.key ?? null) : null)
 
   return {
     scheduleData,
     standingsData,
     selectedRound,
     setSelectedRound,
-    selectedSessionKey,
+    selectedSessionKey: activeSessionKey,
     setSelectedSessionKey,
     selectedYear,
     setSelectedYear

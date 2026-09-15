@@ -83,8 +83,8 @@ export async function GET(request: NextRequest) {
     console.error("Error checking schedule for GET", e);
   }
 
-  const { data: { session } } = await supabase.auth.getSession();
-  const currentUserId = session?.user?.id;
+  const { data: { user } } = await supabase.auth.getUser();
+  const currentUserId = user?.id;
 
   // Filter predictions to hide others' picks before the race starts
   const predictions = data
@@ -106,17 +106,17 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    if (!session || !session.user) {
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
     const { series, round, p1, p2, p3 } = body;
-    const userId = session.user.id;
-    const profileName = session.user.user_metadata?.display_name || session.user.user_metadata?.full_name;
-    const emailName = session.user.email?.split('@')[0] || 'Racer';
+    const userId = user.id;
+    const profileName = user.user_metadata?.display_name || user.user_metadata?.full_name;
+    const emailName = user.email?.split('@')[0] || 'Racer';
     const username = profileName || `${emailName}-${userId.slice(0, 6)}`;
 
     if (!username || !series || round === undefined || !p1 || !p2 || !p3) {

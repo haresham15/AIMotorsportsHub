@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from './supabase/client'
-import { SERIES_DRIVERS, TEAM_HISTORY } from './data'
 
 export type AvatarFrameType = 'carbon' | 'gold_champion' | 'tifosi_rosso' | 'neon_halo' | 'speed_demon' | 'stealth_night';
 export type PaddockPrivacy = 'public' | 'friends_only' | 'private';
@@ -599,6 +598,8 @@ export function useUserProfile() {
   }, [])
 
   useEffect(() => {
+    // Synchronize client-side preferences from localStorage on mount
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     reloadAll()
     setLoading(false)
 

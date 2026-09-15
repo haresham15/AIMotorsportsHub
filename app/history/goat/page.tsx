@@ -33,7 +33,7 @@ export default function GoatDebatePage() {
 
   // Dropdown filter states
   const [selectedEra, setSelectedEra] = useState<string>("ALL");
-  const [sortBy, setSortBy] = useState<"peakElo" | "currentElo" | "wins" | "winRate" | "races">("peakElo");
+  const [sortBy, setSortBy] = useState<"peakElo" | "currentElo" | "wins" | "winRate" | "races" | "championships">("peakElo");
   const [eligibility, setEligibility] = useState<"all" | "active" | "winners" | "legends" | "titans">("all");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -101,6 +101,7 @@ export default function GoatDebatePage() {
       if (sortBy === "peakElo") return b.peakElo - a.peakElo;
       if (sortBy === "currentElo") return b.currentElo - a.currentElo;
       if (sortBy === "wins") return b.wins - a.wins;
+      if (sortBy === "championships") return (b.championships - a.championships) || (b.wins - a.wins);
       if (sortBy === "races") return b.races - a.races;
       if (sortBy === "winRate") {
         const rateA = a.races > 0 ? a.wins / a.races : 0;
@@ -205,6 +206,7 @@ export default function GoatDebatePage() {
               className="w-full bg-[var(--surface-elevated)] border border-[var(--border-hairline)] text-white text-xs font-mono p-2.5 rounded-none outline-none focus:border-[var(--amber)] cursor-pointer"
             >
               <option value="peakElo">Peak Elo Rating (Career Zenith)</option>
+              <option value="championships">World Championships</option>
               <option value="wins">Total Grand Prix Wins</option>
               <option value="winRate">Win Rate % (Starts vs Wins)</option>
               <option value="races">Total Career Starts</option>
@@ -338,10 +340,15 @@ export default function GoatDebatePage() {
 
                 {/* Driver Info */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <h2 className="text-base font-bold tracking-tight truncate text-white group-hover:text-amber-300 transition-colors">
                       {driver.name}
                     </h2>
+                    {driver.championships > 0 && (
+                      <span className="text-[9px] font-mono font-bold uppercase px-1.5 py-0.2 bg-amber-500/15 text-amber-300 border border-amber-500/30 rounded-none shrink-0 flex items-center gap-1">
+                        🏆 {driver.championships}x Champion
+                      </span>
+                    )}
                     {driver.era.includes("2020s") && (
                       <span className="text-[9px] font-mono font-bold uppercase px-1.5 py-0.2 bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 rounded-none shrink-0">
                         Active
@@ -363,13 +370,13 @@ export default function GoatDebatePage() {
                 <div className="flex items-center gap-4 shrink-0">
                   <div className="text-right">
                     <div className="font-mono text-[9px] text-[var(--text-muted)] uppercase tracking-widest mb-0.5">
-                      {sortBy === "wins" ? "Grand Prix Wins" : sortBy === "winRate" ? "Win Rate" : sortBy === "races" ? "Career Starts" : "Peak Elo"}
+                      {sortBy === "wins" ? "Grand Prix Wins" : sortBy === "championships" ? "World Championships" : sortBy === "winRate" ? "Win Rate" : sortBy === "races" ? "Career Starts" : "Peak Elo"}
                     </div>
                     <div
                       className="font-[family-name:var(--font-disp)] text-xl md:text-2xl font-black tabular-nums"
                       style={{ color: isTop3 ? getMedalColor(index) : "var(--text-primary)" }}
                     >
-                      {sortBy === "wins" ? driver.wins : sortBy === "winRate" ? `${winPct}%` : sortBy === "races" ? driver.races : driver.peakElo.toLocaleString()}
+                      {sortBy === "wins" ? driver.wins : sortBy === "championships" ? `${driver.championships} Titles` : sortBy === "winRate" ? `${winPct}%` : sortBy === "races" ? driver.races : driver.peakElo.toLocaleString()}
                     </div>
                   </div>
 

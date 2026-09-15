@@ -18,7 +18,21 @@ export async function POST(request: NextRequest) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
+    const candidateModels = ["gemini-3.7-flash", "gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
+
+    const runGeneration = async (promptText: string): Promise<string> => {
+      for (const mName of candidateModels) {
+        try {
+          const candidate = genAI.getGenerativeModel({ model: mName });
+          const res = await candidate.generateContent(promptText);
+          const txt = res.response.text();
+          if (txt) return txt;
+        } catch (err) {
+          console.warn(`[What-If AI] Model ${mName} attempt failed:`, err);
+        }
+      }
+      throw new Error("All AI models currently unavailable");
+    };
 
     // Step 1: Intent Extraction
     const extractionPrompt = `
@@ -36,8 +50,8 @@ export async function POST(request: NextRequest) {
       }
     `;
 
-    const extractionResult = await model.generateContent(extractionPrompt);
-    let extractedText = extractionResult.response.text().trim();
+    const rawExtracted = await runGeneration(extractionPrompt);
+    let extractedText = rawExtracted.trim();
     
     // Clean up potential markdown formatting cleanly
     extractedText = extractedText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
@@ -160,8 +174,7 @@ Focus heavily on the mathematical truth provided by the simulation (e.g., if the
 Do not break character. Do not mention "The ML model says" — present it as the factual alternate history.
 `;
 
-    const narrativeResult = await model.generateContent(narrativePrompt);
-    const narrative = narrativeResult.response.text();
+    const narrative = await runGeneration(narrativePrompt);
 
     return NextResponse.json({
       original: {

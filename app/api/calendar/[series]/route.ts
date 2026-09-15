@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getSeriesFallbackSchedule } from '@/lib/seriesSchedules'
 
 export const maxDuration = 60;
 export const revalidate = 86400; // Cache for 24 hours
@@ -9,8 +10,9 @@ function getScheduleUrl(origin: string, series: string) {
     return `${origin}/api/f1/schedule`
   }
 
-  if (normalizedSeries.startsWith('nascar-')) {
-    return `${origin}/api/nascar/schedule?series=${encodeURIComponent(normalizedSeries)}`
+  if (normalizedSeries === 'nascar' || normalizedSeries.startsWith('nascar-')) {
+    const nSeries = normalizedSeries === 'nascar' ? 'nascar-cup' : normalizedSeries
+    return `${origin}/api/nascar/schedule?series=${encodeURIComponent(nSeries)}`
   }
 
   return null
@@ -23,16 +25,29 @@ export async function GET(
   const { series } = await params;
   const scheduleUrl = getScheduleUrl(request.nextUrl.origin, series)
 
-  if (!scheduleUrl) {
-    return new NextResponse('Calendar feed is not supported for this series.', { status: 400 });
-  }
-
   try {
-    const res = await fetch(scheduleUrl);
-    if (!res.ok) throw new Error('Failed to fetch schedule');
-    
-    const data = await res.json();
-    const rounds = data.rounds || [];
+    let rounds: any[] = [];
+
+    if (scheduleUrl) {
+      try {
+        const res = await fetch(scheduleUrl);
+        if (res.ok) {
+          const data = await res.json();
+          rounds = data.rounds || [];
+        }
+      } catch {
+        // Fallback to internal schedule
+      }
+    }
+
+    if (!rounds || rounds.length === 0) {
+      const fallback = getSeriesFallbackSchedule(series, new Date().getFullYear().toString());
+      rounds = fallback?.rounds || [];
+    }
+
+    if (!rounds || rounds.length === 0) {
+      return new NextResponse('Calendar feed is not supported for this series.', { status: 404 });
+    }
 
     // Build the iCalendar string
     let ics = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Apexis//EN\r\nCALSCALE:GREGORIAN\r\nX-WR-CALNAME:${series.toUpperCase()} Schedule\r\n`;

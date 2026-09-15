@@ -364,14 +364,14 @@ export default function SeriesDashboard() {
 
           {/* Right Column: Championship Standings & Fantasy Game */}
           <div className="flex flex-col gap-8 lg:col-span-1">
-            <div className="h-[500px]">
-              {series === 'f1' && standingsData && (
+            {series === 'f1' && standingsData && (
+              <div className="h-[500px]">
                 <ChampionshipStandings 
                   drivers={standingsData.driverStandings} 
                   constructors={standingsData.constructorStandings} 
                 />
-              )}
-            </div>
+              </div>
+            )}
 
             <div>
               <FantasyGame series={series} round={selectedRound} />

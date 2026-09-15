@@ -144,8 +144,8 @@ Rules:
 - Max 50 words. Punchy, authentic pit radio terminology (delta, apex, box, DRS, tyres).
 - Answer immediately. No conversational filler.`;
 
-    // Try fastest available model: gemini-3.5-flash-lite, fallback to gemini-flash-latest
-    const modelsToTry = ["gemini-3.5-flash-lite", "gemini-flash-latest", "gemini-3.7-flash"];
+    // Try fastest available model: gemini-3.7-flash, fallback to gemini-2.5-flash / gemini-2.0-flash
+    const modelsToTry = ["gemini-3.7-flash", "gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
     let activeModel = null;
     let streamResult = null;
 

@@ -64,6 +64,22 @@ export class TireDegradationModel {
   }
 
   /**
+   * Predict degradation for a batch of laps in a single vectorized matrix multiplication
+   */
+  predictBatch(laps: number[], compound: 'SOFT' | 'MEDIUM' | 'HARD'): number[] {
+    if (laps.length === 0) return []
+    const compVal = compound === 'SOFT' ? 1.0 : (compound === 'MEDIUM' ? 0.6 : 0.3)
+    const inputs = laps.map(lap => [lap, compVal])
+    const input = tf.tensor2d(inputs, [inputs.length, 2])
+    const output = this.model.predict(input) as tf.Tensor
+    const predictions = Array.from(output.dataSync()).map(v => Math.max(0, v))
+    
+    input.dispose()
+    output.dispose()
+    return predictions
+  }
+
+  /**
    * Dispose of the model and its tensors to free memory
    */
   dispose() {
@@ -82,21 +98,22 @@ export class TireDegradationModel {
       await this.train();
     }
     
-    // In our simplified model, the 'predict' method returns degradation time penalty for a given lap
-    // The total degradation over a stint is the sum of penalties for each lap
+    const maxLap = Math.max(originalPitLap, newPitLap);
+    if (maxLap <= 0) return 0;
+
+    const allLaps = Array.from({ length: maxLap }, (_, i) => i + 1);
+    const stintDegs = this.predictBatch(allLaps, compound);
     
     let originalStintDeg = 0;
-    for (let i = 1; i <= originalPitLap; i++) {
-      originalStintDeg += this.predict(i, compound);
+    for (let i = 0; i < Math.min(originalPitLap, stintDegs.length); i++) {
+      originalStintDeg += stintDegs[i];
     }
     
     let newStintDeg = 0;
-    for (let i = 1; i <= newPitLap; i++) {
-      newStintDeg += this.predict(i, compound);
+    for (let i = 0; i < Math.min(newPitLap, stintDegs.length); i++) {
+      newStintDeg += stintDegs[i];
     }
     
-    // Total delta is new degradation - original degradation
-    // e.g. if newStintDeg < originalStintDeg, they gained time (negative delta)
     return newStintDeg - originalStintDeg;
   }
 }

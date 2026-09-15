@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
+    const candidateModels = ["gemini-3.7-flash", "gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
 
     let contextData = "";
     try {
@@ -94,8 +94,21 @@ Your briefing should be comprehensive, highly engaging, and structured into 3 to
 
 Write in a punchy, analytical, and passionate tone tailored for hardcore racing fans. Avoid generic filler and focus on specific, factual racing insights.`;
 
-    const result = await model.generateContent(prompt);
-    const summary = result.response.text();
+    let summary = "";
+    for (const mName of candidateModels) {
+      try {
+        const model = genAI.getGenerativeModel({ model: mName });
+        const result = await model.generateContent(prompt);
+        summary = result.response.text();
+        if (summary) break;
+      } catch (err) {
+        console.warn(`[AI Summary] Model ${mName} attempt failed:`, err);
+      }
+    }
+
+    if (!summary) {
+      throw new Error("Failed to generate summary across all available models");
+    }
 
     return NextResponse.json(
       { summary },

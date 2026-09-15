@@ -10,8 +10,9 @@ function getStandingsUrl(origin: string, series: string) {
     return `${origin}/api/f1/standings`
   }
 
-  if (series.startsWith('nascar-')) {
-    return `${origin}/api/nascar/standings?series=${encodeURIComponent(series)}`
+  if (series === 'nascar' || series.startsWith('nascar-')) {
+    const nascarSeries = series === 'nascar' ? 'nascar-cup' : series;
+    return `${origin}/api/nascar/standings?series=${encodeURIComponent(nascarSeries)}`
   }
 
   return null

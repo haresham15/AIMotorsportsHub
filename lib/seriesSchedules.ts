@@ -285,7 +285,7 @@ export function getSeriesFallbackSchedule(series: string, year = '2025'): Schedu
 
   let currentRound = 1;
 
-  const rounds: Round[] = rawRounds.map((r, rIdx) => {
+  const rounds: Round[] = rawRounds.map((r) => {
     // Generate ISO timestamp
     const dateStr = `${yearNum}-${String(r.month).padStart(2, '0')}-${String(r.day).padStart(2, '0')}`;
     const raceStart = new Date(`${dateStr}T14:00:00Z`);

@@ -31,7 +31,7 @@ export async function GET(request: Request) {
       JOIN races r ON r1.raceId = r.raceId
       WHERE r1.driverId = ? AND r2.driverId = ?
       ORDER BY r.year DESC, r.round DESC
-    `).all(driver1, driver2);
+    `).all(d1, d2);
 
     const stats = db.prepare(`
       SELECT 
@@ -44,7 +44,7 @@ export async function GET(request: Request) {
       FROM results r1
       JOIN results r2 ON r1.raceId = r2.raceId
       WHERE r1.driverId = ? AND r2.driverId = ?
-    `).get(driver1, driver2);
+    `).get(d1, d2);
 
     return NextResponse.json({ commonRaces, stats });
   } catch (error) {

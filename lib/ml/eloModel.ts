@@ -22,7 +22,18 @@ export function getGoatRankings(): GoatRanking[] {
   }
 
   const db = getDb();
-  
+
+  interface ResultRow {
+    raceId: number;
+    year: number;
+    driverId: number;
+    constructorId: number;
+    positionOrder: number;
+    forename: string;
+    surname: string;
+    constructorName: string;
+  }
+
   // 1. Fetch all results chronologically
   const results = db.prepare(`
     SELECT res.raceId, r.year, res.driverId, res.constructorId, res.positionOrder, 
@@ -32,10 +43,28 @@ export function getGoatRankings(): GoatRanking[] {
     JOIN drivers d ON res.driverId = d.driverId
     JOIN constructors c ON res.constructorId = c.constructorId
     ORDER BY r.year ASC, r.round ASC, res.positionOrder ASC
-  `).all() as any[];
+  `).all() as ResultRow[];
+
+  // Fetch World Championship counts from season finales
+  const champRows = db.prepare(`
+    SELECT ds.driverId, COUNT(*) as titles
+    FROM driver_standings ds
+    JOIN (
+      SELECT year, MAX(round) as max_round, raceId
+      FROM races
+      GROUP BY year
+    ) last_races ON ds.raceId = last_races.raceId
+    WHERE ds.position = 1
+    GROUP BY ds.driverId
+  `).all() as { driverId: number; titles: number }[];
+
+  const driverTitles = new Map<number, number>();
+  for (const row of champRows) {
+    driverTitles.set(row.driverId, row.titles);
+  }
 
   // 2. Group by race
-  const races = new Map<number, any[]>();
+  const races = new Map<number, ResultRow[]>();
   for (const row of results) {
     if (!races.has(row.raceId)) {
       races.set(row.raceId, []);
@@ -144,7 +173,7 @@ export function getGoatRankings(): GoatRanking[] {
       currentElo: Math.round(driverElos.get(dId) || INITIAL_ELO),
       races: stats.races,
       wins: stats.wins,
-      championships: 0, // We could calculate this, but omitting for speed/simplicity
+      championships: driverTitles.get(dId) || 0,
       era: era
     });
   }
