@@ -26,7 +26,7 @@ export async function GET(
   const scheduleUrl = getScheduleUrl(request.nextUrl.origin, series)
 
   try {
-    let rounds: any[] = [];
+    let rounds: { name?: string, circuitName?: string, date?: string, time?: string, round?: number, country?: string, sessions?: { name: string, dateStart: string, dateEnd?: string }[] }[] = [];
 
     if (scheduleUrl) {
       try {
@@ -52,10 +52,10 @@ export async function GET(
     // Build the iCalendar string
     let ics = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Apexis//EN\r\nCALSCALE:GREGORIAN\r\nX-WR-CALNAME:${series.toUpperCase()} Schedule\r\n`;
 
-    rounds.forEach((round: any) => {
+    rounds.forEach((round: { name?: string, circuitName?: string, date?: string, time?: string, round?: number, country?: string, sessions?: { name: string, dateStart: string, dateEnd?: string }[] }) => {
       // If we have detailed OpenF1 sessions, create an event for each session
       if (round.sessions && round.sessions.length > 0) {
-        round.sessions.forEach((session: any) => {
+        round.sessions.forEach((session: { name: string, dateStart: string, dateEnd?: string }) => {
           const startDate = new Date(session.dateStart);
           // Default duration to 1 hour if we don't have end times
           const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);

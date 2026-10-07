@@ -124,18 +124,21 @@ export function useSeriesData(series: string): SeriesDataResult {
       fetchNascarData()
     } else {
       // Non-F1/NASCAR categories (F2, F3, WEC, Formula E, GT World Challenge, Top Fuel)
-      const fallbackSchedule = getSeriesFallbackSchedule(series, queryYear)
-      if (fallbackSchedule && fallbackSchedule.rounds?.length > 0) {
-        setScheduleData(fallbackSchedule)
-        const targetRound = findCurrentOrRecentRound(fallbackSchedule.rounds, fallbackSchedule.currentRound)
-        const initialRound = targetRound ? targetRound.round : (fallbackSchedule.currentRound || 1)
-        setSelectedRound(initialRound)
+      const loadFallbackData = async () => {
+        const fallbackSchedule = getSeriesFallbackSchedule(series, queryYear)
+        if (fallbackSchedule && fallbackSchedule.rounds?.length > 0) {
+          setScheduleData(fallbackSchedule)
+          const targetRound = findCurrentOrRecentRound(fallbackSchedule.rounds, fallbackSchedule.currentRound)
+          const initialRound = targetRound ? targetRound.round : (fallbackSchedule.currentRound || 1)
+          setSelectedRound(initialRound)
 
-        const recentSession = findMostRecentSession(targetRound)
-        if (recentSession) {
-          setSelectedSessionKey(recentSession.key)
+          const recentSession = findMostRecentSession(targetRound)
+          if (recentSession) {
+            setSelectedSessionKey(recentSession.key)
+          }
         }
       }
+      loadFallbackData()
     }
 
     return () => {

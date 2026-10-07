@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
     // Compact telemetry context to minimize input token processing overhead
     let contextSnippet = "";
     if (contextData?.liveRaceData?.length) {
-      const top5 = contextData.liveRaceData.slice(0, 5).map((d: any) =>
+      const top5 = contextData.liveRaceData.slice(0, 5).map((d: { position: number, drivers?: { name: string }, driver_id: string, gap_to_leader: string, tire_compound: string }) =>
         `P${d.position}:${d.drivers?.name || d.driver_id}(${d.gap_to_leader},${d.tire_compound})`
       ).join("; ");
       contextSnippet += `\nTiming: ${top5}`;
@@ -166,8 +166,8 @@ Rules:
         });
         activeModel = mName;
         break;
-      } catch (err: any) {
-        console.warn(`Model ${mName} unavailable:`, err?.message);
+      } catch (err: unknown) {
+        console.warn(`Model ${mName} unavailable:`, err instanceof Error ? err.message : String(err));
       }
     }
 

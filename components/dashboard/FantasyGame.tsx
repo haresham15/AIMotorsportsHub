@@ -133,6 +133,25 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
       }
     })
 
+    const checkExistingPrediction = async (userId: string) => {
+      try {
+        const res = await fetch(`/api/fantasy?series=${series}&round=${round}`)
+        const data = await res.json()
+        const myPred = data.predictions?.find((p: { userId: string, p1: string, p2: string, p3: string, score?: number }) => p.userId === userId)
+        if (myPred) {
+          setPredictions({ p1: myPred.p1, p2: myPred.p2, p3: myPred.p3 })
+          setSubmitted(true)
+          if (myPred.score !== undefined) setScore(myPred.score)
+        } else {
+          setPredictions({ p1: '', p2: '', p3: '' })
+          setSubmitted(false)
+          setScore(null)
+        }
+      } catch (e) {
+        console.error(e)
+      }
+    }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setUser(session?.user ?? null)
@@ -156,39 +175,27 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
       }
     )
 
+    // First run initialization
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        checkExistingPrediction(session.user.id)
+      }
+    });
+
+    const fetchLeaderboard = async () => {
+      try {
+        const res = await fetch('/api/fantasy?action=leaderboard')
+        const data = await res.json()
+        setLeaderboard(data.leaderboard || [])
+      } catch (e) {
+        console.error(e)
+      }
+    }
+
     fetchLeaderboard()
 
     return () => subscription.unsubscribe()
-  }, [series, round])
-
-  const checkExistingPrediction = async (userId: string) => {
-    try {
-      const res = await fetch(`/api/fantasy?series=${series}&round=${round}`)
-      const data = await res.json()
-      const myPred = data.predictions?.find((p: any) => p.userId === userId)
-      if (myPred) {
-        setPredictions({ p1: myPred.p1, p2: myPred.p2, p3: myPred.p3 })
-        setSubmitted(true)
-        if (myPred.score !== undefined) setScore(myPred.score)
-      } else {
-        setPredictions({ p1: '', p2: '', p3: '' })
-        setSubmitted(false)
-        setScore(null)
-      }
-    } catch (e) {
-      console.error(e)
-    }
-  }
-
-  const fetchLeaderboard = async () => {
-    try {
-      const res = await fetch('/api/fantasy?action=leaderboard')
-      const data = await res.json()
-      setLeaderboard(data.leaderboard || [])
-    } catch (e) {
-      console.error(e)
-    }
-  }
+  }, [series, round, supabase.auth])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -212,7 +219,8 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
           throw new Error(data.error || "Failed to submit prediction")
         }
         setSubmitted(true)
-        fetchLeaderboard() // Refresh in case we added a new user
+        // Note: fetchLeaderboard is now encapsulated in the useEffect, but we'll fetch manually to update
+        fetch('/api/fantasy?action=leaderboard').then(r => r.json()).then(d => setLeaderboard(d.leaderboard || [])).catch(console.error)
         toast.success("Podium predictions submitted to global leaderboard!")
       } else {
         try {
