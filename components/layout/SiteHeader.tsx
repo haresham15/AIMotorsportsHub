@@ -17,8 +17,6 @@ import {
   Trophy,
   Cpu,
   Layers,
-  Flame,
-  ArrowUpRight,
   Menu,
   X,
   Users,
@@ -46,7 +44,6 @@ const SERIES_GROUPS = [
 
 export default function SiteHeader() {
   const pathname = usePathname();
-  const { isLoggedIn } = useUserProfile();
 
   // Active navigation dropdown states
   const [seriesDropdownOpen, setSeriesDropdownOpen] = useState(false);
