@@ -1,0 +1,53 @@
+--- app/api/ai/what-if/route.ts
++++ app/api/ai/what-if/route.ts
+@@ -62,7 +62,7 @@
+     let intent;
+     try {
+       intent = JSON.parse(extractedText);
+-    } catch (e) {
++    } catch {
+       console.error("Failed to parse LLM JSON:", extractedText);
+       return NextResponse.json({ error: "Could not understand the scenario parameters." }, { status: 400 });
+     }
+@@ -85,7 +85,7 @@
+           WHEN r.name LIKE ? THEN 3
+           ELSE 4
+         END ASC
+       LIMIT 1
+-    `).get(intent.year, racePattern, racePattern, racePattern, racePattern, racePattern, racePattern, racePattern) as any;
++    `).get(intent.year, racePattern, racePattern, racePattern, racePattern, racePattern, racePattern, racePattern) as { raceId: number, name: string, year: number } | undefined;
+
+     if (!race) {
+       return NextResponse.json({ error: `Could not find a race matching ${intent.raceName} in ${intent.year}.` }, { status: 404 });
+     }
+@@ -98,7 +98,7 @@
+       JOIN drivers d ON res.driverId = d.driverId
+       WHERE res.raceId = ? AND d.surname LIKE ?
+       LIMIT 1
+-    `).get(race.raceId, `%${intent.driverSurname}%`) as any;
++    `).get(race.raceId, `%${intent.driverSurname}%`) as { position: number, time: string | null, milliseconds: number | null, forename: string, surname: string, driverId: number } | undefined;
+
+     if (!driverRes) {
+       return NextResponse.json({ error: `Could not find ${intent.driverSurname} in the ${race.year} ${race.name}.` }, { status: 404 });
+     }
+@@ -125,7 +125,7 @@
+         SELECT positionOrder, milliseconds, driverId
+         FROM results
+         WHERE raceId = ? AND milliseconds IS NOT NULL
+         ORDER BY milliseconds ASC
+-      `).all(race.raceId) as any[];
++      `).all(race.raceId) as { positionOrder: number, milliseconds: number, driverId: number }[];
+
+       // Sort with the modified time
+       const modifiedResults = allResults.map(r => {
+@@ -194,7 +194,7 @@
+       intent
+     });
+
+-  } catch (error: any) {
++  } catch (error: unknown) {
+     console.error("What If API error:", error);
+-    return NextResponse.json({ error: error.message || "An unexpected error occurred" }, { status: 500 });
++    return NextResponse.json({ error: error instanceof Error ? error.message : "An unexpected error occurred" }, { status: 500 });
+   }
+ }

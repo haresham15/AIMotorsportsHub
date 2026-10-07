@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     const extractionPrompt = `
       Extract the historical Formula 1 scenario parameters from the following query.
       Query: "${query}"
-      
+
       Respond EXACTLY in this JSON format, nothing else:
       {
         "driverSurname": "string (e.g. Verstappen, Hamilton)",
@@ -52,38 +52,38 @@ export async function POST(request: NextRequest) {
 
     const rawExtracted = await runGeneration(extractionPrompt);
     let extractedText = rawExtracted.trim();
-    
+
     // Clean up potential markdown formatting cleanly
     extractedText = extractedText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
-    
+
     let intent;
     try {
       intent = JSON.parse(extractedText);
-    } catch {
+    } catch (e) {
       console.error("Failed to parse LLM JSON:", extractedText);
       return NextResponse.json({ error: "Could not understand the scenario parameters." }, { status: 400 });
     }
 
     // Step 2: Retrieval
     const db = getDb();
-    
+
     // Find Race: search race name, circuit name, location, or country
     const racePattern = `%${intent.raceName}%`;
     const race = db.prepare(`
-      SELECT r.raceId, r.name, r.year 
+      SELECT r.raceId, r.name, r.year
       FROM races r
       LEFT JOIN circuits c ON r.circuitId = c.circuitId
       WHERE r.year = ? AND (c.location LIKE ? OR c.name LIKE ? OR r.name LIKE ? OR c.country LIKE ?)
-      ORDER BY 
-        CASE 
-          WHEN c.location LIKE ? THEN 1 
-          WHEN c.name LIKE ? THEN 2 
-          WHEN r.name LIKE ? THEN 3 
-          ELSE 4 
+      ORDER BY
+        CASE
+          WHEN c.location LIKE ? THEN 1
+          WHEN c.name LIKE ? THEN 2
+          WHEN r.name LIKE ? THEN 3
+          ELSE 4
         END ASC
       LIMIT 1
-    `).get(intent.year, racePattern, racePattern, racePattern, racePattern, racePattern, racePattern, racePattern) as { raceId: number, name: string, year: number } | undefined;
-                   
+    `).get(intent.year, racePattern, racePattern, racePattern, racePattern, racePattern, racePattern, racePattern) as any;
+
     if (!race) {
       return NextResponse.json({ error: `Could not find a race matching ${intent.raceName} in ${intent.year}.` }, { status: 404 });
     }
@@ -108,12 +108,12 @@ export async function POST(request: NextRequest) {
     // We only recalculate if the driver finished the race (has milliseconds)
     if (driverRes.milliseconds) {
       const tireModel = new TireDegradationModel();
-      
+
       // Simulate difference in degradation (returns value in seconds, roughly)
       // We multiply by 1000 for ms, and scale by a factor to make it noticeable but realistic (e.g., 2.5)
       const rawDeltaSec = await tireModel.simulateTireDelta(intent.originalPitLap, intent.newPitLap, intent.compound);
-      timeDeltaMs = Math.round(rawDeltaSec * 1000 * 2.5); 
-      
+      timeDeltaMs = Math.round(rawDeltaSec * 1000 * 2.5);
+
       const newTotalMs = driverRes.milliseconds + timeDeltaMs;
 
       // Find new position
@@ -136,19 +136,19 @@ export async function POST(request: NextRequest) {
       if (foundIndex !== -1) {
         newPosition = foundIndex + 1; // 1-indexed
       }
-      
+
       tireModel.dispose();
     }
 
     // Step 4: Narrative Generation
     let mathSummary = `No time delta could be calculated because the driver didn't finish the race on the lead lap.`;
     let timeString = driverRes.time || "N/A";
-    
+
     if (driverRes.milliseconds) {
       const deltaFormatted = (timeDeltaMs / 1000).toFixed(3);
       const sign = timeDeltaMs > 0 ? '+' : '';
       mathSummary = `The ML Tire Degradation model calculated a time delta of ${sign}${deltaFormatted} seconds. Their original position was P${driverRes.position}, and their simulated position is P${newPosition}.`;
-      
+
       // Calculate a rough "new time" string for UI display
       const totalSeconds = (driverRes.milliseconds + timeDeltaMs) / 1000;
       const hours = Math.floor(totalSeconds / 3600);
@@ -158,7 +158,7 @@ export async function POST(request: NextRequest) {
     }
 
     const narrativePrompt = `
-You are a premium, dramatic motorsports journalist. 
+You are a premium, dramatic motorsports journalist.
 A fan asked this "What If?" scenario: "${query}"
 
 Here are the Grounded Facts:
@@ -169,7 +169,7 @@ Here are the Grounded Facts:
 Here is the Mathematical Simulation Result:
 - ${mathSummary}
 
-Write a 2-3 paragraph dramatic narration of how this alternate reality plays out. 
+Write a 2-3 paragraph dramatic narration of how this alternate reality plays out.
 Focus heavily on the mathematical truth provided by the simulation (e.g., if they lost 4 seconds and dropped 2 places, explain how those extra laps on old tires cost them).
 Do not break character. Do not mention "The ML model says" — present it as the factual alternate history.
 `;

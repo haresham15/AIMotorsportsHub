@@ -1,0 +1,106 @@
+--- app/api/f1/circuit_path/[sessionKey]/route.ts
++++ app/api/f1/circuit_path/[sessionKey]/route.ts
+@@ -12,7 +12,7 @@
+   try {
+     // 1. Fetch laps for the requested driver, or fallback to any driver in this session
+-    let laps: any[] = []
++    let laps: { lap_duration?: number, date_start?: string, driver_number?: string }[] = []
+     const requestedDriver = searchParams.get('driver_number')
+     if (requestedDriver) {
+       try {
+@@ -37,14 +37,14 @@
+
+     // 2. Find a valid fast lap to ensure a clean trace of the circuit
+-    const validLaps = laps.filter((l: any) => l.lap_duration && l.lap_duration > 50 && l.date_start)
++    const validLaps = laps.filter((l) => l.lap_duration && l.lap_duration > 50 && l.date_start)
+     if (validLaps.length === 0) {
+       return NextResponse.json({ error: 'No valid laps found' }, { status: 404 })
+     }
+-    const bestLap = validLaps.sort((a: any, b: any) => a.lap_duration - b.lap_duration)[0]
++    const bestLap = validLaps.sort((a, b) => (a.lap_duration || 0) - (b.lap_duration || 0))[0]
+     const lapDriver = String(bestLap.driver_number || driver)
+
+     // 3. Define time window for the lap
+-    const start = new Date(bestLap.date_start).getTime()
++    const start = new Date(bestLap.date_start!).getTime()
+     // Add 1 second buffer to ensure the loop closes
+-    const end = start + (bestLap.lap_duration + 1) * 1000
++    const end = start + ((bestLap.lap_duration || 0) + 1) * 1000
+
+     const startIso = new Date(start).toISOString()
+@@ -74,6 +74,6 @@
+     // 5. Downsample by taking 1 in every 3 points to shrink payload size for real-time trace
+     const points = locData
+       .filter((_: unknown, i: number) => i % 3 === 0)
+-      .map((p: any) => ({
++      .map((p: { x: number, y: number }) => ({
+         x: p.x,
+         y: p.y
+--- app/api/calendar/[series]/route.ts
++++ app/api/calendar/[series]/route.ts
+@@ -52,7 +52,7 @@
+           if (races.length > 0) {
+             const now = new Date()
+             let currentRound = 1
+-            const rounds = races.map((r: any) => {
++            const rounds = races.map((r: { round: string, raceName: string, date: string, time?: string, Circuit?: { Location?: { country?: string } } }) => {
+               const raceDate = new Date(`${r.date}T${r.time || '15:00:00Z'}`)
+               const status = raceDate > now ? 'upcoming' : 'completed'
+               if (status === 'completed') {
+--- app/api/ai/what-if/route.ts
++++ app/api/ai/what-if/route.ts
+@@ -82,7 +82,7 @@
+           WHEN r.name LIKE ? THEN 3
+           ELSE 4
+         END ASC
+       LIMIT 1
+-    `).get(intent.year, racePattern, racePattern, racePattern, racePattern, racePattern, racePattern, racePattern) as any;
++    `).get(intent.year, racePattern, racePattern, racePattern, racePattern, racePattern, racePattern, racePattern) as { raceId: number, name: string, year: number } | undefined;
+
+     if (!race) {
+@@ -95,7 +95,7 @@
+       JOIN drivers d ON res.driverId = d.driverId
+       WHERE res.raceId = ? AND d.surname LIKE ?
+       LIMIT 1
+-    `).get(race.raceId, `%${intent.driverSurname}%`) as any;
++    `).get(race.raceId, `%${intent.driverSurname}%`) as { position: number, time: string | null, milliseconds: number | null, forename: string, surname: string, driverId: number } | undefined;
+
+     if (!driverRes) {
+@@ -122,7 +122,7 @@
+         SELECT positionOrder, milliseconds, driverId
+         FROM results
+         WHERE raceId = ? AND milliseconds IS NOT NULL
+         ORDER BY milliseconds ASC
+-      `).all(race.raceId) as any[];
++      `).all(race.raceId) as { positionOrder: number, milliseconds: number, driverId: number }[];
+
+       // Sort with the modified time
+       const modifiedResults = allResults.map(r => {
+@@ -191,7 +191,7 @@
+       intent
+     });
+
+-  } catch (error: any) {
++  } catch (error: unknown) {
+     console.error("What If API error:", error);
+     return NextResponse.json({ error: error instanceof Error ? error.message : "An unexpected error occurred" }, { status: 500 });
+   }
+--- app/api/ai/chat/route.ts
++++ app/api/ai/chat/route.ts
+@@ -131,7 +131,7 @@
+     // Compact telemetry context to minimize input token processing overhead
+     let contextSnippet = "";
+     if (contextData?.liveRaceData?.length) {
+-      const top5 = contextData.liveRaceData.slice(0, 5).map((d: any) =>
++      const top5 = contextData.liveRaceData.slice(0, 5).map((d: { position: number, drivers?: { name?: string }, driver_id?: string, gap_to_leader?: string, tire_compound?: string }) =>
+         `P${d.position}:${d.drivers?.name || d.driver_id}(${d.gap_to_leader},${d.tire_compound})`
+       ).join("; ");
+       contextSnippet += `\nTiming: ${top5}`;
+@@ -166,7 +166,7 @@
+         activeModel = mName;
+         break;
+       } catch (err: unknown) {
+-        console.warn(`Model ${mName} unavailable:`, (err as any)?.message);
++        console.warn(`Model ${mName} unavailable:`, (err as Error)?.message);
+       }
+     }
