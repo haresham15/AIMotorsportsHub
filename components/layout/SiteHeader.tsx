@@ -17,8 +17,6 @@ import {
   Trophy,
   Cpu,
   Layers,
-  Flame,
-  ArrowUpRight,
   Menu,
   X,
   Users,
