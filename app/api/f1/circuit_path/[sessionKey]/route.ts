@@ -12,6 +12,7 @@ export async function GET(
 
   try {
     // 1. Fetch laps for the requested driver, or fallback to any driver in this session
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let laps: any[] = []
     const requestedDriver = searchParams.get('driver_number')
     if (requestedDriver) {
@@ -37,10 +38,12 @@ export async function GET(
     }
 
     // 2. Find a valid fast lap to ensure a clean trace of the circuit
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const validLaps = laps.filter((l: any) => l.lap_duration && l.lap_duration > 50 && l.date_start)
     if (validLaps.length === 0) {
       return NextResponse.json({ error: 'No valid laps found' }, { status: 404 })
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const bestLap = validLaps.sort((a: any, b: any) => a.lap_duration - b.lap_duration)[0]
     const lapDriver = String(bestLap.driver_number || driver)
 
