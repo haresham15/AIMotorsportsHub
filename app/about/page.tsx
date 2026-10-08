@@ -9,13 +9,10 @@ import {
   Sliders, 
   User, 
   ShieldCheck, 
-  Flag, 
-  Sparkles, 
   MessageSquarePlus, 
   ArrowRight,
   Database,
   Lock,
-  Zap,
   Globe
 } from 'lucide-react';
 import { openSuggestionsModal } from '@/components/SuggestionsModal';

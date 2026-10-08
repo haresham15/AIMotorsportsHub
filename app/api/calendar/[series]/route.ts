@@ -26,7 +26,7 @@ export async function GET(
   const scheduleUrl = getScheduleUrl(request.nextUrl.origin, series)
 
   try {
-    let rounds: any[] = [];
+    let rounds: unknown[] = [];
 
     if (scheduleUrl) {
       try {
@@ -52,9 +52,11 @@ export async function GET(
     // Build the iCalendar string
     let ics = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Apexis//EN\r\nCALSCALE:GREGORIAN\r\nX-WR-CALNAME:${series.toUpperCase()} Schedule\r\n`;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     rounds.forEach((round: any) => {
       // If we have detailed OpenF1 sessions, create an event for each session
       if (round.sessions && round.sessions.length > 0) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         round.sessions.forEach((session: any) => {
           const startDate = new Date(session.dateStart);
           // Default duration to 1 hour if we don't have end times

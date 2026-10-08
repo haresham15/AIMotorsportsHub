@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { X, ShieldAlert, Flag, CheckCircle2, AlertTriangle, Radio } from 'lucide-react';
+import { X, ShieldAlert } from 'lucide-react';
 
 interface RaceControlModalProps {
   isOpen: boolean;

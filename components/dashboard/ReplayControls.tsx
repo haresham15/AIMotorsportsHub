@@ -243,7 +243,8 @@ export default function ReplayControls({
         <div className="flex items-center justify-center gap-1.5 sm:gap-2">
           {/* Jump to start */}
           <button
-            className="flex items-center justify-center w-8 h-8 text-[var(--text-muted)] hover:text-white hover:bg-white/10 transition-colors cursor-pointer rounded-none"
+            aria-label="Restart to beginning"
+            className="flex items-center justify-center w-8 h-8 text-[var(--text-muted)] hover:text-white hover:bg-white/10 transition-colors cursor-pointer rounded-none focus-visible:ring-2 focus-visible:ring-[var(--amber)] outline-none"
             title="Restart to beginning (R)"
             onClick={() => onChange({ frameIndex: 0, isPlaying: true, isLiveMode: false })}
           >
@@ -252,7 +253,8 @@ export default function ReplayControls({
 
           {/* Rewind 10s */}
           <button
-            className="flex items-center justify-center w-8 h-8 text-[var(--text-secondary)] hover:text-white hover:bg-white/10 transition-colors cursor-pointer rounded-none"
+            aria-label="Rewind 10 seconds"
+            className="flex items-center justify-center w-8 h-8 text-[var(--text-secondary)] hover:text-white hover:bg-white/10 transition-colors cursor-pointer rounded-none focus-visible:ring-2 focus-visible:ring-[var(--amber)] outline-none"
             title="Rewind 10s (←)"
             onClick={() => onChange({ frameIndex: Math.max(0, playback.frameIndex - REPLAY_FPS * 10), isLiveMode: false })}
           >
@@ -262,6 +264,7 @@ export default function ReplayControls({
           {/* Live / Sync to Live Button (only active during live session before race finishes) */}
           {isLiveSession && !isRaceDone && (
             <button
+              aria-label={isBehindLive ? "Sync to live race time" : "Live race time"}
               onClick={() => {
                 if (onSyncToLive) {
                   onSyncToLive()
@@ -269,7 +272,7 @@ export default function ReplayControls({
                   onChange({ frameIndex: maxFrameIndex, isPlaying: true, speed: 1, isLiveMode: true })
                 }
               }}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-mono font-bold transition-all cursor-pointer border rounded-none ${
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-mono font-bold transition-all cursor-pointer border rounded-none focus-visible:ring-2 focus-visible:ring-[var(--amber)] outline-none ${
                 !isBehindLive
                   ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
                   : 'bg-amber-500/20 border-amber-500/50 text-amber-300 hover:bg-amber-500/30'
@@ -294,7 +297,8 @@ export default function ReplayControls({
 
           {/* Play / Pause */}
           <button
-            className="flex items-center justify-center w-10 h-10 bg-[var(--amber)] hover:bg-amber-300 text-black font-extrabold transition-all cursor-pointer rounded-none"
+            aria-label={playback.isPlaying ? "Pause replay" : "Play replay"}
+            className="flex items-center justify-center w-10 h-10 bg-[var(--amber)] hover:bg-amber-300 text-black font-extrabold transition-all cursor-pointer rounded-none focus-visible:ring-2 focus-visible:ring-[var(--amber)] outline-none"
             title="Play / Pause (Space)"
             onClick={() => onChange({ isPlaying: !playback.isPlaying })}
           >
@@ -303,7 +307,8 @@ export default function ReplayControls({
 
           {/* Skip Forward 10s */}
           <button
-            className="flex items-center justify-center w-8 h-8 text-[var(--text-secondary)] hover:text-white hover:bg-white/10 transition-colors cursor-pointer rounded-none"
+            aria-label="Skip forward 10 seconds"
+            className="flex items-center justify-center w-8 h-8 text-[var(--text-secondary)] hover:text-white hover:bg-white/10 transition-colors cursor-pointer rounded-none focus-visible:ring-2 focus-visible:ring-[var(--amber)] outline-none"
             title="Skip forward 10s (→)"
             onClick={() => onChange({ frameIndex: Math.min(maxFrameIndex, playback.frameIndex + REPLAY_FPS * 10) })}
           >
@@ -330,8 +335,9 @@ export default function ReplayControls({
         <div className="flex items-center gap-1.5">
           {/* Driver Labels Toggle */}
           <button
+            aria-label="Toggle Driver Code Labels"
             onClick={() => onChange({ showDriverLabels: !playback.showDriverLabels })}
-            className={`flex items-center gap-1 px-2.5 py-1 text-xs font-mono font-semibold transition-all cursor-pointer border rounded-none ${
+            className={`flex items-center gap-1 px-2.5 py-1 text-xs font-mono font-semibold transition-all cursor-pointer border rounded-none focus-visible:ring-2 focus-visible:ring-[var(--amber)] outline-none ${
               playback.showDriverLabels
                 ? 'bg-[var(--amber)]/15 border-[var(--amber)]/40 text-[var(--amber)]'
                 : 'bg-transparent border-white/20 text-[var(--text-muted)] hover:text-white hover:bg-white/10'
@@ -344,8 +350,9 @@ export default function ReplayControls({
 
           {/* DRS Zones Toggle */}
           <button
+            aria-label="Toggle DRS Zones"
             onClick={() => onChange({ showDrsZones: !playback.showDrsZones })}
-            className={`flex items-center gap-1 px-2.5 py-1 text-xs font-mono font-semibold transition-all cursor-pointer border rounded-none ${
+            className={`flex items-center gap-1 px-2.5 py-1 text-xs font-mono font-semibold transition-all cursor-pointer border rounded-none focus-visible:ring-2 focus-visible:ring-[var(--amber)] outline-none ${
               playback.showDrsZones
                 ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400'
                 : 'bg-transparent border-white/20 text-[var(--text-muted)] hover:text-white hover:bg-white/10'
@@ -358,8 +365,9 @@ export default function ReplayControls({
 
           {/* Leaderboard Dock Toggle */}
           <button
+            aria-label="Toggle Standings Dock"
             onClick={() => onChange({ showLeaderboard: !playback.showLeaderboard })}
-            className={`flex items-center gap-1 px-2.5 py-1 text-xs font-mono font-semibold transition-all cursor-pointer border rounded-none ${
+            className={`flex items-center gap-1 px-2.5 py-1 text-xs font-mono font-semibold transition-all cursor-pointer border rounded-none focus-visible:ring-2 focus-visible:ring-[var(--amber)] outline-none ${
               playback.showLeaderboard
                 ? 'bg-blue-500/15 border-blue-500/40 text-blue-400'
                 : 'bg-transparent border-white/20 text-[var(--text-muted)] hover:text-white hover:bg-white/10'
@@ -372,8 +380,9 @@ export default function ReplayControls({
 
           {/* Fullscreen Toggle */}
           <button
+            aria-label="Toggle Fullscreen"
             onClick={toggleFullscreen}
-            className="flex items-center justify-center w-8 h-8 bg-transparent border border-white/20 text-[var(--text-muted)] hover:text-white hover:bg-white/10 transition-colors cursor-pointer rounded-none"
+            className="flex items-center justify-center w-8 h-8 bg-transparent border border-white/20 text-[var(--text-muted)] hover:text-white hover:bg-white/10 transition-colors cursor-pointer rounded-none focus-visible:ring-2 focus-visible:ring-[var(--amber)] outline-none"
             title="Toggle Fullscreen (F)"
           >
             {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}

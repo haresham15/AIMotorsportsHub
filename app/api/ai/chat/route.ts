@@ -132,6 +132,7 @@ export async function POST(request: NextRequest) {
     // Compact telemetry context to minimize input token processing overhead
     let contextSnippet = "";
     if (contextData?.liveRaceData?.length) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const top5 = contextData.liveRaceData.slice(0, 5).map((d: any) =>
         `P${d.position}:${d.drivers?.name || d.driver_id}(${d.gap_to_leader},${d.tire_compound})`
       ).join("; ");
@@ -166,6 +167,7 @@ Rules:
         });
         activeModel = mName;
         break;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         console.warn(`Model ${mName} unavailable:`, err?.message);
       }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Search, MapPin, Trophy, Flag, SlidersHorizontal, ArrowUpDown } from 'lucide-react';
+import { Search, MapPin, SlidersHorizontal } from 'lucide-react';
 
 interface TrackItem {
   circuitId: number;
