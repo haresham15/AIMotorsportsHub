@@ -59,4 +59,26 @@ describe('POST /api/suggestions', () => {
     expect(data.category).toBe('Feature Request');
     expect(data.delivered).toBe(true);
   });
+
+  it('successfully processes malicious HTML suggestions without crashing', async () => {
+    const req = new NextRequest('http://localhost:3000/api/suggestions', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: '<script>alert("name")</script>',
+        email: 'attacker@example.com',
+        category: 'Bug Report',
+        subject: 'XSS Test <img src=x onerror=alert(1)>',
+        message: '<h1>This is a test</h1><script>alert("xss")</script>',
+      }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.success).toBe(true);
+    expect(data.recipient).toBe('haresham2006@gmail.com');
+    // Categories get escaped on response
+    expect(data.category).toBe('Bug Report');
+    expect(data.delivered).toBe(true);
+  });
 });

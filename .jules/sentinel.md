@@ -1,0 +1,4 @@
+## 2026-10-08 - HTML Injection / XSS in Email Suggestions
+**Vulnerability:** The API endpoint for submitting suggestions (`app/api/suggestions/route.ts`) accepted user-provided input (name, email, subject, message) and dynamically injected it into an HTML email template using Nodemailer without escaping it. This created a critical HTML injection (and potentially XSS, depending on the email client) vulnerability, as an attacker could execute malicious HTML payloads in the recipient's email environment.
+**Learning:** Even when sending data to internal systems or known email addresses (not rendering on our own web UI), we must strictly escape all user-provided data interpolated into HTML contexts to prevent injection attacks and protect the recipient.
+**Prevention:** Used a simple `escapeHtml` utility function to encode special characters (`<, >, &, ", '`) into their respective HTML entities before injecting them into the email's HTML body.

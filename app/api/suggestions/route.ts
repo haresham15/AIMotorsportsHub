@@ -11,6 +11,16 @@ interface SuggestionBody {
   message?: string;
 }
 
+function escapeHtml(unsafe: string): string {
+  if (!unsafe) return '';
+  return String(unsafe)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 const RECIPIENT_EMAIL = 'haresham2006@gmail.com';
 
 export async function POST(req: NextRequest) {
@@ -32,15 +42,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const senderName = name?.trim() || 'Anonymous Motorsport Fan';
-    const senderEmail = email?.trim() || 'noreply@apexis-racing.internal';
-    const selectedCategory = category?.trim() || 'General Feedback';
+    const rawSenderName = name?.trim() || 'Anonymous Motorsport Fan';
+    const rawSenderEmail = email?.trim() || 'noreply@apexis-racing.internal';
+    const rawSelectedCategory = category?.trim() || 'General Feedback';
+
+    const senderName = escapeHtml(rawSenderName);
+    const senderEmail = escapeHtml(rawSenderEmail);
+    const selectedCategory = escapeHtml(rawSelectedCategory);
+    const safeSubject = escapeHtml(subject);
+    const safeMessage = escapeHtml(message);
     const submissionTime = new Date().toISOString();
 
     console.log(`[Apexis Suggestions] Received incoming feedback:`, {
-      from: `${senderName} <${senderEmail}>`,
-      category: selectedCategory,
-      subject,
+      from: `${rawSenderName} <${rawSenderEmail}>`,
+      category: rawSelectedCategory,
+      subject: subject,
       target: RECIPIENT_EMAIL,
       timestamp: submissionTime,
     });
@@ -68,9 +84,9 @@ export async function POST(req: NextRequest) {
         await transporter.sendMail({
           from: `"Apexis Motorsports" <${smtpUser}>`,
           to: RECIPIENT_EMAIL,
-          replyTo: senderEmail,
-          subject: `[Apexis Suggestion] ${selectedCategory}: ${subject}`,
-          text: `Apexis Fan Feedback\n\nCategory: ${selectedCategory}\nFrom: ${senderName} (${senderEmail})\nSubject: ${subject}\n\nMessage:\n${message}\n\nSent: ${submissionTime}`,
+          replyTo: rawSenderEmail,
+          subject: `[Apexis Suggestion] ${rawSelectedCategory}: ${subject}`,
+          text: `Apexis Fan Feedback\n\nCategory: ${rawSelectedCategory}\nFrom: ${rawSenderName} (${rawSenderEmail})\nSubject: ${subject}\n\nMessage:\n${message}\n\nSent: ${submissionTime}`,
           html: `
             <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #0B0E13; border: 1px solid #222730; border-radius: 12px; color: #E5E7EB; overflow: hidden;">
               <div style="background: linear-gradient(90deg, #F59E0B, #D97706); padding: 18px 24px;">
@@ -83,10 +99,10 @@ export async function POST(req: NextRequest) {
                   ${selectedCategory}
                 </div>
                 <h3 style="margin: 0 0 12px 0; font-size: 20px; font-weight: 700; color: #FFF;">
-                  ${subject}
+                  ${safeSubject}
                 </h3>
                 <div style="background: #12161F; border: 1px solid #1E232E; border-radius: 8px; padding: 16px; margin: 16px 0; white-space: pre-wrap; font-size: 14px; line-height: 1.6; color: #D1D5DB;">
-${message}
+${safeMessage}
                 </div>
                 <table style="width: 100%; border-collapse: collapse; font-size: 12px; color: #9CA3AF; margin-top: 20px;">
                   <tr>
