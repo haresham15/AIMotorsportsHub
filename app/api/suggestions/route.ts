@@ -124,8 +124,8 @@ ${escapeHtml(message)}
           `,
         });
         emailDispatched = true;
-      } catch (sendErr: any) {
-        console.warn('[Apexis Suggestions] SMTP transmission warning:', sendErr?.message || sendErr);
+      } catch (sendErr: unknown) {
+        console.warn('[Apexis Suggestions] SMTP transmission warning:', sendErr instanceof Error ? sendErr.message : String(sendErr));
         // Fallback continues so the user receives confirmation
       }
     } else {
@@ -141,10 +141,10 @@ ${escapeHtml(message)}
       timestamp: submissionTime,
       message: `Suggestion successfully transmitted to ${RECIPIENT_EMAIL}`,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[Apexis Suggestions] Error handling feedback submission:', error);
     return NextResponse.json(
-      { error: error?.message || 'Failed to process suggestion' },
+      { error: error instanceof Error ? error.message : 'Failed to process suggestion' },
       { status: 500 }
     );
   }

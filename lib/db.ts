@@ -32,8 +32,8 @@ export function getSeasonDetails(year: number) {
   `).all(year);
 
   // Get the last race of the year to find final standings
-  const lastRace = races[races.length - 1] as any;
-  let standings: any[] = [];
+  const lastRace = races[races.length - 1] as unknown;
+  let standings: unknown[] = [];
   
   if (lastRace) {
     standings = db.prepare(`
@@ -45,7 +45,7 @@ export function getSeasonDetails(year: number) {
       LEFT JOIN constructors c ON res.constructorId = c.constructorId
       WHERE ds.raceId = ?
       ORDER BY ds.position ASC
-    `).all(lastRace.raceId);
+    `).all((lastRace as { raceId: number }).raceId);
   }
 
   return { races, standings };
@@ -107,17 +107,17 @@ export function getHeadToHead(driver1Id: number, driver2Id: number) {
   let d1Ahead = 0;
   let d2Ahead = 0;
 
-  for (const race of racesBoth as any[]) {
-    d1Points += race.d1_points;
-    d2Points += race.d2_points;
-    if (race.d1_pos < race.d2_pos) {
+  for (const race of racesBoth as unknown[]) {
+    d1Points += (race as { d1_points: number; d2_points: number; d1_pos: number; d2_pos: number }).d1_points;
+    d2Points += (race as { d1_points: number; d2_points: number; d1_pos: number; d2_pos: number }).d2_points;
+    if ((race as { d1_points: number; d2_points: number; d1_pos: number; d2_pos: number }).d1_pos < (race as { d1_points: number; d2_points: number; d1_pos: number; d2_pos: number }).d2_pos) {
       d1Ahead++;
-    } else if (race.d2_pos < race.d1_pos) {
+    } else if ((race as { d1_points: number; d2_points: number; d1_pos: number; d2_pos: number }).d2_pos < (race as { d1_points: number; d2_points: number; d1_pos: number; d2_pos: number }).d1_pos) {
       d2Ahead++;
     }
     
-    if (race.d1_pos === 1) d1Wins++;
-    if (race.d2_pos === 1) d2Wins++;
+    if ((race as { d1_points: number; d2_points: number; d1_pos: number; d2_pos: number }).d1_pos === 1) d1Wins++;
+    if ((race as { d1_points: number; d2_points: number; d1_pos: number; d2_pos: number }).d2_pos === 1) d2Wins++;
   }
 
   return {
