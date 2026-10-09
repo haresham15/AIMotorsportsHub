@@ -1,0 +1,3 @@
+## 2023-10-27 - Icon-Only Button Accessibility in Modals
+**Learning:** Found an icon-only button without an ARIA label in the generic `Modal` component. Since `Modal` is a reusable component used throughout the app (e.g. `DriverProfileModal`, `TrackDetailsModal`, `RaceControlModal`), missing ARIA labels on its basic elements (like the close button) create widespread accessibility issues for screen reader users.
+**Action:** When creating or modifying generic UI components, always ensure interactive elements like buttons have descriptive `aria-label` attributes if they do not contain visible text.
