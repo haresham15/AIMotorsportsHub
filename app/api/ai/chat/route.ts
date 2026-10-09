@@ -166,8 +166,8 @@ Rules:
         });
         activeModel = mName;
         break;
-      } catch (err: any) {
-        console.warn(`Model ${mName} unavailable:`, err?.message);
+      } catch (err: unknown) {
+        console.warn(`Model ${mName} unavailable:`, (err instanceof Error ? err.message : String(err)));
       }
     }
 

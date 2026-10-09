@@ -3,6 +3,16 @@ import nodemailer from 'nodemailer';
 
 export const runtime = 'nodejs';
 
+function escapeHtml(unsafe: string): string {
+  if (!unsafe) return '';
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 interface SuggestionBody {
   name?: string;
   email?: string;
@@ -80,26 +90,26 @@ export async function POST(req: NextRequest) {
               </div>
               <div style="padding: 24px;">
                 <div style="display: inline-block; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); color: #F59E0B; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 16px;">
-                  ${selectedCategory}
+                  ${escapeHtml(selectedCategory)}
                 </div>
                 <h3 style="margin: 0 0 12px 0; font-size: 20px; font-weight: 700; color: #FFF;">
-                  ${subject}
+                  ${escapeHtml(subject)}
                 </h3>
                 <div style="background: #12161F; border: 1px solid #1E232E; border-radius: 8px; padding: 16px; margin: 16px 0; white-space: pre-wrap; font-size: 14px; line-height: 1.6; color: #D1D5DB;">
-${message}
+${escapeHtml(message)}
                 </div>
                 <table style="width: 100%; border-collapse: collapse; font-size: 12px; color: #9CA3AF; margin-top: 20px;">
                   <tr>
                     <td style="padding: 6px 0; font-weight: 600;">Submitter:</td>
-                    <td style="padding: 6px 0; color: #E5E7EB;">${senderName}</td>
+                    <td style="padding: 6px 0; color: #E5E7EB;">${escapeHtml(senderName)}</td>
                   </tr>
                   <tr>
                     <td style="padding: 6px 0; font-weight: 600;">Reply Email:</td>
-                    <td style="padding: 6px 0; color: #F59E0B;"><a href="mailto:${senderEmail}" style="color: #F59E0B; text-decoration: none;">${senderEmail}</a></td>
+                    <td style="padding: 6px 0; color: #F59E0B;"><a href="mailto:${escapeHtml(senderEmail)}" style="color: #F59E0B; text-decoration: none;">${escapeHtml(senderEmail)}</a></td>
                   </tr>
                   <tr>
                     <td style="padding: 6px 0; font-weight: 600;">Dispatched To:</td>
-                    <td style="padding: 6px 0; color: #E5E7EB;">${RECIPIENT_EMAIL}</td>
+                    <td style="padding: 6px 0; color: #E5E7EB;">${escapeHtml(RECIPIENT_EMAIL)}</td>
                   </tr>
                   <tr>
                     <td style="padding: 6px 0; font-weight: 600;">Timestamp:</td>
@@ -114,8 +124,8 @@ ${message}
           `,
         });
         emailDispatched = true;
-      } catch (sendErr: any) {
-        console.warn('[Apexis Suggestions] SMTP transmission warning:', sendErr?.message || sendErr);
+      } catch (sendErr: unknown) {
+        console.warn('[Apexis Suggestions] SMTP transmission warning:', sendErr instanceof Error ? sendErr.message : String(sendErr));
         // Fallback continues so the user receives confirmation
       }
     } else {
@@ -131,10 +141,10 @@ ${message}
       timestamp: submissionTime,
       message: `Suggestion successfully transmitted to ${RECIPIENT_EMAIL}`,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[Apexis Suggestions] Error handling feedback submission:', error);
     return NextResponse.json(
-      { error: error?.message || 'Failed to process suggestion' },
+      { error: error instanceof Error ? error.message : 'Failed to process suggestion' },
       { status: 500 }
     );
   }

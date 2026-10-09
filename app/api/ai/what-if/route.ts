@@ -191,8 +191,8 @@ Do not break character. Do not mention "The ML model says" — present it as the
       intent
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("What If API error:", error);
-    return NextResponse.json({ error: error.message || "An unexpected error occurred" }, { status: 500 });
+    return NextResponse.json({ error: (error instanceof Error ? error.message : String(error)) || "An unexpected error occurred" }, { status: 500 });
   }
 }

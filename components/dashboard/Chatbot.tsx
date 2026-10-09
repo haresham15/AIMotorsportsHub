@@ -108,8 +108,8 @@ export default function Chatbot({ series, contextData }: ChatbotProps) {
         }
         setIsStreaming(false)
       }
-    } catch (err: any) {
-      if (err?.name === 'AbortError') return
+    } catch (err: unknown) {
+      if ((err instanceof Error ? err.name : String(err)) === 'AbortError') return
       setMessages((prev) => [
         ...prev,
         {

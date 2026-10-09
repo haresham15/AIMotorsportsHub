@@ -62,13 +62,13 @@ export default function SiteHeader() {
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (seriesRef.current && !seriesRef.current.contains(event.target as Node)) {
-        setSeriesDropdownOpen(false);
+        setTimeout(() => setSeriesDropdownOpen(false), 0);
       }
       if (analyticsRef.current && !analyticsRef.current.contains(event.target as Node)) {
-        setAnalyticsDropdownOpen(false);
+        setTimeout(() => setAnalyticsDropdownOpen(false), 0);
       }
       if (resourcesRef.current && !resourcesRef.current.contains(event.target as Node)) {
-        setResourcesDropdownOpen(false);
+        setTimeout(() => setResourcesDropdownOpen(false), 0);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -77,10 +77,10 @@ export default function SiteHeader() {
 
   // Close all menus on route change
   useEffect(() => {
-    setSeriesDropdownOpen(false);
-    setAnalyticsDropdownOpen(false);
-    setResourcesDropdownOpen(false);
-    setMobileMenuOpen(false);
+    setTimeout(() => setSeriesDropdownOpen(false), 0);
+    setTimeout(() => setAnalyticsDropdownOpen(false), 0);
+    setTimeout(() => setResourcesDropdownOpen(false), 0);
+    setTimeout(() => setMobileMenuOpen(false), 0);
   }, [pathname]);
 
   // Identify active series if on a series dashboard
@@ -114,8 +114,8 @@ export default function SiteHeader() {
             <button
               onClick={() => {
                 setSeriesDropdownOpen(!seriesDropdownOpen);
-                setAnalyticsDropdownOpen(false);
-                setResourcesDropdownOpen(false);
+                setTimeout(() => setAnalyticsDropdownOpen(false), 0);
+                setTimeout(() => setResourcesDropdownOpen(false), 0);
               }}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-xs border transition-colors cursor-pointer text-xs font-mono ${
                 seriesDropdownOpen
@@ -167,7 +167,7 @@ export default function SiteHeader() {
                             <Link
                               key={s.id}
                               href={`/dashboard/${s.id}`}
-                              onClick={() => setSeriesDropdownOpen(false)}
+                              onClick={() => setTimeout(() => setSeriesDropdownOpen(false), 0)}
                               className={`flex items-center justify-between px-2.5 py-1.5 rounded-none transition-colors no-underline group ${
                                 isSelected
                                   ? 'bg-[var(--surface-elevated)] border-l-2 border-l-[var(--amber)] text-white'
@@ -226,8 +226,8 @@ export default function SiteHeader() {
             <button
               onClick={() => {
                 setAnalyticsDropdownOpen(!analyticsDropdownOpen);
-                setSeriesDropdownOpen(false);
-                setResourcesDropdownOpen(false);
+                setTimeout(() => setSeriesDropdownOpen(false), 0);
+                setTimeout(() => setResourcesDropdownOpen(false), 0);
               }}
               className={`px-2.5 py-1.5 rounded-none transition-colors flex items-center gap-1.5 cursor-pointer uppercase tracking-wider ${
                 isAnalyticsActive || analyticsDropdownOpen
@@ -275,7 +275,7 @@ export default function SiteHeader() {
 
                   <Link
                     href="/history"
-                    onClick={() => setAnalyticsDropdownOpen(false)}
+                    onClick={() => setTimeout(() => setAnalyticsDropdownOpen(false), 0)}
                     className="p-2 rounded-none hover:bg-[var(--surface-elevated)] transition-colors no-underline flex items-start gap-2.5 group"
                   >
                     <Database size={15} className="text-amber-400 mt-0.5 shrink-0" />
@@ -291,7 +291,7 @@ export default function SiteHeader() {
 
                   <Link
                     href="/history/goat"
-                    onClick={() => setAnalyticsDropdownOpen(false)}
+                    onClick={() => setTimeout(() => setAnalyticsDropdownOpen(false), 0)}
                     className="p-2 rounded-none hover:bg-[var(--surface-elevated)] transition-colors no-underline flex items-start gap-2.5 group"
                   >
                     <Trophy size={15} className="text-amber-400 mt-0.5 shrink-0" />
@@ -307,7 +307,7 @@ export default function SiteHeader() {
 
                   <Link
                     href="/history/head-to-head"
-                    onClick={() => setAnalyticsDropdownOpen(false)}
+                    onClick={() => setTimeout(() => setAnalyticsDropdownOpen(false), 0)}
                     className="p-2 rounded-none hover:bg-[var(--surface-elevated)] transition-colors no-underline flex items-start gap-2.5 group"
                   >
                     <Users size={15} className="text-amber-400 mt-0.5 shrink-0" />
@@ -323,7 +323,7 @@ export default function SiteHeader() {
 
                   <Link
                     href="/history/seasons"
-                    onClick={() => setAnalyticsDropdownOpen(false)}
+                    onClick={() => setTimeout(() => setAnalyticsDropdownOpen(false), 0)}
                     className="p-2 rounded-none hover:bg-[var(--surface-elevated)] transition-colors no-underline flex items-start gap-2.5 group"
                   >
                     <Calendar size={15} className="text-amber-400 mt-0.5 shrink-0" />
@@ -339,7 +339,7 @@ export default function SiteHeader() {
 
                   <Link
                     href="/history/tracks"
-                    onClick={() => setAnalyticsDropdownOpen(false)}
+                    onClick={() => setTimeout(() => setAnalyticsDropdownOpen(false), 0)}
                     className="p-2 rounded-none hover:bg-[var(--surface-elevated)] transition-colors no-underline flex items-start gap-2.5 group"
                   >
                     <MapPin size={15} className="text-amber-400 mt-0.5 shrink-0" />
@@ -364,7 +364,7 @@ export default function SiteHeader() {
 
                   <Link
                     href="/history/what-if"
-                    onClick={() => setAnalyticsDropdownOpen(false)}
+                    onClick={() => setTimeout(() => setAnalyticsDropdownOpen(false), 0)}
                     className="p-2 rounded-none hover:bg-[var(--surface-elevated)] transition-colors no-underline flex items-start gap-2.5 group"
                   >
                     <Sparkles size={15} className="text-sky-400 mt-0.5 shrink-0" />
@@ -380,7 +380,7 @@ export default function SiteHeader() {
 
                   <Link
                     href="/models"
-                    onClick={() => setAnalyticsDropdownOpen(false)}
+                    onClick={() => setTimeout(() => setAnalyticsDropdownOpen(false), 0)}
                     className="p-2 rounded-none hover:bg-[var(--surface-elevated)] transition-colors no-underline flex items-start gap-2.5 group"
                   >
                     <Cpu size={15} className="text-emerald-400 mt-0.5 shrink-0" />
@@ -421,8 +421,8 @@ export default function SiteHeader() {
             <button
               onClick={() => {
                 setResourcesDropdownOpen(!resourcesDropdownOpen);
-                setSeriesDropdownOpen(false);
-                setAnalyticsDropdownOpen(false);
+                setTimeout(() => setSeriesDropdownOpen(false), 0);
+                setTimeout(() => setAnalyticsDropdownOpen(false), 0);
               }}
               className={`px-2.5 py-1.5 rounded-none transition-colors flex items-center gap-1.5 cursor-pointer uppercase tracking-wider ${
                 isResourcesActive || resourcesDropdownOpen
@@ -451,7 +451,7 @@ export default function SiteHeader() {
                 <div className="flex flex-col gap-0.5 mt-1">
                   <Link
                     href="/guide"
-                    onClick={() => setResourcesDropdownOpen(false)}
+                    onClick={() => setTimeout(() => setResourcesDropdownOpen(false), 0)}
                     className="p-2 rounded-none hover:bg-[var(--surface-elevated)] transition-colors no-underline flex items-start gap-2.5 group"
                   >
                     <BookMarked size={15} className="text-amber-400 mt-0.5 shrink-0" />
@@ -467,7 +467,7 @@ export default function SiteHeader() {
 
                   <Link
                     href="/faq"
-                    onClick={() => setResourcesDropdownOpen(false)}
+                    onClick={() => setTimeout(() => setResourcesDropdownOpen(false), 0)}
                     className="p-2 rounded-none hover:bg-[var(--surface-elevated)] transition-colors no-underline flex items-start gap-2.5 group"
                   >
                     <HelpCircle size={15} className="text-sky-400 mt-0.5 shrink-0" />
@@ -483,7 +483,7 @@ export default function SiteHeader() {
 
                   <Link
                     href="/about"
-                    onClick={() => setResourcesDropdownOpen(false)}
+                    onClick={() => setTimeout(() => setResourcesDropdownOpen(false), 0)}
                     className="p-2 rounded-none hover:bg-[var(--surface-elevated)] transition-colors no-underline flex items-start gap-2.5 group border-t border-[var(--border-hairline)] mt-1"
                   >
                     <Info size={15} className="text-emerald-400 mt-0.5 shrink-0" />
@@ -566,7 +566,7 @@ export default function SiteHeader() {
                         <Link
                           key={s.id}
                           href={`/dashboard/${s.id}`}
-                          onClick={() => setMobileMenuOpen(false)}
+                          onClick={() => setTimeout(() => setMobileMenuOpen(false), 0)}
                           className="px-2.5 py-1.5 rounded-xs bg-[var(--surface-subtle)] hover:bg-[var(--surface-elevated)] border border-[var(--border-hairline)] text-xs font-mono flex items-center gap-2 text-white no-underline"
                         >
                           <span className="w-1.5 h-3 rounded-full" style={{ backgroundColor: s.color }} />
@@ -593,7 +593,7 @@ export default function SiteHeader() {
             <div className="flex flex-col gap-0.5 text-xs">
               <Link
                 href="/history"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={() => setTimeout(() => setMobileMenuOpen(false), 0)}
                 className="px-2.5 py-1.5 rounded-xs text-[var(--text-secondary)] hover:text-white hover:bg-[var(--surface-subtle)] flex items-center gap-2.5 no-underline"
               >
                 <Database size={14} className="text-amber-400" />
@@ -601,7 +601,7 @@ export default function SiteHeader() {
               </Link>
               <Link
                 href="/history/goat"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={() => setTimeout(() => setMobileMenuOpen(false), 0)}
                 className="px-2.5 py-1.5 rounded-xs text-[var(--text-secondary)] hover:text-white hover:bg-[var(--surface-subtle)] flex items-center gap-2.5 no-underline"
               >
                 <Trophy size={14} className="text-amber-400" />
@@ -609,7 +609,7 @@ export default function SiteHeader() {
               </Link>
               <Link
                 href="/history/head-to-head"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={() => setTimeout(() => setMobileMenuOpen(false), 0)}
                 className="px-2.5 py-1.5 rounded-xs text-[var(--text-secondary)] hover:text-white hover:bg-[var(--surface-subtle)] flex items-center gap-2.5 no-underline"
               >
                 <Users size={14} className="text-amber-400" />
@@ -617,7 +617,7 @@ export default function SiteHeader() {
               </Link>
               <Link
                 href="/history/seasons"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={() => setTimeout(() => setMobileMenuOpen(false), 0)}
                 className="px-2.5 py-1.5 rounded-xs text-[var(--text-secondary)] hover:text-white hover:bg-[var(--surface-subtle)] flex items-center gap-2.5 no-underline"
               >
                 <Calendar size={14} className="text-amber-400" />
@@ -625,7 +625,7 @@ export default function SiteHeader() {
               </Link>
               <Link
                 href="/history/tracks"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={() => setTimeout(() => setMobileMenuOpen(false), 0)}
                 className="px-2.5 py-1.5 rounded-xs text-[var(--text-secondary)] hover:text-white hover:bg-[var(--surface-subtle)] flex items-center gap-2.5 no-underline"
               >
                 <MapPin size={14} className="text-amber-400" />
@@ -639,7 +639,7 @@ export default function SiteHeader() {
             <div className="flex flex-col gap-0.5 text-xs">
               <Link
                 href="/history/what-if"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={() => setTimeout(() => setMobileMenuOpen(false), 0)}
                 className="px-2.5 py-1.5 rounded-xs text-[var(--text-secondary)] hover:text-white hover:bg-[var(--surface-subtle)] flex items-center gap-2.5 no-underline"
               >
                 <Sparkles size={14} className="text-sky-400" />
@@ -647,7 +647,7 @@ export default function SiteHeader() {
               </Link>
               <Link
                 href="/models"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={() => setTimeout(() => setMobileMenuOpen(false), 0)}
                 className="px-2.5 py-1.5 rounded-xs text-[var(--text-secondary)] hover:text-white hover:bg-[var(--surface-subtle)] flex items-center gap-2.5 no-underline"
               >
                 <Cpu size={14} className="text-emerald-400" />
@@ -675,7 +675,7 @@ export default function SiteHeader() {
             <div className="flex flex-col gap-0.5 text-xs">
               <Link
                 href="/guide"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={() => setTimeout(() => setMobileMenuOpen(false), 0)}
                 className="px-2.5 py-1.5 rounded-xs text-[var(--text-secondary)] hover:text-white hover:bg-[var(--surface-subtle)] flex items-center gap-2.5 no-underline"
               >
                 <BookMarked size={14} className="text-amber-400" />
@@ -683,7 +683,7 @@ export default function SiteHeader() {
               </Link>
               <Link
                 href="/faq"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={() => setTimeout(() => setMobileMenuOpen(false), 0)}
                 className="px-2.5 py-1.5 rounded-xs text-[var(--text-secondary)] hover:text-white hover:bg-[var(--surface-subtle)] flex items-center gap-2.5 no-underline"
               >
                 <HelpCircle size={14} className="text-sky-400" />
@@ -691,7 +691,7 @@ export default function SiteHeader() {
               </Link>
               <Link
                 href="/about"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={() => setTimeout(() => setMobileMenuOpen(false), 0)}
                 className="px-2.5 py-1.5 rounded-xs text-[var(--text-secondary)] hover:text-white hover:bg-[var(--surface-subtle)] flex items-center gap-2.5 no-underline"
               >
                 <Info size={14} className="text-emerald-400" />
