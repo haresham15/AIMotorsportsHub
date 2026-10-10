@@ -193,6 +193,6 @@ Do not break character. Do not mention "The ML model says" — present it as the
 
   } catch (error: unknown) {
     console.error("What If API error:", error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Unknown Error" || "An unexpected error occurred" }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Unknown Error" }, { status: 500 });
   }
 }
