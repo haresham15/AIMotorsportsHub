@@ -54,14 +54,17 @@ export default function StrategyPredictor() {
   useEffect(() => {
     if (!modelRef.current) return
 
-    const preds = []
-    // Predict degradation for laps 1 to 40
-    for (let lap = 1; lap <= 40; lap++) {
-      // If the car pits, degradation resets
-      const currentTireAge = lap < pitLap ? lap : (lap - pitLap + 1)
-      const pred = modelRef.current.predict(currentTireAge, compound)
-      preds.push({ lap, degradation: Number(pred.toFixed(2)) })
-    }
+    // Predict degradation for laps 1 to 40 using a single batch prediction
+    const laps = Array.from({ length: 40 }, (_, i) => i + 1)
+    const tireAges = laps.map(lap => lap < pitLap ? lap : (lap - pitLap + 1))
+
+    // Batch prediction replaces 40 individual tf.predict() calls
+    const batchPreds = modelRef.current.predictBatch(tireAges, compound)
+
+    const preds = laps.map((lap, i) => ({
+      lap,
+      degradation: Number(batchPreds[i].toFixed(2))
+    }))
     
     setPredictions(preds)
   }, [loading, compound, pitLap])
