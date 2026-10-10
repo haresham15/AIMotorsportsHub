@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
           const res = await candidate.generateContent(promptText);
           const txt = res.response.text();
           if (txt) return txt;
-        } catch (err) {
+        } catch (err: unknown) {
           console.warn(`[What-If AI] Model ${mName} attempt failed:`, err);
         }
       }
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     let intent;
     try {
       intent = JSON.parse(extractedText);
-    } catch (e) {
+    } catch (e: unknown) {
       console.error("Failed to parse LLM JSON:", extractedText);
       return NextResponse.json({ error: "Could not understand the scenario parameters." }, { status: 400 });
     }
@@ -191,8 +191,8 @@ Do not break character. Do not mention "The ML model says" — present it as the
       intent
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("What If API error:", error);
-    return NextResponse.json({ error: error.message || "An unexpected error occurred" }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Unknown Error" || "An unexpected error occurred" }, { status: 500 });
   }
 }
