@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
     // Compact telemetry context to minimize input token processing overhead
     let contextSnippet = "";
     if (contextData?.liveRaceData?.length) {
-      const top5 = contextData.liveRaceData.slice(0, 5).map((d: { position: number, drivers?: { name: string }, driver_id: string, gap_to_leader: string, tire_compound: string }) =>
+      const top5 = contextData.liveRaceData.slice(0, 5).map((d: any) =>
         `P${d.position}:${d.drivers?.name || d.driver_id}(${d.gap_to_leader},${d.tire_compound})`
       ).join("; ");
       contextSnippet += `\nTiming: ${top5}`;

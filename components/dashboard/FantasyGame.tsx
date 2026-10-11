@@ -165,7 +165,7 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
     try {
       const res = await fetch(`/api/fantasy?series=${series}&round=${round}`)
       const data = await res.json()
-      const myPred = data.predictions?.find((p: { userId: string, p1: string, p2: string, p3: string, score?: number }) => p.userId === userId)
+      const myPred = data.predictions?.find((p: any) => p.userId === userId)
       if (myPred) {
         setPredictions({ p1: myPred.p1, p2: myPred.p2, p3: myPred.p3 })
         setSubmitted(true)
