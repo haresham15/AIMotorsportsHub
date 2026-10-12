@@ -157,7 +157,6 @@ export default function LiveMap2D({
   // ── Load data ──────────────────────────────────────────────────
   useEffect(() => {
     let cancelled = false
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true)
     setError(null)
 
@@ -327,8 +326,7 @@ export default function LiveMap2D({
   // Synchronize external selection
   useEffect(() => {
     if (selectedDriverCode !== undefined) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-    setPlayback(prev => ({
+      setPlayback(prev => ({
         ...prev,
         selectedDrivers: selectedDriverCode ? [selectedDriverCode] : []
       }))
@@ -416,8 +414,7 @@ export default function LiveMap2D({
   // When race finishes, immediately close out live mode
   useEffect(() => {
     if (isRaceDone && playback.isLiveMode) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-    setPlayback(prev => ({ ...prev, isLiveMode: false }))
+      setPlayback(prev => ({ ...prev, isLiveMode: false }))
     }
   }, [isRaceDone, playback.isLiveMode])
 

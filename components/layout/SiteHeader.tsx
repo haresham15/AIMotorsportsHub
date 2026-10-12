@@ -77,7 +77,6 @@ export default function SiteHeader() {
 
   // Close all menus on route change
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSeriesDropdownOpen(false);
     setAnalyticsDropdownOpen(false);
     setResourcesDropdownOpen(false);
