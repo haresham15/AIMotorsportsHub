@@ -6,14 +6,7 @@ import {
   HelpCircle, 
   Search, 
   ChevronDown, 
-  MessageSquarePlus, 
-  Activity, 
-  Radio, 
-  User, 
-  Flag, 
-  ShieldCheck,
-  Zap,
-  Gauge
+  MessageSquarePlus
 } from 'lucide-react';
 import { openSuggestionsModal } from '@/components/SuggestionsModal';
 
