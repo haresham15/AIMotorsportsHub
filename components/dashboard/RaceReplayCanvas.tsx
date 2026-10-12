@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useEffect, useCallback, useState } from 'react'
+import { useRef, useEffect, useCallback, useState, useMemo } from 'react'
 import type { ReplayData, RaceFrame, PlaybackState, Point2D } from '@/lib/replayTypes'
 import { REPLAY_FPS, TRACK_STATUS_MAP, TYRE_COMPOUNDS } from '@/lib/replayTypes'
 import { COLORS } from '@/lib/theme'
@@ -55,12 +55,18 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
     }
   }, [playback.frameIndex])
 
-  /* ── compute viewport transform (world → screen) ─────────────── */
-  const getTransform = useCallback((w: number, h: number) => {
+  /* ── cached bounds (prevents O(N) array alloc + iteration every frame) ── */
+  const cachedBounds = useMemo(() => {
     let all = [...data.trackGeometry.innerEdge, ...data.trackGeometry.outerEdge]
     if (all.length === 0) all = data.trackGeometry.referenceLine
-    if (all.length === 0) return { scale: 1, tx: 0, ty: 0 }
-    const b = bounds(all)
+    if (all.length === 0) return null
+    return bounds(all)
+  }, [data.trackGeometry])
+
+  /* ── compute viewport transform (world → screen) ─────────────── */
+  const getTransform = useCallback((w: number, h: number) => {
+    const b = cachedBounds
+    if (!b) return { scale: 1, tx: 0, ty: 0 }
     const pad = 0.08
     const worldW = Math.max(1, b.xMax - b.xMin)
     const worldH = Math.max(1, b.yMax - b.yMin)
@@ -70,7 +76,7 @@ export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onD
     const tx = w / 2 - scale * (b.xMin + worldW / 2)
     const ty = h / 2 - scale * (b.yMin + worldH / 2)
     return { scale, tx, ty }
-  }, [data.trackGeometry])
+  }, [cachedBounds])
 
   /* ── resize observer ──────────────────────────────────────────── */
   useEffect(() => {
