@@ -126,7 +126,8 @@ export function useSeriesData(series: string): SeriesDataResult {
       // Non-F1/NASCAR categories (F2, F3, WEC, Formula E, GT World Challenge, Top Fuel)
       const fallbackSchedule = getSeriesFallbackSchedule(series, queryYear)
       if (fallbackSchedule && fallbackSchedule.rounds?.length > 0) {
-        setScheduleData(fallbackSchedule)
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+    setScheduleData(fallbackSchedule)
         const targetRound = findCurrentOrRecentRound(fallbackSchedule.rounds, fallbackSchedule.currentRound)
         const initialRound = targetRound ? targetRound.round : (fallbackSchedule.currentRound || 1)
         setSelectedRound(initialRound)

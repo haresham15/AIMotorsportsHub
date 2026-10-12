@@ -77,7 +77,8 @@ export default function LiveStandings({
   useEffect(() => {
     // If replayData is actively driving the standings, do not poll background APIs
     if (isReplayActive) {
-      setLoading(false)
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(false)
       return
     }
 

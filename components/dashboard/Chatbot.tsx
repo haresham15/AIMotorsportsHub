@@ -87,6 +87,7 @@ export default function Chatbot({ series, contextData }: ChatbotProps) {
           const { done, value } = await reader.read()
           if (done) break
           const chunk = decoder.decode(value, { stream: true })
+          // eslint-disable-next-line react-hooks/immutability
           accumulated += chunk
           setMessages((prev) => {
             const next = [...prev]
