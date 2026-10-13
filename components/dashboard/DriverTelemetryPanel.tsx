@@ -287,7 +287,6 @@ export default function DriverTelemetryPanel({
               onClick={() => onInspect(driverCode)}
               className="w-6 h-6 flex items-center justify-center text-amber-400 hover:bg-amber-500/10 hover:text-amber-300 transition-colors cursor-pointer"
               title="Inspect Full Driver Dossier"
-              aria-label="Inspect Full Driver Dossier"
             >
               <ExternalLink size={12} />
             </button>
@@ -296,7 +295,6 @@ export default function DriverTelemetryPanel({
             className="w-6 h-6 flex items-center justify-center text-[var(--text-muted)] hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
             onClick={onClose}
             title="Dismiss Driver Telemetry"
-            aria-label="Dismiss Driver Telemetry"
           >
             <X size={13} />
           </button>
