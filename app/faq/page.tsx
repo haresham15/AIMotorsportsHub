@@ -7,11 +7,6 @@ import {
   Search, 
   ChevronDown, 
   MessageSquarePlus, 
-  Activity, 
-  Radio, 
-  User, 
-  Flag, 
-  ShieldCheck,
   Zap,
   Gauge
 } from 'lucide-react';
