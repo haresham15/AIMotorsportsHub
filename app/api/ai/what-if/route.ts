@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     let intent;
     try {
       intent = JSON.parse(extractedText);
-    } catch (e) {
+    } catch {
       console.error("Failed to parse LLM JSON:", extractedText);
       return NextResponse.json({ error: "Could not understand the scenario parameters." }, { status: 400 });
     }
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
           ELSE 4 
         END ASC
       LIMIT 1
-    `).get(intent.year, racePattern, racePattern, racePattern, racePattern, racePattern, racePattern, racePattern) as any;
+    `).get(intent.year, racePattern, racePattern, racePattern, racePattern, racePattern, racePattern, racePattern) as Record<string, unknown> | undefined;
                    
     if (!race) {
       return NextResponse.json({ error: `Could not find a race matching ${intent.raceName} in ${intent.year}.` }, { status: 404 });
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
       JOIN drivers d ON res.driverId = d.driverId
       WHERE res.raceId = ? AND d.surname LIKE ?
       LIMIT 1
-    `).get(race.raceId, `%${intent.driverSurname}%`) as any;
+    `).get(race.raceId, `%${intent.driverSurname}%`) as Record<string, unknown> | undefined;
 
     if (!driverRes) {
       return NextResponse.json({ error: `Could not find ${intent.driverSurname} in the ${race.year} ${race.name}.` }, { status: 404 });
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
       const rawDeltaSec = await tireModel.simulateTireDelta(intent.originalPitLap, intent.newPitLap, intent.compound);
       timeDeltaMs = Math.round(rawDeltaSec * 1000 * 2.5); 
       
-      const newTotalMs = driverRes.milliseconds + timeDeltaMs;
+      const newTotalMs = (driverRes.milliseconds as number) + timeDeltaMs;
 
       // Find new position
       const allResults = db.prepare(`
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
         FROM results
         WHERE raceId = ? AND milliseconds IS NOT NULL
         ORDER BY milliseconds ASC
-      `).all(race.raceId) as any[];
+      `).all(race.raceId) as Record<string, unknown>[];
 
       // Sort with the modified time
       const modifiedResults = allResults.map(r => {
@@ -130,9 +130,9 @@ export async function POST(request: NextRequest) {
           return { ...r, milliseconds: newTotalMs };
         }
         return r;
-      }).sort((a, b) => a.milliseconds - b.milliseconds);
+      }).sort((a, b) => (a.milliseconds as number) - (b.milliseconds as number));
 
-      const foundIndex = modifiedResults.findIndex(r => r.driverId === driverRes.driverId);
+      const foundIndex = modifiedResults.findIndex(r => (r as Record<string, unknown>).driverId === driverRes.driverId);
       if (foundIndex !== -1) {
         newPosition = foundIndex + 1; // 1-indexed
       }
@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
 
     // Step 4: Narrative Generation
     let mathSummary = `No time delta could be calculated because the driver didn't finish the race on the lead lap.`;
-    let timeString = driverRes.time || "N/A";
+    let timeString = driverRes.time as string || "N/A";
     
     if (driverRes.milliseconds) {
       const deltaFormatted = (timeDeltaMs / 1000).toFixed(3);
@@ -150,7 +150,7 @@ export async function POST(request: NextRequest) {
       mathSummary = `The ML Tire Degradation model calculated a time delta of ${sign}${deltaFormatted} seconds. Their original position was P${driverRes.position}, and their simulated position is P${newPosition}.`;
       
       // Calculate a rough "new time" string for UI display
-      const totalSeconds = (driverRes.milliseconds + timeDeltaMs) / 1000;
+      const totalSeconds = ((driverRes.milliseconds as number) + timeDeltaMs) / 1000;
       const hours = Math.floor(totalSeconds / 3600);
       const minutes = Math.floor((totalSeconds % 3600) / 60);
       const seconds = (totalSeconds % 60).toFixed(3);
@@ -191,8 +191,8 @@ Do not break character. Do not mention "The ML model says" — present it as the
       intent
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("What If API error:", error);
-    return NextResponse.json({ error: error.message || "An unexpected error occurred" }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to process what-if scenario." }, { status: 500 });
   }
 }

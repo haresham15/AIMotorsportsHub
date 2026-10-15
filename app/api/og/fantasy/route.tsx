@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
             </h1>
             
             <p style={{ fontSize: '32px', color: '#9ca3af', margin: '0 0 60px 0' }}>
-              {username}'s Podium Prediction
+              {username}&apos;s Podium Prediction
             </p>
 
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: '40px', height: '300px' }}>
@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
         height: 630,
       }
     )
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error(e)
     return new Response('Failed to generate image', { status: 500 })
   }
