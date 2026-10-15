@@ -132,9 +132,10 @@ export async function POST(request: NextRequest) {
     // Compact telemetry context to minimize input token processing overhead
     let contextSnippet = "";
     if (contextData?.liveRaceData?.length) {
-      const top5 = contextData.liveRaceData.slice(0, 5).map((d: any) =>
-        `P${d.position}:${d.drivers?.name || d.driver_id}(${d.gap_to_leader},${d.tire_compound})`
-      ).join("; ");
+      const top5 = contextData.liveRaceData.slice(0, 5).map((d: Record<string, unknown>) => {
+        const drivers = d.drivers as Record<string, unknown> | undefined;
+        return `P${d.position}:${drivers?.name || d.driver_id}(${d.gap_to_leader},${d.tire_compound})`;
+      }).join("; ");
       contextSnippet += `\nTiming: ${top5}`;
     }
 
@@ -166,8 +167,8 @@ Rules:
         });
         activeModel = mName;
         break;
-      } catch (err: any) {
-        console.warn(`Model ${mName} unavailable:`, err?.message);
+      } catch (err: unknown) {
+        console.warn(`Model ${mName} unavailable:`, err instanceof Error ? err.message : err);
       }
     }
 
