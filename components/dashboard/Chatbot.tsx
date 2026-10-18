@@ -177,6 +177,7 @@ export default function Chatbot({ series, contextData }: ChatbotProps) {
         <button 
           onClick={() => setIsOpen(false)}
           className="w-8 h-8 rounded-lg bg-white/5 border border-white/5 text-[var(--text-muted)] hover:text-white hover:bg-white/10 cursor-pointer flex items-center justify-center transition-colors"
+          aria-label="Close Chatbot"
         >
           <X size={16} />
         </button>
@@ -291,6 +292,7 @@ export default function Chatbot({ series, contextData }: ChatbotProps) {
               ? 'bg-white/5 text-[var(--text-muted)] cursor-not-allowed'
               : 'bg-[var(--amber)] text-black font-bold cursor-pointer hover:opacity-90'
           }`}
+          aria-label="Send message"
         >
           <Send size={14} />
         </button>
