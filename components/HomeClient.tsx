@@ -55,9 +55,7 @@ export default function HomeClient() {
 
     if (reduced) {
       lights.forEach((l) => l.classList.add('start-light-lit'))
-      queueMicrotask(() => {
-        setLightsStatus('GREEN FLAG • SESSION ACTIVE')
-      })
+      setLightsStatus('GREEN FLAG • SESSION ACTIVE')
       return
     }
 
@@ -73,9 +71,7 @@ export default function HomeClient() {
             l.classList.remove('start-light-lit')
             l.classList.add('start-light-go')
           })
-          queueMicrotask(() => {
-            setLightsStatus('GREEN FLAG • SESSION ACTIVE')
-          })
+          setLightsStatus('GREEN FLAG • SESSION ACTIVE')
         }, 500)
       }
     }

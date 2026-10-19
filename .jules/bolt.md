@@ -1,3 +1,0 @@
-## YYYY-MM-DD - Fix cascading render errors in CI
-**Learning:** CI linting in Next.js applications checks for `react-hooks/set-state-in-effect` and will fail the build if `setState` is called synchronously inside `useEffect` directly. This can be resolved safely by deferring it to a microtask using `queueMicrotask`, which executes after the current synchronous task but before browser rendering, thus avoiding actual cascading render performance issues.
-**Action:** Next time I encounter `react-hooks/set-state-in-effect` errors in a Next.js / React application, I will consider wrapping the state update in `queueMicrotask` to safely bypass the linter while preserving functionality and avoiding rendering loops.

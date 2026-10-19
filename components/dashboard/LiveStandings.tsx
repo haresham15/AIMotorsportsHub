@@ -77,7 +77,7 @@ export default function LiveStandings({
   useEffect(() => {
     // If replayData is actively driving the standings, do not poll background APIs
     if (isReplayActive) {
-      queueMicrotask(() => setLoading(false))
+      setLoading(false)
       return
     }
 
@@ -87,7 +87,7 @@ export default function LiveStandings({
     if (previousLiveKey.current !== liveKey) {
       previousLiveKey.current = liveKey
       hasLiveData.current = false
-      queueMicrotask(() => setLoading(true))
+      setLoading(true)
     }
 
     const applyFallback = () => {
@@ -107,7 +107,7 @@ export default function LiveStandings({
 
           if (!response.ok) {
             applyFallback()
-            queueMicrotask(() => setLoading(false))
+            setLoading(false)
             return
           }
 
@@ -119,11 +119,11 @@ export default function LiveStandings({
           if (!isReplayActiveRef.current) {
             setRaceData(top20)
             hasLiveData.current = true
-            queueMicrotask(() => setLoading(false))
+            setLoading(false)
           }
         } catch {
           applyFallback()
-          queueMicrotask(() => setLoading(false))
+          setLoading(false)
         } finally {
           isFetchingRef.current = false
         }
@@ -142,7 +142,7 @@ export default function LiveStandings({
 
           if (!response.ok) {
             applyFallback()
-            queueMicrotask(() => setLoading(false))
+            setLoading(false)
             return
           }
 
@@ -153,11 +153,11 @@ export default function LiveStandings({
           if (!isReplayActiveRef.current) {
             setRaceData(top20)
             hasLiveData.current = top20.length > 0
-            queueMicrotask(() => setLoading(false))
+            setLoading(false)
           }
         } catch {
           applyFallback()
-          queueMicrotask(() => setLoading(false))
+          setLoading(false)
         } finally {
           isFetchingRef.current = false
         }
@@ -174,7 +174,7 @@ export default function LiveStandings({
           const response = await fetch(`/api/alkamel/live?series=${encodeURIComponent(series)}`)
           if (!response.ok) {
             applyFallback()
-            queueMicrotask(() => setLoading(false))
+            setLoading(false)
             return
           }
           if (isReplayActiveRef.current) return
@@ -183,14 +183,14 @@ export default function LiveStandings({
           if (!isReplayActiveRef.current && top20.length > 0) {
             setRaceData(top20)
             hasLiveData.current = true
-            queueMicrotask(() => setLoading(false))
+            setLoading(false)
           } else {
             applyFallback()
-            queueMicrotask(() => setLoading(false))
+            setLoading(false)
           }
         } catch {
           applyFallback()
-          queueMicrotask(() => setLoading(false))
+          setLoading(false)
         } finally {
           isFetchingRef.current = false
         }
@@ -213,14 +213,12 @@ export default function LiveStandings({
           setLoading(false)
         })
       } else {
-        queueMicrotask(() => setLoading(false))
+        setLoading(false)
       }
     } else {
       const fallback = getFallbackData(series)
-      queueMicrotask(() => {
-        setRaceData(fallback)
-        setLoading(false)
-      })
+      setRaceData(fallback)
+      setLoading(false)
 
       intervalId = setInterval(() => {
         setRaceData((currentData) => {

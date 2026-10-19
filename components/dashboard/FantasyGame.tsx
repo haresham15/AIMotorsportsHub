@@ -112,35 +112,6 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
 
   const hasDuplicatePicks = new Set([predictions.p1, predictions.p2, predictions.p3].filter(Boolean)).size !== [predictions.p1, predictions.p2, predictions.p3].filter(Boolean).length
 
-  const checkExistingPrediction = async (userId: string) => {
-    try {
-      const res = await fetch(`/api/fantasy?series=${series}&round=${round}`)
-      const data = await res.json()
-      const myPred = data.predictions?.find((p: any) => p.userId === userId)
-      if (myPred) {
-        setPredictions({ p1: myPred.p1, p2: myPred.p2, p3: myPred.p3 })
-        setSubmitted(true)
-        if (myPred.score !== undefined) setScore(myPred.score)
-      } else {
-        setPredictions({ p1: '', p2: '', p3: '' })
-        setSubmitted(false)
-        setScore(null)
-      }
-    } catch (e) {
-      console.error(e)
-    }
-  }
-
-  const fetchLeaderboard = async () => {
-    try {
-      const res = await fetch('/api/fantasy?action=leaderboard')
-      const data = await res.json()
-      setLeaderboard(data.leaderboard || [])
-    } catch (e) {
-      console.error(e)
-    }
-  }
-
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
@@ -185,13 +156,39 @@ export default function FantasyGame({ series, round }: FantasyGameProps) {
       }
     )
 
-    queueMicrotask(() => {
-      fetchLeaderboard()
-    })
+    fetchLeaderboard()
 
     return () => subscription.unsubscribe()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [series, round])
+
+  const checkExistingPrediction = async (userId: string) => {
+    try {
+      const res = await fetch(`/api/fantasy?series=${series}&round=${round}`)
+      const data = await res.json()
+      const myPred = data.predictions?.find((p: any) => p.userId === userId)
+      if (myPred) {
+        setPredictions({ p1: myPred.p1, p2: myPred.p2, p3: myPred.p3 })
+        setSubmitted(true)
+        if (myPred.score !== undefined) setScore(myPred.score)
+      } else {
+        setPredictions({ p1: '', p2: '', p3: '' })
+        setSubmitted(false)
+        setScore(null)
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const fetchLeaderboard = async () => {
+    try {
+      const res = await fetch('/api/fantasy?action=leaderboard')
+      const data = await res.json()
+      setLeaderboard(data.leaderboard || [])
+    } catch (e) {
+      console.error(e)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

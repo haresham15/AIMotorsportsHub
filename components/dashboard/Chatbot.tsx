@@ -87,7 +87,7 @@ export default function Chatbot({ series, contextData }: ChatbotProps) {
           const { done, value } = await reader.read()
           if (done) break
           const chunk = decoder.decode(value, { stream: true })
-          accumulatedText += chunk
+          accumulatedText = accumulatedText + chunk
           setMessages((prev) => {
             const next = [...prev]
             if (next.length > 0 && next[next.length - 1].role === 'assistant') {

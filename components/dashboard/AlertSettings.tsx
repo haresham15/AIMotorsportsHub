@@ -12,10 +12,8 @@ export default function AlertSettings() {
   useEffect(() => {
     const saved = localStorage.getItem('motorsport-discord-webhook')
     if (saved) {
-      queueMicrotask(() => {
-        setWebhookUrl(saved)
-        setSavedUrl(saved)
-      })
+      setWebhookUrl(saved)
+      setSavedUrl(saved)
     }
   }, [])
 
