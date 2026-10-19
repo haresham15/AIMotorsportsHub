@@ -157,8 +157,10 @@ export default function LiveMap2D({
   // ── Load data ──────────────────────────────────────────────────
   useEffect(() => {
     let cancelled = false
-    setLoading(true)
-    setError(null)
+    queueMicrotask(() => {
+      setLoading(true)
+      setError(null)
+    })
 
     const loadData = async () => {
       try {
@@ -326,10 +328,12 @@ export default function LiveMap2D({
   // Synchronize external selection
   useEffect(() => {
     if (selectedDriverCode !== undefined) {
-      setPlayback(prev => ({
-        ...prev,
-        selectedDrivers: selectedDriverCode ? [selectedDriverCode] : []
-      }))
+      queueMicrotask(() => {
+        setPlayback(prev => ({
+          ...prev,
+          selectedDrivers: selectedDriverCode ? [selectedDriverCode] : []
+        }))
+      })
     }
   }, [selectedDriverCode])
 
@@ -414,7 +418,9 @@ export default function LiveMap2D({
   // When race finishes, immediately close out live mode
   useEffect(() => {
     if (isRaceDone && playback.isLiveMode) {
-      setPlayback(prev => ({ ...prev, isLiveMode: false }))
+      queueMicrotask(() => {
+        setPlayback(prev => ({ ...prev, isLiveMode: false }))
+      })
     }
   }, [isRaceDone, playback.isLiveMode])
 
@@ -436,15 +442,19 @@ export default function LiveMap2D({
         targetFrame = Math.max(0, replayData.frames.length - 1)
       }
 
-      setPlayback(prev => ({
-        ...prev,
-        frameIndex: targetFrame,
-        isPlaying: true, // Auto-play live action
-        speed: 1, // Real-time 1x
-        isLiveMode: true,
-      }))
+      queueMicrotask(() => {
+        setPlayback(prev => ({
+          ...prev,
+          frameIndex: targetFrame,
+          isPlaying: true, // Auto-play live action
+          speed: 1, // Real-time 1x
+          isLiveMode: true,
+        }))
+      })
     } else {
-      setPlayback(prev => ({ ...prev, frameIndex: 0, isPlaying: false, isLiveMode: false }))
+      queueMicrotask(() => {
+        setPlayback(prev => ({ ...prev, frameIndex: 0, isPlaying: false, isLiveMode: false }))
+      })
     }
   }, [replayData, effectiveIsLive, sessionStartTime])
 
@@ -473,11 +483,13 @@ export default function LiveMap2D({
       const targetIdx = findFrameIndexForTime(replayData.frames, elapsedSec)
       
       // If playback has drifted by more than 2 seconds (50 frames at 25 FPS) from real time
-      setPlayback(prev => {
-        if (Math.abs(prev.frameIndex - targetIdx) > 50) {
-          return { ...prev, frameIndex: targetIdx, isPlaying: true, speed: 1 }
-        }
-        return prev
+      queueMicrotask(() => {
+        setPlayback(prev => {
+          if (Math.abs(prev.frameIndex - targetIdx) > 50) {
+            return { ...prev, frameIndex: targetIdx, isPlaying: true, speed: 1 }
+          }
+          return prev
+        })
       })
     }
 

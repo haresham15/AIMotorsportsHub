@@ -77,10 +77,12 @@ export default function SiteHeader() {
 
   // Close all menus on route change
   useEffect(() => {
-    setSeriesDropdownOpen(false);
-    setAnalyticsDropdownOpen(false);
-    setResourcesDropdownOpen(false);
-    setMobileMenuOpen(false);
+    queueMicrotask(() => {
+      setSeriesDropdownOpen(false);
+      setAnalyticsDropdownOpen(false);
+      setResourcesDropdownOpen(false);
+      setMobileMenuOpen(false);
+    });
   }, [pathname]);
 
   // Identify active series if on a series dashboard
