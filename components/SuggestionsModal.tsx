@@ -49,8 +49,10 @@ export default function SuggestionsModal() {
   // Pre-fill if logged in
   useEffect(() => {
     if (profile && !name) {
-      setName(profile.displayName || '');
-      setEmail(profile.email || '');
+      queueMicrotask(() => {
+        setName(profile.displayName || '');
+        setEmail(profile.email || '');
+      })
     }
   }, [profile, name]);
 
