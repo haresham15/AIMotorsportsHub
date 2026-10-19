@@ -81,23 +81,23 @@ export default function Chatbot({ series, contextData }: ChatbotProps) {
 
         const reader = response.body.getReader()
         const decoder = new TextDecoder()
-        let accumulated = ''
+        let accumulatedText = ''
 
         while (true) {
           const { done, value } = await reader.read()
           if (done) break
           const chunk = decoder.decode(value, { stream: true })
-          accumulated += chunk
+          accumulatedText = accumulatedText + chunk
           setMessages((prev) => {
             const next = [...prev]
             if (next.length > 0 && next[next.length - 1].role === 'assistant') {
-              next[next.length - 1] = { role: 'assistant', content: accumulated }
+              next[next.length - 1] = { role: 'assistant', content: accumulatedText }
             }
             return next
           })
         }
 
-        if (!accumulated.trim()) {
+        if (!accumulatedText.trim()) {
           setMessages((prev) => {
             const next = [...prev]
             if (next.length > 0 && next[next.length - 1].role === 'assistant') {
