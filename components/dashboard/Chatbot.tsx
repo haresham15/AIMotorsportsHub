@@ -88,16 +88,18 @@ export default function Chatbot({ series, contextData }: ChatbotProps) {
           if (done) break
           const chunk = decoder.decode(value, { stream: true })
           accumulated += chunk
+          const currentChunk = chunk
           setMessages((prev) => {
             const next = [...prev]
             if (next.length > 0 && next[next.length - 1].role === 'assistant') {
-              next[next.length - 1] = { role: 'assistant', content: accumulated }
+              next[next.length - 1] = { role: 'assistant', content: next[next.length - 1].content + currentChunk }
             }
             return next
           })
         }
 
-        if (!accumulated.trim()) {
+        const finalContent = accumulated;
+        if (!finalContent.trim()) {
           setMessages((prev) => {
             const next = [...prev]
             if (next.length > 0 && next[next.length - 1].role === 'assistant') {
@@ -177,6 +179,7 @@ export default function Chatbot({ series, contextData }: ChatbotProps) {
         <button 
           onClick={() => setIsOpen(false)}
           className="w-8 h-8 rounded-lg bg-white/5 border border-white/5 text-[var(--text-muted)] hover:text-white hover:bg-white/10 cursor-pointer flex items-center justify-center transition-colors"
+          aria-label="Close Chat"
         >
           <X size={16} />
         </button>
@@ -291,6 +294,7 @@ export default function Chatbot({ series, contextData }: ChatbotProps) {
               ? 'bg-white/5 text-[var(--text-muted)] cursor-not-allowed'
               : 'bg-[var(--amber)] text-black font-bold cursor-pointer hover:opacity-90'
           }`}
+          aria-label="Send Message"
         >
           <Send size={14} />
         </button>
