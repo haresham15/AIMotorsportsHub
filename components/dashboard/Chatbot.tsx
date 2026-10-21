@@ -88,16 +88,18 @@ export default function Chatbot({ series, contextData }: ChatbotProps) {
           if (done) break
           const chunk = decoder.decode(value, { stream: true })
           accumulated += chunk
+          const currentChunk = chunk
           setMessages((prev) => {
             const next = [...prev]
             if (next.length > 0 && next[next.length - 1].role === 'assistant') {
-              next[next.length - 1] = { role: 'assistant', content: accumulated }
+              next[next.length - 1] = { role: 'assistant', content: next[next.length - 1].content + currentChunk }
             }
             return next
           })
         }
 
-        if (!accumulated.trim()) {
+        const finalContent = accumulated;
+        if (!finalContent.trim()) {
           setMessages((prev) => {
             const next = [...prev]
             if (next.length > 0 && next[next.length - 1].role === 'assistant') {
