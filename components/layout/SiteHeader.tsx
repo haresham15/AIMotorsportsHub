@@ -28,6 +28,7 @@ import {
 import { SERIES, SERIES_MAP } from '@/lib/data';
 import { useUserProfile } from '@/lib/userPreferences';
 import { openSuggestionsModal } from '@/components/SuggestionsModal';
+import TelemetryBrokerHUD from '@/components/systems/TelemetryBrokerHUD';
 
 const SERIES_GROUPS = [
   {
@@ -53,6 +54,7 @@ export default function SiteHeader() {
   const [analyticsDropdownOpen, setAnalyticsDropdownOpen] = useState(false);
   const [resourcesDropdownOpen, setResourcesDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [hudOpen, setHudOpen] = useState(false);
 
   const seriesRef = useRef<HTMLDivElement>(null);
   const analyticsRef = useRef<HTMLDivElement>(null);
@@ -504,6 +506,24 @@ export default function SiteHeader() {
 
         {/* ── Right Deck: Quick Actions (Feedback & Paddock Profile) ──── */}
         <div className="flex items-center gap-2 sm:gap-2.5">
+          {/* Systems Engine HUD (v2.0 Upgrade) */}
+          <button
+            onClick={() => setHudOpen((prev) => !prev)}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-none border text-xs font-mono font-semibold transition-colors cursor-pointer ${
+              hudOpen
+                ? 'bg-[var(--surface-elevated)] border-emerald-500 text-emerald-400'
+                : 'bg-[var(--surface-subtle)] hover:bg-[var(--surface-elevated)] border-[var(--border-hairline)] hover:border-emerald-500/50 text-[var(--text-secondary)] hover:text-emerald-400'
+            }`}
+            title="Toggle Apexis Core v2.0 Telemetry Broker HUD"
+          >
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+            </span>
+            <Cpu size={12} className="text-emerald-400" />
+            <span className="hidden md:inline uppercase tracking-wider text-[11px]">Systems HUD</span>
+          </button>
+
           {/* Suggestions Box Direct Action */}
           <button
             onClick={openSuggestionsModal}
@@ -702,6 +722,9 @@ export default function SiteHeader() {
 
         </div>
       )}
+
+      {/* Apexis Core v2.0 Telemetry Broker HUD Drawer */}
+      <TelemetryBrokerHUD isOpen={hudOpen} onToggle={() => setHudOpen((prev) => !prev)} />
     </header>
   );
 }

@@ -1,0 +1,11 @@
+# C++20 Load Generator Build
+FROM gcc:13-bookworm AS builder
+WORKDIR /src
+COPY services/apexis-core /src/services/apexis-core
+COPY services/apexis-sim /src/services/apexis-sim
+RUN cd /src/services/apexis-sim && make
+
+FROM debian:bookworm-slim
+WORKDIR /app
+COPY --from=builder /src/services/apexis-sim/bin/apexis-sim /app/apexis-sim
+ENTRYPOINT ["/app/apexis-sim"]

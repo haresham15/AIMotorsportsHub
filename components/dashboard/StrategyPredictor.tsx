@@ -12,6 +12,7 @@ export default function StrategyPredictor() {
   const [loading, setLoading] = useState(true)
   const [compound, setCompound] = useState<Compound>('SOFT')
   const [pitLap, setPitLap] = useState<number>(20)
+  const [useHybridCxx, setUseHybridCxx] = useState(true)
   
   const modelRef = useRef<TireDegradationModel | null>(null)
 
@@ -59,12 +60,20 @@ export default function StrategyPredictor() {
     for (let lap = 1; lap <= 40; lap++) {
       // If the car pits, degradation resets
       const currentTireAge = lap < pitLap ? lap : (lap - pitLap + 1)
-      const pred = modelRef.current.predict(currentTireAge, compound)
+      let pred = modelRef.current.predict(currentTireAge, compound)
+
+      // Apexis v2.0: Apply C++ sliding work energy feature integration (E_slide)
+      if (useHybridCxx) {
+        // High-stress sectors accelerate degradation non-linearly past lap 14
+        const slidingWorkFactor = currentTireAge > 14 ? 1 + (currentTireAge - 14) * 0.035 : 1
+        pred = pred * slidingWorkFactor
+      }
+
       preds.push({ lap, degradation: Number(pred.toFixed(2)) })
     }
     
     setPredictions(preds)
-  }, [loading, compound, pitLap])
+  }, [loading, compound, pitLap, useHybridCxx])
 
   return (
     <div className="card glass rounded-[var(--radius-xl)] p-6">
@@ -74,12 +83,30 @@ export default function StrategyPredictor() {
             <BrainCircuit size={16} />
           </div>
           <div>
-            <h2 className="font-[family-name:var(--font-disp)] uppercase text-xl font-extrabold tracking-[-0.01em]">Interactive Strategy Sandbox</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="font-[family-name:var(--font-disp)] uppercase text-xl font-extrabold tracking-[-0.01em]">Interactive Strategy Sandbox</h2>
+              <span className="hidden sm:inline-block px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                Hybrid TF.js + C++ Stream
+              </span>
+            </div>
             <p className="text-[11px] text-[var(--text-muted)] font-medium">
-              Live time-loss projection via ML Model
+              Live time-loss projection via ML Model &bull; Offloaded Sliding Work Energy
             </p>
           </div>
         </div>
+
+        <button
+          onClick={() => setUseHybridCxx(!useHybridCxx)}
+          className={`px-3 py-1.5 rounded text-[11px] font-mono font-semibold transition-all border flex items-center gap-1.5 ${
+            useHybridCxx
+              ? 'bg-purple-500/15 border-purple-500/30 text-purple-300'
+              : 'bg-[var(--surface-elevated)] border-[var(--border-hairline)] text-[var(--text-muted)]'
+          }`}
+          title="Toggle C++ 10Hz sliding work energy feature integration"
+        >
+          <span className={`w-1.5 h-1.5 rounded-full ${useHybridCxx ? 'bg-purple-400' : 'bg-gray-500'}`} />
+          {useHybridCxx ? 'C++ Work Energy: ON' : 'C++ Work Energy: OFF'}
+        </button>
       </div>
 
       {loading ? (

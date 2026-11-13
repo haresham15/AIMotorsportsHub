@@ -14,6 +14,8 @@ const nextConfig: NextConfig = {
         source: "/((?!embed).*)",
         headers: [
           { key: "X-Frame-Options", value: "DENY" },
+          { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+          { key: "Cross-Origin-Embedder-Policy", value: "credentialless" },
         ],
       },
       {

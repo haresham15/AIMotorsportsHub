@@ -1,0 +1,11 @@
+# Go 1.23 Gateway Build
+FROM golang:1.23-bookworm AS builder
+WORKDIR /src
+COPY services/apexis-gateway /src/services/apexis-gateway
+RUN cd /src/services/apexis-gateway && go mod tidy && go build -o /app/apexis-gateway ./cmd/gateway
+
+FROM debian:bookworm-slim
+WORKDIR /app
+COPY --from=builder /app/apexis-gateway /app/apexis-gateway
+EXPOSE 8080 9092
+ENTRYPOINT ["/app/apexis-gateway"]

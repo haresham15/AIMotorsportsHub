@@ -12,6 +12,7 @@ interface Props {
   onDriverSelect: (codes: string[]) => void
   liveTrackStatus?: string
   isRaceDone?: boolean
+  liveSharedBuffer?: SharedArrayBuffer
 }
 
 /* ── colour helpers ─────────────────────────────────────────────── */
@@ -30,12 +31,29 @@ function bounds(pts: Point2D[]) {
   return { xMin, xMax, yMin, yMax }
 }
 
-export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onDriverSelect, liveTrackStatus, isRaceDone = false }: Props) {
+export default function RaceReplayCanvas({ data, playback, onPlaybackChange, onDriverSelect, liveTrackStatus, isRaceDone = false, liveSharedBuffer }: Props) {
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animRef = useRef<number>(0)
   const lastTimeRef = useRef<number>(0)
   const frameIdxRef = useRef(playback.frameIndex)
+
+  // Zero-Copy SharedArrayBuffer double-buffered views (v2.0 Architecture)
+  const controlViewRef = useRef<Int32Array | null>(null)
+  const floatViewsRef = useRef<[Float32Array, Float32Array] | null>(null)
+
+  useEffect(() => {
+    if (liveSharedBuffer && typeof SharedArrayBuffer !== 'undefined') {
+      controlViewRef.current = new Int32Array(liveSharedBuffer, 0, 16)
+      const slot0ByteOffset = 64
+      const slot1ByteOffset = 32768
+      const slotByteSize = 32704
+      floatViewsRef.current = [
+        new Float32Array(liveSharedBuffer, slot0ByteOffset, slotByteSize / 4 / 2),
+        new Float32Array(liveSharedBuffer, slot1ByteOffset, slotByteSize / 4 / 2),
+      ]
+    }
+  }, [liveSharedBuffer])
 
   const [canvasSize, setCanvasSize] = useState({ w: 800, h: 450 })
   const cachedTrackCanvasRef = useRef<HTMLCanvasElement | null>(null)

@@ -10,6 +10,7 @@ import LiveStandings from '@/components/dashboard/LiveStandings'
 import LiveMap2D from '@/components/dashboard/LiveMap2D'
 import Chatbot from '@/components/dashboard/Chatbot'
 import StrategyPredictor from '@/components/dashboard/StrategyPredictor'
+import AnomalyFeedDrawer from '@/components/systems/AnomalyFeedDrawer'
 import WhereToWatch from '@/components/dashboard/WhereToWatch'
 import TeamHistory from '@/components/dashboard/TeamHistory'
 import FantasyGame from '@/components/dashboard/FantasyGame'
@@ -386,6 +387,9 @@ export default function SeriesDashboard() {
             </div>
             <div>
               <StrategyPredictor />
+            </div>
+            <div>
+              <AnomalyFeedDrawer />
             </div>
             {series === 'f1' && <div><PodiumProbability /></div>}
             <div>

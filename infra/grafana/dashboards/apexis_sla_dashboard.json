@@ -1,0 +1,152 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": 1,
+  "links": [],
+  "liveNow": true,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 0 },
+      "id": 1,
+      "title": "Sustained Ingestion Rate (eps)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "rate(apexis_udp_packets_ingested_total[5s])",
+          "legendFormat": "Throughput"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "orange", "value": 100000 },
+              { "color": "green", "value": 250000 }
+            ]
+          },
+          "unit": "short"
+        }
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 6, "w": 6, "x": 6, "y": 0 },
+      "id": 2,
+      "title": "Ingestion Latency p99 (SLA < 2.0ms)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "apexis_ingest_latency_nanoseconds{quantile=\"0.99\"} / 1000000",
+          "legendFormat": "p99 (ms)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 1.5 },
+              { "color": "red", "value": 2.0 }
+            ]
+          },
+          "unit": "ms"
+        }
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 6, "w": 6, "x": 12, "y": 0 },
+      "id": 3,
+      "title": "UDP Packet Drop Rate",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(rate(apexis_udp_packets_dropped_total[10s])) / (sum(rate(apexis_udp_packets_ingested_total[10s])) + 0.001) * 100",
+          "legendFormat": "Drop Rate %"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 0.001 }
+            ]
+          },
+          "unit": "percent"
+        }
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 6, "w": 6, "x": 18, "y": 0 },
+      "id": 4,
+      "title": "Sub-5ms Anomaly Latency (p99)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "max(apexis_anomaly_compute_nanoseconds{quantile=\"0.99\"}) / 1000",
+          "legendFormat": "Anomaly Latency (us)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1000 },
+              { "color": "red", "value": 5000 }
+            ]
+          },
+          "unit": "µs"
+        }
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+      "id": 5,
+      "title": "Ingestion Latency Spectrum (p50 vs p99 vs SLA)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "apexis_ingest_latency_nanoseconds{quantile=\"0.50\"} / 1000000",
+          "legendFormat": "p50 (ms)"
+        },
+        {
+          "expr": "apexis_ingest_latency_nanoseconds{quantile=\"0.99\"} / 1000000",
+          "legendFormat": "p99 (ms)"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+      "id": 6,
+      "title": "8-Core SPSC Ring Buffer Occupancy Watermarks",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "apexis_spsc_occupancy_ratio",
+          "legendFormat": "Shard {{shard_id}}"
+        }
+      ]
+    }
+  ],
+  "refresh": "1s",
+  "schemaVersion": 38,
+  "title": "Apexis v2.0 - Telemetry Broker SLA Control Room",
+  "uid": "apexis-v2-sla"
+}

@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: ../
+      dockerfile: infra/Dockerfile.web
+    container_name: apexis-web
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_GATEWAY_WS_URL=ws://apexis-gateway:8080/ws/live
+    depends_on:
+      - apexis-gateway
+    restart: unless-stopped
+
+  apexis-core:
+    build:
+      context: ../
+      dockerfile: infra/Dockerfile.core
+    container_name: apexis-core
+    ports:
+      - "20777:20777/udp"
+      - "9091:9091"
+    restart: unless-stopped
+    ulimits:
+      memlock: -1
+      rtprio: 99
+    volumes:
+      - tsdb-data:/data/tsdb
+
+  apexis-gateway:
+    build:
+      context: ../
+      dockerfile: infra/Dockerfile.gateway
+    container_name: apexis-gateway
+    ports:
+      - "8080:8080"
+      - "9092:9092"
+    depends_on:
+      - apexis-core
+    restart: unless-stopped
+
+  apexis-sim:
+    build:
+      context: ../
+      dockerfile: infra/Dockerfile.sim
+    container_name: apexis-sim
+    command: ["--host", "apexis-core", "--port", "20777", "--cars", "40", "--threads", "4"]
+    depends_on:
+      - apexis-core
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: apexis-prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: apexis-grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+volumes:
+  tsdb-data:

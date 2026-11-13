@@ -1,0 +1,143 @@
+syntax = "proto3";
+
+package apexis.v2;
+
+option go_package = "github.com/haresham15/AIMotorsportsHub/services/apexis-gateway/gen/apexisv2";
+
+// TelemetryBrokerService provides high-frequency telemetry streaming,
+// rolling anomaly notifications, historical session replay, and broker telemetry.
+service TelemetryBrokerService {
+  // High-frequency live stream with adaptive server-side downsampling (500Hz / 60Hz / 10Hz)
+  rpc StreamLiveTelemetry(StreamRequest) returns (stream TelemetryBatch);
+
+  // Sub-5ms push stream of mechanical, thermal, and ERS anomalies for UI + Gemini Race Engineer
+  rpc SubscribeAnomalies(SessionFilter) returns (stream AnomalyEvent);
+
+  // Full-race O(1) mmap historical replay stream (replaces v1.0 15-lap client buffer)
+  rpc StreamHistoricalReplay(ReplaySeekRequest) returns (stream TelemetryBatch);
+
+  // Live broker internal health & SLA metrics for the Next.js Systems HUD
+  rpc GetBrokerMetrics(Empty) returns (BrokerMetricsSnapshot);
+}
+
+message Empty {}
+
+message StreamRequest {
+  string session_id = 1;
+  uint32 target_hz = 2;              // 500 for ML workers, 60 for RaceReplayCanvas, 10 for background
+  repeated uint32 car_filter = 3;    // Empty = all cars; or specific car_ids for detailed HUD
+}
+
+message SessionFilter {
+  string session_id = 1;
+  repeated uint32 car_filter = 2;
+  float min_severity_z_score = 3;
+}
+
+message ReplaySeekRequest {
+  string session_id = 1;
+  uint32 lap_number = 2;
+  uint64 millisecond_offset = 3;
+  uint32 duration_ms = 4;
+  uint32 target_hz = 5;
+}
+
+message TelemetryFrameProto {
+  uint16 magic_and_version = 1;
+  uint32 series_id = 2;
+  uint32 car_id = 3;
+  uint64 sequence_num = 4;
+  uint64 timestamp_ns = 5;
+
+  // Spatial & Kinematics
+  float lap_distance_m = 6;
+  float world_pos_x = 7;
+  float world_pos_y = 8;
+  float world_pos_z = 9;
+  int32 vel_x_quant = 10;
+  int32 vel_y_quant = 11;
+  int32 vel_z_quant = 12;
+  int32 g_lat_quant = 13;
+  int32 g_lon_quant = 14;
+  int32 g_vert_quant = 15;
+
+  // Powertrain, Pedals & 2026 Active Aero / ERS
+  uint32 speed_kph = 16;
+  uint32 rpm = 17;
+  uint32 throttle_raw = 18;
+  uint32 brake_raw = 19;
+  int32 steering_raw = 20;
+  uint32 gear_and_aero = 21;
+  uint32 ers_deploy_mode = 22;
+  float ers_battery_joules = 23;
+  float mgu_k_harvest_kw = 24;
+  uint32 fuel_remaining_centikg = 25;
+
+  // 4-Corner Tires, Brakes & Ride Height [FL, FR, RL, RR]
+  repeated uint32 tire_pressure_centipsi = 26;
+  repeated uint32 tire_surface_temp_c = 27;
+  repeated uint32 tire_carcass_temp_c = 28;
+  repeated uint32 brake_disc_temp_c = 29;
+  repeated uint32 tire_wear_basis_pts = 30;
+  repeated uint32 wheel_slip_ratio_bps = 31;
+
+  // Floor & Integrity
+  uint32 ride_height_front_mm10 = 32;
+  uint32 ride_height_rear_mm10 = 33;
+  uint32 lap_number = 34;
+  uint32 sector_index = 35;
+  uint32 flags = 36;
+  uint32 crc32c = 37;
+
+  // Computed sliding work energy (from C++ stream processor)
+  float tire_sliding_energy_kj = 38;
+}
+
+message TelemetryBatch {
+  string session_id = 1;
+  uint64 batch_sequence = 2;
+  uint64 timestamp_ns = 3;
+  uint32 delivered_hz = 4;
+  repeated TelemetryFrameProto frames = 5;
+  bytes raw_packed_bytes = 6;        // Optional zero-copy 128B binary buffer
+}
+
+message AnomalyEvent {
+  uint64 event_id = 1;
+  uint64 timestamp_ns = 2;
+  uint64 detection_latency_ns = 3;   // Proves <5ms detection SLA in UI
+  uint32 car_id = 4;
+  uint32 lap_number = 5;
+  uint32 sector_index = 6;
+
+  enum AnomalyType {
+    UNKNOWN = 0;
+    TIRE_PUNCTURE_CRITICAL = 1;
+    BRAKE_THERMAL_RUNAWAY = 2;
+    BRAKE_ASYMMETRIC_DRAG = 3;
+    ERS_DEPLOYMENT_CLIPPING = 4;
+    RIVAL_OVERTAKE_OVERRIDE = 5;
+    AERO_PORPOISING_BOTTOMING = 6;
+  }
+
+  AnomalyType anomaly_type = 7;
+  float severity_z_score = 8;
+  string engineer_summary = 9;       // Pre-formatted context for Gemini Race Engineer
+  float metric_value = 10;
+  float baseline_value = 11;
+  string corner_id = 12;             // "FL", "FR", "RL", "RR", or "AERO"/"POWERTRAIN"
+}
+
+message BrokerMetricsSnapshot {
+  uint64 timestamp_ns = 1;
+  double ingestion_rate_eps = 2;     // Events per second (e.g. 254,820 msg/sec)
+  double p50_latency_us = 3;          // p50 latency in microseconds (e.g. 280us)
+  double p99_latency_us = 4;          // p99 latency in microseconds (e.g. 1,420us)
+  double drop_rate_pct = 5;          // Dropped packet percentage (target: 0.000%)
+  uint64 total_ingested_events = 6;
+  uint64 total_dropped_events = 7;
+  repeated double spsc_occupancy_ratio = 8; // Shard 0..7 watermark (0.00..1.00)
+  uint32 active_subscribers = 9;
+  uint64 conflated_frames_total = 10;
+  bool sla_status_pass = 11;         // True if p99 < 2000us
+}

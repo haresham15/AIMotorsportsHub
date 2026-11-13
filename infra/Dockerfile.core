@@ -1,0 +1,12 @@
+# C++20 Core Build
+FROM gcc:13-bookworm AS builder
+WORKDIR /src
+COPY services/apexis-core /src/services/apexis-core
+RUN cd /src/services/apexis-core && make
+
+FROM debian:bookworm-slim
+WORKDIR /app
+COPY --from=builder /src/services/apexis-core/bin/apexis-core /app/apexis-core
+RUN mkdir -p /data/tsdb
+EXPOSE 20777/udp 9091
+ENTRYPOINT ["/app/apexis-core", "--data-dir", "/data/tsdb"]

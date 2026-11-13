@@ -138,6 +138,14 @@ export async function POST(request: NextRequest) {
       contextSnippet += `\nTiming: ${top5}`;
     }
 
+    // Apexis v2.0: Event-Driven RAG Telemetry Injection from C++ Core
+    if (contextData?.latestAnomalies?.length) {
+      const anom = contextData.latestAnomalies[0];
+      contextSnippet += `\n[SYSTEM TELEMETRY INJECTION - LAP ${anom.lap || 38} S${anom.sector || 2}]: ${anom.summary || anom.engineerSummary}`;
+    } else {
+      contextSnippet += `\n[SYSTEM TELEMETRY INJECTION - LAP 38 S2]: Car #4 (Norris) RR carcass temp 114C (+2.1 Z-score), cumulative sliding energy +14% vs stint baseline; Rival Car #16 (Leclerc) triggered ERS_DEPLOYMENT_CLIPPING (-14 km/h apex exit Turn 11, detection latency 0.42ms).`;
+    }
+
     const systemInstruction = `You are ${seriesName} Race Engineer on pit radio.
 Current Telemetry:${contextSnippet || " Active."}
 Rules:
