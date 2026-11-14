@@ -24,25 +24,35 @@ export async function GET(request: Request) {
     const db = getDb();
     
     const commonRaces = db.prepare(`
+      WITH distinct_results AS (
+        SELECT raceId, driverId, MIN(positionOrder) as positionOrder, MAX(points) as points
+        FROM results
+        GROUP BY raceId, driverId
+      )
       SELECT r.raceId, r.year, r.name,
              r1.positionOrder as d1_position, r2.positionOrder as d2_position
-      FROM results r1
-      JOIN results r2 ON r1.raceId = r2.raceId
+      FROM distinct_results r1
+      JOIN distinct_results r2 ON r1.raceId = r2.raceId
       JOIN races r ON r1.raceId = r.raceId
       WHERE r1.driverId = ? AND r2.driverId = ?
       ORDER BY r.year DESC, r.round DESC
     `).all(d1, d2);
 
     const stats = db.prepare(`
+      WITH distinct_results AS (
+        SELECT raceId, driverId, MIN(positionOrder) as positionOrder, MAX(points) as points
+        FROM results
+        GROUP BY raceId, driverId
+      )
       SELECT 
         SUM(CASE WHEN r1.positionOrder < r2.positionOrder THEN 1 ELSE 0 END) as d1_wins,
         SUM(CASE WHEN r2.positionOrder < r1.positionOrder THEN 1 ELSE 0 END) as d2_wins,
-        SUM(CASE WHEN r1.positionText = '1' THEN 1 ELSE 0 END) as d1_race_wins,
-        SUM(CASE WHEN r2.positionText = '1' THEN 1 ELSE 0 END) as d2_race_wins,
+        SUM(CASE WHEN r1.positionOrder = 1 THEN 1 ELSE 0 END) as d1_race_wins,
+        SUM(CASE WHEN r2.positionOrder = 1 THEN 1 ELSE 0 END) as d2_race_wins,
         SUM(CASE WHEN r1.positionOrder <= 3 THEN 1 ELSE 0 END) as d1_podiums,
         SUM(CASE WHEN r2.positionOrder <= 3 THEN 1 ELSE 0 END) as d2_podiums
-      FROM results r1
-      JOIN results r2 ON r1.raceId = r2.raceId
+      FROM distinct_results r1
+      JOIN distinct_results r2 ON r1.raceId = r2.raceId
       WHERE r1.driverId = ? AND r2.driverId = ?
     `).get(d1, d2);
 

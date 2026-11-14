@@ -30,7 +30,22 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  await supabase.auth.getUser()
+  const isConfigured = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+    !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder') &&
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
+    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.includes('placeholder')
+  )
+
+  if (!isConfigured) {
+    return supabaseResponse
+  }
+
+  try {
+    await supabase.auth.getUser()
+  } catch (err) {
+    // Graceful fallback for network or invalid session state
+  }
 
   return supabaseResponse
 }

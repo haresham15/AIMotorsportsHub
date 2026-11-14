@@ -40,8 +40,12 @@ export function getSeasonDetails(year: number) {
       SELECT ds.position, d.forename, d.surname, ds.points, ds.wins, c.name as constructorName
       FROM driver_standings ds
       JOIN drivers d ON ds.driverId = d.driverId
-      -- We need to guess constructor from results of that race (standings table doesn't have constructorId)
-      LEFT JOIN results res ON res.raceId = ds.raceId AND res.driverId = ds.driverId
+      -- Deduplicate results to prevent Cartesian product when drivers share cars
+      LEFT JOIN (
+        SELECT raceId, driverId, MIN(constructorId) as constructorId
+        FROM results
+        GROUP BY raceId, driverId
+      ) res ON res.raceId = ds.raceId AND res.driverId = ds.driverId
       LEFT JOIN constructors c ON res.constructorId = c.constructorId
       WHERE ds.raceId = ?
       ORDER BY ds.position ASC
@@ -63,13 +67,18 @@ export function getDrivers() {
 export function getDriversWithStats() {
   const db = getDb();
   return db.prepare(`
+    WITH distinct_results AS (
+      SELECT raceId, driverId, MIN(positionOrder) as positionOrder
+      FROM results
+      GROUP BY raceId, driverId
+    )
     SELECT d.driverId, d.forename, d.surname, d.nationality,
            COUNT(res.raceId) as totalRaces,
            SUM(CASE WHEN res.positionOrder = 1 THEN 1 ELSE 0 END) as totalWins,
            MAX(r.year) as lastYear,
            MIN(r.year) as firstYear
     FROM drivers d
-    LEFT JOIN results res ON d.driverId = res.driverId
+    LEFT JOIN distinct_results res ON d.driverId = res.driverId
     LEFT JOIN races r ON res.raceId = r.raceId
     GROUP BY d.driverId
     ORDER BY totalWins DESC, totalRaces DESC, d.surname ASC
@@ -88,13 +97,18 @@ export function getDriversWithStats() {
 export function getHeadToHead(driver1Id: number, driver2Id: number) {
   const db = getDb();
   
-  // Find races where both drivers participated
+  // Find races where both drivers participated, deduplicating shared drives
   const racesBoth = db.prepare(`
+    WITH distinct_results AS (
+      SELECT raceId, driverId, MIN(positionOrder) as positionOrder, MAX(points) as points, MIN(grid) as grid
+      FROM results
+      GROUP BY raceId, driverId
+    )
     SELECT r1.raceId, r.year, r.name as raceName,
            r1.positionOrder as d1_pos, r1.points as d1_points, r1.grid as d1_grid,
            r2.positionOrder as d2_pos, r2.points as d2_points, r2.grid as d2_grid
-    FROM results r1
-    JOIN results r2 ON r1.raceId = r2.raceId
+    FROM distinct_results r1
+    JOIN distinct_results r2 ON r1.raceId = r2.raceId
     JOIN races r ON r1.raceId = r.raceId
     WHERE r1.driverId = ? AND r2.driverId = ?
     ORDER BY r.year DESC, r.round DESC

@@ -3,6 +3,7 @@ import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import ModelPerformanceCharts, { OutcomeMetrics } from '@/components/models/ModelPerformanceCharts'
 import LapTimeBenchmarkSection, { LapTimeBenchmarkData } from '@/components/models/LapTimeBenchmarkSection'
+import DriverSimilarityMap from '@/components/dashboard/DriverSimilarityMap'
 
 export default async function ModelsPage() {
   const outcomesRaw = await fs.readFile(path.join(process.cwd(), 'public/models/advanced_outcomes.json'), 'utf8')
@@ -83,6 +84,11 @@ export default async function ModelsPage() {
 
       {/* Wave 2: Lap-Time Transformer vs GBDT Baseline Benchmark */}
       {lapTimeBenchmark && <LapTimeBenchmarkSection benchmark={lapTimeBenchmark} />}
+
+      {/* Driver Season Similarity Clustering Model */}
+      <div className="mt-8">
+        <DriverSimilarityMap />
+      </div>
     </main>
   )
 }
