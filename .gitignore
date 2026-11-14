@@ -44,3 +44,9 @@ next-env.d.ts
 .codegraph/
 bin/
 *.exe
+
+# python
+__pycache__/
+*.py[cod]
+*$py.class
+

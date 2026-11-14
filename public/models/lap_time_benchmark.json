@@ -1,0 +1,48 @@
+{
+  "task": "lap_time_forecasting",
+  "temporal_split": {
+    "train_season": 2023,
+    "train_rounds": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "train_samples": 2838,
+    "test_season": 2023,
+    "test_rounds": [
+      5
+    ],
+    "test_samples": 978,
+    "held_out_race": "Miami Grand Prix 2023"
+  },
+  "comparison": {
+    "winner": "Transformer",
+    "verdict": "Transformer outperforms GBDT baseline by 1.137s MAE.",
+    "margin_mae_seconds": 1.1369
+  },
+  "transformer": {
+    "architecture": "PyTorch Autoregressive Transformer (Custom MHA)",
+    "custom_attention_from_scratch": true,
+    "n_parameters": 70145,
+    "d_model": 64,
+    "n_heads": 4,
+    "n_layers": 2,
+    "held_out_mae": 0.4303,
+    "held_out_rmse": 0.7393,
+    "held_out_r2": 0.2883
+  },
+  "baseline_gbdt": {
+    "architecture": "HistGradientBoosting (GBDT)",
+    "max_iter": 200,
+    "learning_rate": 0.05,
+    "held_out_mae": 1.5672,
+    "held_out_rmse": 2.2982,
+    "held_out_r2": -5.8786
+  },
+  "normalization": {
+    "target_mean": 96.0107,
+    "target_std": 8.7053,
+    "seq_length": 5
+  }
+}
