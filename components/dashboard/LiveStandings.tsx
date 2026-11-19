@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { BarChart3, Star } from 'lucide-react'
 
 import { CVData, RaceData } from '@/lib/types'
@@ -36,7 +36,24 @@ function formatMockLap(series: string): string {
   return mins > 0 ? `${mins}:${secs.padStart(6, '0')}` : `${secs}s`
 }
 
-export default function LiveStandings({
+// ⚡ Bolt Optimization: Extracted getTireColor outside the component
+// 🎯 Why: Prevents recreation of this function on every render cycle, saving memory and processing time.
+// 📊 Impact: Micro-optimization that reduces GC pressure, especially important when this component re-renders frequently (e.g. 10 FPS).
+const getTireColor = (compound: string) => {
+  switch (compound?.toLowerCase()) {
+    case 'soft': return { bg: 'rgba(239,68,68,0.12)', text: '#f87171', border: 'rgba(239,68,68,0.2)' }
+    case 'medium': return { bg: 'rgba(251,191,36,0.12)', text: '#fbbf24', border: 'rgba(251,191,36,0.2)' }
+    case 'hard': return { bg: 'rgba(255,255,255,0.08)', text: '#e2e8f0', border: 'rgba(255,255,255,0.15)' }
+    case 'intermediate': return { bg: 'rgba(34,197,94,0.12)', text: '#4ade80', border: 'rgba(34,197,94,0.2)' }
+    case 'wet': return { bg: 'rgba(59,130,246,0.12)', text: '#60a5fa', border: 'rgba(59,130,246,0.2)' }
+    default: return { bg: 'rgba(255,255,255,0.05)', text: '#94a3b8', border: 'rgba(255,255,255,0.1)' }
+  }
+}
+
+// ⚡ Bolt Optimization: Wrapped LiveStandings with React.memo()
+// 🎯 Why: This component renders a large table of drivers. Wrapping it in React.memo() prevents unnecessary re-renders when the parent (LiveMap2D) re-renders due to unrelated state changes (like wallClockMs updates).
+// 📊 Impact: Skipping re-renders of the large driver table improves UI performance during live sessions.
+const LiveStandings = React.memo(function LiveStandings({
   series,
   sessionKey,
   dataSource = 'mock',
@@ -256,17 +273,6 @@ export default function LiveStandings({
     }
   }, [series, dataSource, externalData, sessionKey, isReplayActive])
 
-  const getTireColor = (compound: string) => {
-    switch (compound?.toLowerCase()) {
-      case 'soft': return { bg: 'rgba(239,68,68,0.12)', text: '#f87171', border: 'rgba(239,68,68,0.2)' }
-      case 'medium': return { bg: 'rgba(251,191,36,0.12)', text: '#fbbf24', border: 'rgba(251,191,36,0.2)' }
-      case 'hard': return { bg: 'rgba(255,255,255,0.08)', text: '#e2e8f0', border: 'rgba(255,255,255,0.15)' }
-      case 'intermediate': return { bg: 'rgba(34,197,94,0.12)', text: '#4ade80', border: 'rgba(34,197,94,0.2)' }
-      case 'wet': return { bg: 'rgba(59,130,246,0.12)', text: '#60a5fa', border: 'rgba(59,130,246,0.2)' }
-      default: return { bg: 'rgba(255,255,255,0.05)', text: '#94a3b8', border: 'rgba(255,255,255,0.1)' }
-    }
-  }
-
   const liveLabel = (series === 'nascar' || series.startsWith('nascar-')) ? 'LIVE (NASCAR)' : 'LIVE (OPENF1)'
 
   return (
@@ -439,4 +445,6 @@ export default function LiveStandings({
       )}
     </div>
   )
-}
+})
+
+export default LiveStandings
