@@ -35,8 +35,6 @@ export default function ChampionshipStandings({ drivers = [], constructors = [],
 
   const safeDrivers = drivers || []
   const safeConstructors = constructors || []
-  const maxDriverPoints = safeDrivers[0]?.points || 1
-  const maxConstructorPoints = safeConstructors[0]?.points || 1
 
   return (
     <div className="card glass rounded-[var(--radius-xl)] overflow-hidden flex flex-col h-full">

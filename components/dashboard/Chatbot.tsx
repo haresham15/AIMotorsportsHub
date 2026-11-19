@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { MessageCircle, X, Send, Bot, Radio, Zap, Sparkles, RefreshCw } from 'lucide-react'
+import { X, Send, Radio, Sparkles } from 'lucide-react'
 import { SERIES_MAP } from '@/lib/data'
 
 interface Message {

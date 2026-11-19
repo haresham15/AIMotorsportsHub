@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     let intent;
     try {
       intent = JSON.parse(extractedText);
-    } catch (e) {
+    } catch (_e) {
       console.error("Failed to parse LLM JSON:", extractedText);
       return NextResponse.json({ error: "Could not understand the scenario parameters." }, { status: 400 });
     }
@@ -82,6 +82,7 @@ export async function POST(request: NextRequest) {
           ELSE 4 
         END ASC
       LIMIT 1
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     `).get(intent.year, racePattern, racePattern, racePattern, racePattern, racePattern, racePattern, racePattern) as any;
                    
     if (!race) {
@@ -95,6 +96,7 @@ export async function POST(request: NextRequest) {
       JOIN drivers d ON res.driverId = d.driverId
       WHERE res.raceId = ? AND d.surname LIKE ?
       LIMIT 1
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     `).get(race.raceId, `%${intent.driverSurname}%`) as any;
 
     if (!driverRes) {
@@ -122,6 +124,7 @@ export async function POST(request: NextRequest) {
         FROM results
         WHERE raceId = ? AND milliseconds IS NOT NULL
         ORDER BY milliseconds ASC
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       `).all(race.raceId) as any[];
 
       // Sort with the modified time

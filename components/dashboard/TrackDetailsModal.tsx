@@ -1,8 +1,7 @@
 'use client';
 
 import React from 'react';
-import { X, MapPin, Wind, Thermometer, Gauge, Clock, Compass, Layers } from 'lucide-react';
-import { TRACK_REGISTRY } from '@/lib/trackData';
+import { X, MapPin, Thermometer, Layers } from 'lucide-react';
 
 interface TrackDetailsModalProps {
   isOpen: boolean;
@@ -239,7 +238,6 @@ export default function TrackDetailsModal({
   isOpen,
   onClose,
   circuitName,
-  country,
   onSelectTrack,
 }: TrackDetailsModalProps) {
   if (!isOpen) return null;
