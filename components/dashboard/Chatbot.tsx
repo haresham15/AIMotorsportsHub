@@ -88,10 +88,11 @@ export default function Chatbot({ series, contextData }: ChatbotProps) {
           if (done) break
           const chunk = decoder.decode(value, { stream: true })
           accumulated += chunk
+          const currentAccumulated = accumulated;
           setMessages((prev) => {
             const next = [...prev]
             if (next.length > 0 && next[next.length - 1].role === 'assistant') {
-              next[next.length - 1] = { role: 'assistant', content: accumulated }
+              next[next.length - 1] = { role: 'assistant', content: currentAccumulated }
             }
             return next
           })
