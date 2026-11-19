@@ -245,6 +245,7 @@ export default function ReplayControls({
           <button
             className="flex items-center justify-center w-8 h-8 text-[var(--text-muted)] hover:text-white hover:bg-white/10 transition-colors cursor-pointer rounded-none"
             title="Restart to beginning (R)"
+            aria-label="Restart to beginning"
             onClick={() => onChange({ frameIndex: 0, isPlaying: true, isLiveMode: false })}
           >
             <RotateCcw size={14} />
@@ -254,6 +255,7 @@ export default function ReplayControls({
           <button
             className="flex items-center justify-center w-8 h-8 text-[var(--text-secondary)] hover:text-white hover:bg-white/10 transition-colors cursor-pointer rounded-none"
             title="Rewind 10s (←)"
+            aria-label="Rewind 10s"
             onClick={() => onChange({ frameIndex: Math.max(0, playback.frameIndex - REPLAY_FPS * 10), isLiveMode: false })}
           >
             <SkipBack size={16} />
@@ -296,6 +298,7 @@ export default function ReplayControls({
           <button
             className="flex items-center justify-center w-10 h-10 bg-[var(--amber)] hover:bg-amber-300 text-black font-extrabold transition-all cursor-pointer rounded-none"
             title="Play / Pause (Space)"
+            aria-label="Play / Pause"
             onClick={() => onChange({ isPlaying: !playback.isPlaying })}
           >
             {playback.isPlaying ? <Pause size={18} className="fill-black" /> : <Play size={18} className="fill-black ml-0.5" />}
@@ -305,6 +308,7 @@ export default function ReplayControls({
           <button
             className="flex items-center justify-center w-8 h-8 text-[var(--text-secondary)] hover:text-white hover:bg-white/10 transition-colors cursor-pointer rounded-none"
             title="Skip forward 10s (→)"
+            aria-label="Skip forward 10s"
             onClick={() => onChange({ frameIndex: Math.min(maxFrameIndex, playback.frameIndex + REPLAY_FPS * 10) })}
           >
             <SkipForward size={16} />
@@ -375,6 +379,7 @@ export default function ReplayControls({
             onClick={toggleFullscreen}
             className="flex items-center justify-center w-8 h-8 bg-transparent border border-white/20 text-[var(--text-muted)] hover:text-white hover:bg-white/10 transition-colors cursor-pointer rounded-none"
             title="Toggle Fullscreen (F)"
+            aria-label="Toggle Fullscreen"
           >
             {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
           </button>
