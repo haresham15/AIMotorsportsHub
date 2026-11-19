@@ -64,6 +64,7 @@ export default function ReplayLeaderboard({ data, frame, selectedDrivers, onSele
             onClick={onClose}
             className="w-6 h-6 rounded-md flex items-center justify-center text-[var(--text-muted)] hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
             title="Collapse Standings Dock"
+            aria-label="Collapse Standings Dock"
           >
             <X size={14} />
           </button>
