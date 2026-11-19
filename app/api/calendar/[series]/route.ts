@@ -26,7 +26,7 @@ export async function GET(
   const scheduleUrl = getScheduleUrl(request.nextUrl.origin, series)
 
   try {
-    let rounds: any[] = [];
+    let rounds: Record<string, unknown>[] = [];
 
     if (scheduleUrl) {
       try {
@@ -42,7 +42,7 @@ export async function GET(
 
     if (!rounds || rounds.length === 0) {
       const fallback = getSeriesFallbackSchedule(series, new Date().getFullYear().toString());
-      rounds = fallback?.rounds || [];
+      rounds = (fallback?.rounds as unknown as Record<string, unknown>[]) || [];
     }
 
     if (!rounds || rounds.length === 0) {
@@ -52,11 +52,12 @@ export async function GET(
     // Build the iCalendar string
     let ics = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Apexis//EN\r\nCALSCALE:GREGORIAN\r\nX-WR-CALNAME:${series.toUpperCase()} Schedule\r\n`;
 
-    rounds.forEach((round: any) => {
+    rounds.forEach((round: Record<string, unknown>) => {
       // If we have detailed OpenF1 sessions, create an event for each session
-      if (round.sessions && round.sessions.length > 0) {
-        round.sessions.forEach((session: any) => {
-          const startDate = new Date(session.dateStart);
+      const sessions = round.sessions as Record<string, unknown>[] | undefined;
+      if (sessions && sessions.length > 0) {
+        sessions.forEach((session: Record<string, unknown>) => {
+          const startDate = new Date(session.dateStart as string);
           // Default duration to 1 hour if we don't have end times
           const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
           
