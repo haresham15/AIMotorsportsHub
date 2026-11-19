@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     let intent;
     try {
       intent = JSON.parse(extractedText);
-    } catch (e) {
+    } catch {
       console.error("Failed to parse LLM JSON:", extractedText);
       return NextResponse.json({ error: "Could not understand the scenario parameters." }, { status: 400 });
     }
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
           ELSE 4 
         END ASC
       LIMIT 1
-    `).get(intent.year, racePattern, racePattern, racePattern, racePattern, racePattern, racePattern, racePattern) as any;
+    `).get(intent.year, racePattern, racePattern, racePattern, racePattern, racePattern, racePattern, racePattern) as { raceId: number, name: string, year: number } | undefined;
                    
     if (!race) {
       return NextResponse.json({ error: `Could not find a race matching ${intent.raceName} in ${intent.year}.` }, { status: 404 });

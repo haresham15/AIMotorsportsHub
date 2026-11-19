@@ -1,0 +1,15 @@
+--- app/about/page.tsx
++++ app/about/page.tsx
+@@ -9,14 +9,12 @@
+   Bot,
+   Map,
+-  Flag,
+-  Sparkles,
+   Users,
+   Activity,
+   Brain,
+   Database,
+-  Zap,
+   ChevronRight,
+   Github
+ } from 'lucide-react';

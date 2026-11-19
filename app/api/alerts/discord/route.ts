@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     const { webhookUrl, series, eventType, message, data } = body;
 
     const isValidWebhook = typeof webhookUrl === 'string' &&
-      /^https:\/\/(?:ptb\.|canary\.)?discord(?:app)?\.com\/api\/webhooks\//i.test(webhookUrl)
+      /^https:\/\/(?:ptb\.|canary\.)?discord(?:app)?\.com\/api\/webhooks\/\d+\/[\w-]+$/i.test(webhookUrl)
 
     if (!isValidWebhook) {
       return NextResponse.json({ error: "Invalid or missing webhookUrl" }, { status: 400 });

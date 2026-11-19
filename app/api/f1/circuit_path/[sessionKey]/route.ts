@@ -12,7 +12,7 @@ export async function GET(
 
   try {
     // 1. Fetch laps for the requested driver, or fallback to any driver in this session
-    let laps: any[] = []
+    let laps: { lap_duration?: number, date_start?: string, driver_number?: string }[] = []
     const requestedDriver = searchParams.get('driver_number')
     if (requestedDriver) {
       try {
@@ -37,17 +37,17 @@ export async function GET(
     }
 
     // 2. Find a valid fast lap to ensure a clean trace of the circuit
-    const validLaps = laps.filter((l: any) => l.lap_duration && l.lap_duration > 50 && l.date_start)
+    const validLaps = laps.filter((l) => l.lap_duration && l.lap_duration > 50 && l.date_start)
     if (validLaps.length === 0) {
       return NextResponse.json({ error: 'No valid laps found' }, { status: 404 })
     }
-    const bestLap = validLaps.sort((a: any, b: any) => a.lap_duration - b.lap_duration)[0]
+    const bestLap = validLaps.sort((a, b) => (a.lap_duration || 0) - (b.lap_duration || 0))[0]
     const lapDriver = String(bestLap.driver_number || driver)
 
     // 3. Define time window for the lap
-    const start = new Date(bestLap.date_start).getTime()
+    const start = new Date(bestLap.date_start!).getTime()
     // Add 1 second buffer to ensure the loop closes
-    const end = start + (bestLap.lap_duration + 1) * 1000 
+    const end = start + ((bestLap.lap_duration || 0) + 1) * 1000
     
     const startIso = new Date(start).toISOString()
     const endIso = new Date(end).toISOString()
@@ -74,7 +74,7 @@ export async function GET(
     // 5. Downsample by taking 1 in every 3 points to shrink payload size for real-time trace
     const points = locData
       .filter((_: unknown, i: number) => i % 3 === 0)
-      .map((p: any) => ({
+      .map((p: { x: number, y: number }) => ({
         x: p.x,
         y: p.y
       }))
