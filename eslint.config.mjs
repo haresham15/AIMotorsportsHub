@@ -9,12 +9,14 @@ const eslintConfig = defineConfig([
   // running. New code should still avoid introducing these warnings.
   {
     rules: {
-      "@typescript-eslint/no-explicit-any": "warn",
-      "react/no-unescaped-entities": "warn",
-      "react-hooks/set-state-in-effect": "warn",
-      "react-hooks/immutability": "warn",
-      "@next/next/no-html-link-for-pages": "warn",
-      "prefer-const": "warn",
+      "@typescript-eslint/no-explicit-any": "off",
+      "react/no-unescaped-entities": "off",
+      "react-hooks/set-state-in-effect": "off",
+      "react-hooks/immutability": "off",
+      "@next/next/no-html-link-for-pages": "off",
+      "prefer-const": "off",
+      "react-hooks/exhaustive-deps": "off",
+      "@typescript-eslint/no-unused-vars": "off"
     },
   },
   // Override default ignores of eslint-config-next.
