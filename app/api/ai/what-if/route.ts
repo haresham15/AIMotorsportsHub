@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     let intent;
     try {
       intent = JSON.parse(extractedText);
-    } catch (e) {
+    } catch {
       console.error("Failed to parse LLM JSON:", extractedText);
       return NextResponse.json({ error: "Could not understand the scenario parameters." }, { status: 400 });
     }
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
           ELSE 4 
         END ASC
       LIMIT 1
-    `).get(intent.year, racePattern, racePattern, racePattern, racePattern, racePattern, racePattern, racePattern) as any;
+    `).get(intent.year, racePattern, racePattern, racePattern, racePattern, racePattern, racePattern, racePattern) as { raceId: number, name: string, year: number } | undefined;
                    
     if (!race) {
       return NextResponse.json({ error: `Could not find a race matching ${intent.raceName} in ${intent.year}.` }, { status: 404 });
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
       JOIN drivers d ON res.driverId = d.driverId
       WHERE res.raceId = ? AND d.surname LIKE ?
       LIMIT 1
-    `).get(race.raceId, `%${intent.driverSurname}%`) as any;
+    `).get(race.raceId, `%${intent.driverSurname}%`) as { position: number, time: string, milliseconds: number, forename: string, surname: string, driverId: number } | undefined;
 
     if (!driverRes) {
       return NextResponse.json({ error: `Could not find ${intent.driverSurname} in the ${race.year} ${race.name}.` }, { status: 404 });
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
         FROM results
         WHERE raceId = ? AND milliseconds IS NOT NULL
         ORDER BY milliseconds ASC
-      `).all(race.raceId) as any[];
+      `).all(race.raceId) as { positionOrder: number, milliseconds: number, driverId: number }[];
 
       // Sort with the modified time
       const modifiedResults = allResults.map(r => {
@@ -191,8 +191,8 @@ Do not break character. Do not mention "The ML model says" — present it as the
       intent
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("What If API error:", error);
-    return NextResponse.json({ error: error.message || "An unexpected error occurred" }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : "An unexpected error occurred" }, { status: 500 });
   }
 }

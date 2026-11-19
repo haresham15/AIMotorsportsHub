@@ -157,10 +157,10 @@ export default function LiveMap2D({
   // ── Load data ──────────────────────────────────────────────────
   useEffect(() => {
     let cancelled = false
-    setLoading(true)
-    setError(null)
 
     const loadData = async () => {
+      setLoading(true)
+      setError(null)
       try {
         const driversList = driverStandings && driverStandings.length > 0 ? driverStandings.map(d => ({
           code: d.code || d.lastName.substring(0,3).toUpperCase(),

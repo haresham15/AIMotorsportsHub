@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { BarChart3, Star } from 'lucide-react'
 
 import { CVData, RaceData } from '@/lib/types'
@@ -36,7 +36,7 @@ function formatMockLap(series: string): string {
   return mins > 0 ? `${mins}:${secs.padStart(6, '0')}` : `${secs}s`
 }
 
-export default function LiveStandings({
+const LiveStandings = React.memo(function LiveStandings({
   series,
   sessionKey,
   dataSource = 'mock',
@@ -439,4 +439,6 @@ export default function LiveStandings({
       )}
     </div>
   )
-}
+})
+
+export default LiveStandings
