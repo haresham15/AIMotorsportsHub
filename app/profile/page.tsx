@@ -1141,6 +1141,7 @@ export default function ProfilePage() {
               <button
                 onClick={() => setShowAddModal(false)}
                 className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-[var(--text-muted)] hover:text-white cursor-pointer border-none"
+                aria-label="Close modal"
               >
                 &times;
               </button>

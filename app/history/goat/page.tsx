@@ -252,6 +252,7 @@ export default function GoatDebatePage() {
                 <button
                   onClick={() => setSearchQuery("")}
                   className="absolute right-2.5 top-2.5 text-[var(--text-muted)] hover:text-white text-xs cursor-pointer"
+                  aria-label="Clear search"
                 >
                   &times;
                 </button>

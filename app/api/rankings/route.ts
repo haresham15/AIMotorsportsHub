@@ -18,8 +18,8 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({ rankings: filtered });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Rankings API error:", error);
-    return NextResponse.json({ error: error.message || "An unexpected error occurred" }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Internal server error" }, { status: 500 });
   }
 }

@@ -126,6 +126,7 @@ export default function SeasonsPage() {
             <button
               onClick={() => setSearchYear('')}
               className="absolute right-2 top-1.5 text-[var(--text-muted)] hover:text-white text-xs cursor-pointer"
+              aria-label="Clear search"
             >
               &times;
             </button>
