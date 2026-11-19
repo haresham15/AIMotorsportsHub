@@ -81,6 +81,7 @@ export default function RoundNavigator({
             className="round-nav__btn" 
             onClick={handlePrev} 
             disabled={selectedRound <= 1}
+            aria-label="Previous Round"
           >
             <ChevronLeft size={16} />
           </button>
@@ -107,6 +108,7 @@ export default function RoundNavigator({
             className="round-nav__btn" 
             onClick={handleNext} 
             disabled={selectedRound >= rounds.length}
+            aria-label="Next Round"
           >
             <ChevronRight size={16} />
           </button>
